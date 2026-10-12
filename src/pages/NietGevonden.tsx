@@ -1,1 +1,13 @@
-export function NietGevonden() { return <h1>NietGevonden</h1>; }
+import { Link } from 'react-router-dom';
+import { PaginaKop } from '../components/ui';
+
+export function NietGevonden() {
+  return (
+    <>
+      <PaginaKop titel="Pagina niet gevonden">Deze pagina bestaat niet in het prototype.</PaginaKop>
+      <Link className="knop primair" to="/">
+        Naar de homepage
+      </Link>
+    </>
+  );
+}
