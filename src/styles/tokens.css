@@ -1,0 +1,43 @@
+/* KplusV-huisstijl: tokens. Dit is de enige plek waar kleuren, lettertype en maten staan.
+   Bron: skill kplusv-huisstijl (references/huisstijl.css). Alleen een licht thema. */
+:root {
+  color-scheme: light;
+
+  /* Merkkleuren */
+  --donkerviolet: #5760a6; /* navbar, koppen, primaire grafiekreeks */
+  --donkerviolet-2: #4a539a; /* donkere variant voor verloop en hover */
+  --paars: #9462a6; /* accent, actieve tab, knoppen, belangrijkste KPI-tegel */
+  --lichtviolet: #b8aed6; /* lijnen en subtiele accenten */
+  --blauw: #007db5; /* links, tweede grafiekreeks */
+
+  /* Vlakken en tekst */
+  --achtergrond: #f8f7fc;
+  --wit: #ffffff;
+  --kaartvlak: #f3f1fa;
+  --kaartvlak-2: #ede8f5;
+  --rand: #e2dff0;
+  --rij: #f3f4f6;
+  --tekst: #111827;
+  --tekst-2: #374151;
+  --tekst-secundair: #6b7280;
+  --grijs-vergelijking: #9ca3af;
+
+  /* Signaalkleuren (altijd met tekst of icoon erbij) */
+  --waarschuwing-bg: #fffbeb;
+  --waarschuwing-rand: #fcd34d;
+  --waarschuwing-tekst: #92400e;
+  --succes-bg: #ecfdf5;
+  --succes-rand: #6ee7b7;
+  --succes-tekst: #065f46;
+
+  /* Typografie */
+  --font: 'Poppins', system-ui, -apple-system, sans-serif;
+
+  /* Maten */
+  --radius-kaart: 16px;
+  --radius: 12px;
+  --radius-klein: 8px;
+  --max-breedte: 1120px;
+  --gutter: 16px;
+  --focus: #9462a6;
+}

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <meta name="description" content="Prototype van een ledenplatform rond de Restafvalkaart van Nederland (KplusV). Alle content en berekeningen zijn fictief." />
+    <meta name="theme-color" content="#5760A6" />
+    <title>Ledenplatform Restafvalkaart</title>
+    <link rel="icon" href="/logo-kplusv.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
+  </head>
+  <body>
+    <!--
+      Verborgen statische kopie van het feedbackformulier.
+      Netlify leest bij de build alleen statische HTML; zo herkent het formulier "feedback" en alle velden.
+      Houd de veldnamen gelijk aan src/data/feedback.ts.
+    -->
+    <form name="feedback" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input type="hidden" name="form-name" value="feedback" />
+      <input name="bot-field" />
+      <select name="rol"><option value="">-</option></select>
+      <input name="organisatie" />
+      <input name="gebruiken" />
+      <input name="onderdelen" />
+      <textarea name="mist"></textarea>
+      <input name="lid_worden" />
+      <input name="bedrag_redelijk" />
+      <input name="bedrag_te_duur" />
+      <textarea name="weerhoudt"></textarea>
+      <textarea name="collega_bijdrage"></textarea>
+      <input name="contact_toestemming" />
+      <input type="email" name="email" />
+    </form>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

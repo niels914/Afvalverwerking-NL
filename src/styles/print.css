@@ -1,0 +1,102 @@
+/* Printweergave voor "Rapport maken": invoer, formule en uitkomst in huisstijl.
+   Navigatie, banner, invoervelden en knoppen verdwijnen; de verantwoording blijft staan. */
+@media print {
+  @page {
+    size: A4;
+    margin: 16mm 14mm;
+  }
+  body {
+    background: #fff;
+    font-size: 11pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .nav,
+  .banner,
+  .voet,
+  .overslaan,
+  .geen-print,
+  .invoerkaart,
+  .knoppen,
+  button,
+  .leaflet-vak {
+    display: none !important;
+  }
+  .print-alleen {
+    display: block !important;
+  }
+  .wrap {
+    max-width: none;
+    padding: 0;
+  }
+  main {
+    padding: 0;
+  }
+  .rapportkop {
+    border-radius: 0;
+    background: var(--donkerviolet);
+    color: #fff;
+    padding: 14px 16px 0;
+    margin-bottom: 14px;
+  }
+  .rapportkop .rij {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .rapportkop img {
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+  }
+  .rapportkop h1 {
+    color: #fff;
+    font-size: 18pt;
+  }
+  .rapportkop p {
+    color: var(--lichtviolet);
+    font-size: 10pt;
+    padding-bottom: 10px;
+  }
+  .rapportkop .kpv-streep {
+    margin: 0 -16px;
+  }
+  .rapportvoet {
+    margin-top: 16px;
+    border-top: 1px solid var(--rand);
+    padding-top: 8px;
+    font-size: 9pt;
+    color: var(--tekst-secundair);
+    display: flex !important;
+    justify-content: space-between;
+  }
+  .intro {
+    margin: 0 0 12px;
+  }
+  .kaart,
+  .tegel,
+  table,
+  .grafiek-houder {
+    break-inside: avoid;
+  }
+  .kaart {
+    box-shadow: none;
+    padding: 14px;
+  }
+  .raster-tool,
+  .raster-2 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .vergrendeld-preview {
+    filter: none;
+    opacity: 1;
+    max-height: none;
+  }
+  .tabel-container {
+    overflow: visible;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}

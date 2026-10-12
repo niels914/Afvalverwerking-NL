@@ -1,0 +1,86 @@
+import { useEffect, useState } from 'react';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { RolSchakelaar } from '../betaalmuur/RolSchakelaar';
+import { useRol } from '../betaalmuur/RolContext';
+import { navigatie, platform } from '../../data/site';
+
+/** Kleurstreep, navbar met rolschakelaar, prototypebanner, inhoud en voettekst. */
+export function Layout() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const locatie = useLocation();
+  const { isLid } = useRol();
+
+  // Menu sluiten en naar boven (of naar het anker) bij een andere pagina.
+  useEffect(() => {
+    setMenuOpen(false);
+    if (locatie.hash) {
+      const id = decodeURIComponent(locatie.hash.slice(1));
+      requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView());
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }, [locatie.pathname, locatie.hash]);
+
+  return (
+    <>
+      <a className="overslaan" href="#inhoud">
+        Naar de inhoud
+      </a>
+      <div className="kpv-streep" />
+      <header className="nav">
+        <div className="wrap nav-boven">
+          <Link className="merk" to="/">
+            <img src="/logo-kplusv.jpg" alt="" width={32} height={32} />
+            <span className="k">KplusV</span>
+            <span className="app">{platform.naam}</span>
+          </Link>
+          <div className="nav-rechts">
+            <RolSchakelaar />
+            <button
+              type="button"
+              className="menuknop"
+              aria-expanded={menuOpen}
+              aria-controls="hoofdmenu"
+              onClick={() => setMenuOpen((o) => !o)}
+            >
+              {menuOpen ? '✕ Sluit menu' : '☰ Menu'}
+            </button>
+          </div>
+        </div>
+        <nav id="hoofdmenu" className="hoofdmenu" aria-label="Hoofdmenu" data-open={menuOpen}>
+          <div className="wrap">
+            <ul>
+              {navigatie.map((item) => (
+                <li key={item.pad}>
+                  <NavLink to={item.pad} end={item.pad === '/'}>
+                    {item.label}
+                    {item.alleenLeden && !isLid && (
+                      <span className="slot" aria-label="(alleen leden)" title="Alleen leden">
+                        🔒
+                      </span>
+                    )}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </nav>
+      </header>
+      <div className="banner" role="note">
+        <div className="wrap">
+          <strong>Prototype:</strong> alle nieuwsberichten, onderzoeken, aanbestedingen en berekeningen zijn fictief en dienen
+          alleen ter illustratie.
+        </div>
+      </div>
+      <main id="inhoud" className="wrap" tabIndex={-1}>
+        <Outlet />
+      </main>
+      <footer className="voet">
+        <div className="wrap">
+          <span>KplusV · Verschil zien, verschil maken</span>
+          <span>Prototype · fictieve content · {platform.versie}</span>
+        </div>
+      </footer>
+    </>
+  );
+}

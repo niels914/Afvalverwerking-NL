@@ -1,0 +1,3 @@
+# Prototype: niet indexeren
+User-agent: *
+Disallow: /
