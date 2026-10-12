@@ -1,4 +1,20 @@
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+
+/** Meet de breedte van de container, zodat de SVG 1-op-1 tekent en tekst op elke breedte leesbaar blijft. */
+function useBreedte<T extends HTMLElement>(standaard: number) {
+  const ref = useRef<T>(null);
+  const [breedte, setBreedte] = useState(standaard);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const meet = () => setBreedte(Math.max(260, Math.round(el.clientWidth)));
+    meet();
+    const ro = new ResizeObserver(meet);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  return [ref, breedte] as const;
+}
 
 // Eenvoudige SVG-grafieken zonder externe bibliotheek, in huisstijlkleuren.
 // Eerste reeks donkerviolet, tweede KplusV-blauw, vergelijking als gestreepte grijze lijn.
@@ -56,9 +72,11 @@ function LegendaSymbool({ kleur, patroon, vorm }: { kleur: string; patroon: stri
 /** Lijngrafiek met crosshair en tooltip. */
 export function LijnGrafiek({ titel, labels, reeksen, formatY, vanafNul = true }: LijnProps) {
   const [actief, setActief] = useState<number | null>(null);
-  const B = 640;
+  const [ref, B] = useBreedte<HTMLElement>(640);
   const H = 260;
   const m = { l: 64, r: 16, t: 14, b: 30 };
+  // Op smalle schermen niet elk jaartal tonen.
+  const elke = Math.max(1, Math.ceil((labels.length * 44) / (B - m.l - m.r)));
   const alle = reeksen.flatMap((r) => r.waarden).filter(Number.isFinite);
   const min = vanafNul ? Math.min(0, ...alle) : Math.min(...alle) * 0.95;
   const { onder, boven, ticks } = mooieSchaal(min, Math.max(...alle));
@@ -73,7 +91,7 @@ export function LijnGrafiek({ titel, labels, reeksen, formatY, vanafNul = true }
   const stapBreedte = labels.length > 1 ? (B - m.l - m.r) / (labels.length - 1) : B - m.l - m.r;
 
   return (
-    <figure className="grafiek-houder" style={{ margin: 0 }}>
+    <figure className="grafiek-houder" style={{ margin: 0 }} ref={ref}>
       <figcaption className="visueel-verborgen">{titel}</figcaption>
       <ul className="legenda" style={{ marginBottom: 8 }}>
         {reeksen.map((r, i) => {
@@ -86,7 +104,7 @@ export function LijnGrafiek({ titel, labels, reeksen, formatY, vanafNul = true }
           );
         })}
       </ul>
-      <svg className="grafiek" viewBox={`0 0 ${B} ${H}`} role="img" aria-label={titel} onMouseLeave={() => setActief(null)}>
+      <svg className="grafiek" width={B} height={H} viewBox={`0 0 ${B} ${H}`} role="img" aria-label={titel} onMouseLeave={() => setActief(null)}>
         {ticks.map((t) => (
           <g key={t}>
             <line className="raster-lijn" x1={m.l} x2={B - m.r} y1={y(t)} y2={y(t)} />
@@ -96,11 +114,13 @@ export function LijnGrafiek({ titel, labels, reeksen, formatY, vanafNul = true }
           </g>
         ))}
         <line className="as" x1={m.l} x2={B - m.r} y1={y(onder)} y2={y(onder)} />
-        {labels.map((l, i) => (
-          <text key={String(l)} x={x(i)} y={H - 8} textAnchor="middle">
-            {l}
-          </text>
-        ))}
+        {labels.map((l, i) =>
+          i % elke === 0 || i === labels.length - 1 ? (
+            <text key={String(l)} x={x(i)} y={H - 8} textAnchor={i === labels.length - 1 ? 'end' : i === 0 ? 'start' : 'middle'}>
+              {l}
+            </text>
+          ) : null,
+        )}
         {actief !== null && <line x1={x(actief)} x2={x(actief)} y1={m.t} y2={H - m.b} stroke="#B8AED6" strokeWidth={1} />}
         {reeksen.map((r, i) => {
           const s = stijl(r, i);
@@ -199,9 +219,10 @@ export interface Band {
 
 /** Tornadodiagram voor een gevoeligheidsanalyse rond een basiswaarde. */
 export function BandGrafiek({ titel, basis, banden, formatX }: { titel: string; basis: number; banden: Band[]; formatX: (n: number) => string }) {
-  const B = 640;
-  const rij = 34;
-  const m = { l: 150, r: 170, t: 8, b: 26 };
+  const [ref, B] = useBreedte<HTMLElement>(640);
+  const smal = B < 520;
+  const rij = smal ? 52 : 34;
+  const m = smal ? { l: 8, r: 8, t: 8, b: 26 } : { l: 150, r: 170, t: 8, b: 26 };
   const H = m.t + m.b + banden.length * rij;
   const alle = banden.flatMap((b) => [b.laag, b.hoog]).concat(basis);
   const min = Math.min(...alle);
@@ -209,22 +230,26 @@ export function BandGrafiek({ titel, basis, banden, formatX }: { titel: string; 
   const marge = (max - min) * 0.05 || 1;
   const x = (v: number) => m.l + ((v - (min - marge)) / (max - min + 2 * marge)) * (B - m.l - m.r);
   return (
-    <figure className="grafiek-houder" style={{ margin: 0 }}>
+    <figure className="grafiek-houder" style={{ margin: 0 }} ref={ref}>
       <figcaption className="visueel-verborgen">{titel}</figcaption>
-      <svg className="grafiek" viewBox={`0 0 ${B} ${H}`} role="img" aria-label={titel}>
+      <svg className="grafiek" width={B} height={H} viewBox={`0 0 ${B} ${H}`} role="img" aria-label={titel}>
         {banden.map((b, i) => {
-          const yy = m.t + i * rij + 6;
+          // Smal scherm: label en bedragen boven de balk in plaats van ernaast.
+          const yy = m.t + i * rij + (smal ? 22 : 6);
           const links = Math.min(b.laag, b.hoog);
           const rechts = Math.max(b.laag, b.hoog);
           return (
             <g key={b.label}>
-              <text x={m.l - 10} y={yy + 15} textAnchor="end" style={{ fill: 'var(--tekst-2)' }}>
+              <text x={smal ? m.l : m.l - 10} y={smal ? yy - 6 : yy + 15} textAnchor={smal ? 'start' : 'end'} style={{ fill: 'var(--tekst-2)' }}>
                 {b.label}
+                {smal && ` · ${formatX(links)} – ${formatX(rechts)}`}
               </text>
-              <rect x={x(links)} y={yy} width={Math.max(2, x(rechts) - x(links))} height={rij - 14} rx={4} fill="#5760A6" opacity={0.85} />
-              <text className="waardelabel" x={x(rechts) + 6} y={yy + 15}>
-                {formatX(links)} – {formatX(rechts)}
-              </text>
+              <rect x={x(links)} y={yy} width={Math.max(2, x(rechts) - x(links))} height={smal ? 18 : rij - 14} rx={4} fill="#5760A6" opacity={0.85} />
+              {!smal && (
+                <text className="waardelabel" x={x(rechts) + 6} y={yy + 15}>
+                  {formatX(links)} – {formatX(rechts)}
+                </text>
+              )}
             </g>
           );
         })}

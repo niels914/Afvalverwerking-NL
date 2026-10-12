@@ -718,6 +718,8 @@ input[type='range'] {
 
 /* ---------- Tabellen ---------- */
 .tabel-container {
+  /* relative: ook absoluut gepositioneerde (verborgen) tekst blijft binnen de scrollcontainer */
+  position: relative;
   overflow-x: auto;
   border: 1px solid var(--rand);
   border-radius: var(--radius);
@@ -904,6 +906,9 @@ td input {
   user-select: none;
 }
 .vergrendeld-slot {
+  /* Boven de preview: die heeft opacity en krijgt daardoor een eigen stapellaag. */
+  position: relative;
+  z-index: 1;
   display: grid;
   place-items: center;
   padding: 16px;
