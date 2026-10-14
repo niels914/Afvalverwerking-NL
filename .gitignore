@@ -2,3 +2,5 @@ node_modules
 dist
 .netlify
 *.tsbuildinfo
+test-results/
+playwright-report/
