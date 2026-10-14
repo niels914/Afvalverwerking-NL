@@ -30,3 +30,12 @@ export const contact = {
   telefoon: '06 2708 5537',
   foto: '/foto-niels.jpg',
 };
+
+/** Links in de voettekst (juridische pagina's). */
+export const voetLinks: NavItem[] = [
+  { pad: '/algemene-voorwaarden', label: 'Algemene voorwaarden' },
+  { pad: '/privacy', label: 'Privacyverklaring' },
+  { pad: '/cookies', label: 'Cookies' },
+  { pad: '/toegankelijkheid', label: 'Toegankelijkheid' },
+  { pad: '/disclaimer', label: 'Disclaimer' },
+];

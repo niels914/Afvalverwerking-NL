@@ -14,6 +14,14 @@ import { Aanbestedingsarchief } from './pages/Aanbestedingsarchief';
 import { Lidmaatschap } from './pages/Lidmaatschap';
 import { Over } from './pages/Over';
 import { NietGevonden } from './pages/NietGevonden';
+import { Aanmelden } from './pages/Aanmelden';
+import { Inloggen } from './pages/Inloggen';
+import { Account } from './pages/Account';
+import { AlgemeneVoorwaarden } from './pages/juridisch/AlgemeneVoorwaarden';
+import { Privacy } from './pages/juridisch/Privacy';
+import { Cookies } from './pages/juridisch/Cookies';
+import { Toegankelijkheid } from './pages/juridisch/Toegankelijkheid';
+import { Disclaimer } from './pages/juridisch/Disclaimer';
 import { navigatie, platform } from './data/site';
 
 // De kaartpagina laadt Leaflet pas als je hem opent.
@@ -55,6 +63,14 @@ export function App() {
           <Route path="aanbestedingsarchief" element={<Aanbestedingsarchief />} />
           <Route path="lidmaatschap" element={<Lidmaatschap />} />
           <Route path="over-het-platform" element={<Over />} />
+          <Route path="lidmaatschap/aanmelden" element={<Aanmelden />} />
+          <Route path="inloggen" element={<Inloggen />} />
+          <Route path="account" element={<Account />} />
+          <Route path="algemene-voorwaarden" element={<AlgemeneVoorwaarden />} />
+          <Route path="privacy" element={<Privacy />} />
+          <Route path="cookies" element={<Cookies />} />
+          <Route path="toegankelijkheid" element={<Toegankelijkheid />} />
+          <Route path="disclaimer" element={<Disclaimer />} />
           <Route path="*" element={<NietGevonden />} />
         </Route>
       </Routes>

@@ -3,6 +3,8 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { RolSchakelaar } from '../betaalmuur/RolSchakelaar';
 import { useRol } from '../betaalmuur/RolContext';
 import { navigatie, platform } from '../../data/site';
+import { Banner } from './Banner';
+import { Voettekst } from './Voettekst';
 
 /** Kleurstreep, navbar met rolschakelaar, prototypebanner, inhoud en voettekst. */
 export function Layout() {
@@ -66,21 +68,11 @@ export function Layout() {
           </div>
         </nav>
       </header>
-      <div className="banner" role="note">
-        <div className="wrap">
-          <strong>Prototype:</strong> alle nieuwsberichten, onderzoeken, aanbestedingen en berekeningen zijn fictief en dienen
-          alleen ter illustratie.
-        </div>
-      </div>
+      <Banner />
       <main id="inhoud" className="wrap" tabIndex={-1}>
         <Outlet />
       </main>
-      <footer className="voet">
-        <div className="wrap">
-          <span>KplusV · Verschil zien, verschil maken</span>
-          <span>Prototype · fictieve content · {platform.versie}</span>
-        </div>
-      </footer>
+      <Voettekst />
     </>
   );
 }
