@@ -9,6 +9,9 @@
 // Bij een uitstoot gelijk aan het historisch activiteitsniveau is het vrijgestelde deel dus
 //   procesemissiefactor × reductiefactor × correctiefactor / (uitstoot ÷ historisch niveau).
 // Tarief per jaar: tarief_t = (tarief_{t−1} + wettelijke verhoging_t) × (1 + inflatiecorrectie).
+// Geldend recht (Wbm art. 90 jo. 71p lid 2): ook de nog niet toegepaste verhogingen worden elk jaar geïndexeerd,
+// dus verhoging_t telt mee als verhoging_t × (1 + inflatie)^(t − 1 − laatste vaste jaar).
+// Wetsvoorstel BP 2027 (art. XXVII, onderdeel D): verhogingen worden niet meer apart geïndexeerd.
 // Alle functies zijn puur; de tarieven en factoren staan in src/data/co2-tarieven.ts.
 
 export interface Co2Invoer {
@@ -58,10 +61,16 @@ export interface TariefpadRegels {
   vast: Record<number, number>;
   /** Wettelijke verhoging per jaar, vóór inflatiecorrectie. */
   verhogingen: Record<number, number>;
+  /**
+   * Worden de nog niet toegepaste verhogingen elk jaar mee geïndexeerd? Geldend recht: ja (art. 90 Wbm noemt
+   * art. 71p lid 2). Wetsvoorstel BP 2027: nee. Standaard nee.
+   */
+  verhogingenGeindexeerd?: boolean;
 }
 
 /**
- * Tarief in een jaar. Na het laatste vaste jaar: tarief_t = (tarief_{t−1} + verhoging_t) × (1 + inflatie).
+ * Tarief in een jaar. Na het laatste vaste jaar: tarief_t = (tarief_{t−1} + verhoging_t) × (1 + inflatie),
+ * waarbij verhoging_t bij geldend recht zelf ook al geïndexeerd is over de jaren sinds het laatste vaste jaar.
  * Met inflatie 0 % geeft dit de bedragen zoals ze in de wet staan, zonder jaarlijkse inflatiecorrectie.
  */
 export function tariefInJaar(pad: TariefpadRegels, jaar: number, inflatiePct = 0): number {
@@ -71,9 +80,14 @@ export function tariefInJaar(pad: TariefpadRegels, jaar: number, inflatiePct = 0
   const eerder = vasteJaren.filter((j) => j <= jaar);
   if (eerder.length === 0) throw new Error(`Geen tarief bekend voor ${jaar}`);
   const start = eerder[eerder.length - 1];
+  const f = 1 + inflatiePct / 100;
   let tarief = pad.vast[start];
+  // Cumulatieve indexatie sinds het laatste vaste jaar, toegepast op verhogingen die nog in de wet staan.
+  let cumulatief = 1;
   for (let j = start + 1; j <= jaar; j++) {
-    tarief = (tarief + (pad.verhogingen[j] ?? 0)) * (1 + inflatiePct / 100);
+    const verhoging = (pad.verhogingen[j] ?? 0) * (pad.verhogingenGeindexeerd ? cumulatief : 1);
+    tarief = (tarief + verhoging) * f;
+    cumulatief *= f;
   }
   return tarief;
 }

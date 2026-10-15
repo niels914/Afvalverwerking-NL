@@ -181,6 +181,7 @@ async function haalReeks(def) {
     eenheid: def.eenheid,
     basisjaar: def.basisjaar,
     tabelGewijzigd: info.Modified,
+    peildatum: vandaag,
     bronUrl: STATLINE(def.tabelId),
     apiUrl,
     eersteMaand: maandSleutels[0],

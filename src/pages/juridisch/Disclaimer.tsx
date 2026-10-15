@@ -66,13 +66,14 @@ const secties: Sectie[] = [
         <p>Het platform gebruikt open data van overheden en anderen. Bij elk gegeven staan de bron en de peildatum.</p>
         <ul>
           <li>
-            <strong>CBS</strong>: waar het platform cijfers van het CBS gebruikt, bijvoorbeeld over gemeenten en inwoners,
-            staat CBS als bron vermeld. De inhoud van CBS valt onder Creative Commons Naamsvermelding 4.0 (CC BY 4.0):
+            <strong>CBS</strong>: waar het platform cijfers van het CBS gebruikt, zoals de prijsindexen in de
+            indexcalculator, staat CBS als bron vermeld, met de tabel en de datum van ophalen. De inhoud van CBS valt onder Creative Commons Naamsvermelding 4.0 (CC BY 4.0):
             hergebruik mag, met CBS als bron.
           </li>
           <li>
             <strong>TenderNed</strong>: gegevens over aanbestedingen. De officiële en volledige tekst van een aankondiging
-            staat altijd op TenderNed; het platform geeft een samenvatting en verwijst daarnaar.
+            staat altijd op TenderNed; het platform geeft een samenvatting en verwijst daarnaar. Het aanbestedingsarchief
+            bevat nu nog voorbeelddata.
           </li>
           <li>
             <strong>OpenStreetMap</strong>: de ondergrond van de kaart. © OpenStreetMap-bijdragers, beschikbaar onder de Open
@@ -95,8 +96,9 @@ const secties: Sectie[] = [
     inhoud: (
       <p>
         Het platform linkt naar websites van anderen, zoals nieuwsbronnen, overheden en kennisinstellingen. Wij zijn niet
-        verantwoordelijk voor de inhoud daarvan. Nieuwsberichten op het platform zijn korte samenvattingen die verwijzen naar
-        het oorspronkelijke artikel; de volledige tekst en de rechten liggen bij de uitgever.
+        verantwoordelijk voor de inhoud daarvan. Echte nieuwsberichten op het platform worden korte samenvattingen die
+        verwijzen naar het oorspronkelijke artikel; de volledige tekst en de rechten liggen bij de uitgever. Zolang een bericht
+        het label Voorbeeldbericht heeft, is het verzonnen en komt het niet van de genoemde bron.
       </p>
     ),
   },

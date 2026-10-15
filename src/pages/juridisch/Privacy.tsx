@@ -279,6 +279,27 @@ const secties: Sectie[] = [
     ),
   },
   {
+    id: 'datalek',
+    titel: 'Datalek of beveiligingsprobleem melden',
+    inhoud: (
+      <>
+        <p>
+          Hebt u gegevens ontvangen die niet voor u bestemd zijn, of ziet u een zwakke plek in de beveiliging van het platform?
+          Meld het direct bij <a href={`mailto:${aanbieder.contact.email}?subject=Melding%20datalek`}>{aanbieder.contact.email}</a>{' '}
+          of bel {aanbieder.telefoonAlgemeen}. Beschrijf wat u zag en op welke pagina; deel de gegevens zelf niet verder.
+        </p>
+        <p>
+          KplusV beoordeelt elke melding. Is er een datalek met risico voor de betrokkenen, dan meldt KplusV dat binnen 72 uur bij
+          de Autoriteit Persoonsgegevens en, als het risico hoog is, ook aan de mensen om wie het gaat (artikel 33 en 34 AVG).
+        </p>
+        <Toetspunt>
+          Leg vast wie bij KplusV meldingen afhandelt en het register van datalekken bijhoudt, en of er een vast adres voor
+          beveiligingsmeldingen komt (bijvoorbeeld via een security.txt-bestand).
+        </Toetspunt>
+      </>
+    ),
+  },
+  {
     id: 'rechten',
     titel: 'Uw rechten',
     inhoud: (

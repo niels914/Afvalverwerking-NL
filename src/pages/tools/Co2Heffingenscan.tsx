@@ -4,12 +4,14 @@ import { Vergrendeld } from '../../components/betaalmuur/Vergrendeld';
 import { LijnGrafiek } from '../../components/grafiek/Grafieken';
 import { BronStatusLabel, Bronnenlijst, type BronRegel } from '../../components/rekenen/Bronnen';
 import { ExportKnoppen } from '../../components/rekenen/Export';
+import { OpDezePagina } from '../../components/rekenen/OpDezePagina';
 import type { CsvCel } from '../../components/rekenen/export';
 import { RapportKnop, RapportKop, RapportVoet, Uitkomst } from '../../components/rekenen/Uitkomst';
 import { Badge, GetalVeld, Kaart, KeuzeVeld, PaginaKop, Tegel, ToegangBadge } from '../../components/ui';
 import {
   bronnen,
   co2StandaardInvoer,
+  inflatiecorrectie2027,
   kentalEmissiefactor,
   ontwikkelingen,
   PEILDATUM,
@@ -42,7 +44,7 @@ const padIds = Object.keys(tariefpaden) as PadId[];
 
 function regelsVoor(pad: PadId): Co2Regels {
   const t = tariefpaden[pad];
-  return { vast: t.vast, verhogingen: t.verhogingen, correctiefactor: t.correctiefactor, reductiefactor, procesemissiefactor };
+  return { vast: t.vast, verhogingen: t.verhogingen, verhogingenGeindexeerd: t.verhogingenGeindexeerd, correctiefactor: t.correctiefactor, reductiefactor, procesemissiefactor };
 }
 
 const jaarlijst = Array.from({ length: scanJaren.laatste - scanJaren.eerste + 1 }, (_, i) => scanJaren.eerste + i);
@@ -185,6 +187,16 @@ export function Co2Heffingenscan() {
       peildatum: PEILDATUM,
     },
     {
+      onderwerp: 'Inflatiecorrectie 2027 (ter oriëntatie)',
+      status: 'voorstel',
+      waarde: `${procent(inflatiecorrectie2027.pct)} (tabelcorrectiefactor 1,026)`,
+      toelichting:
+        'Wettelijke inflatiecorrectie per 1 januari 2027 volgens de memorie van toelichting. Het voorgestelde AVI-tarief 2027 van € 129,15 is daar al mee geïndexeerd. Voor latere jaren is de correctie niet bekend.',
+      bron: inflatiecorrectie2027.bron.titel,
+      url: inflatiecorrectie2027.bron.url,
+      peildatum: PEILDATUM,
+    },
+    {
       onderwerp: 'Restafval, inflatiecorrectie en verhouding tot historisch niveau',
       status: 'aanname',
       toelichting:
@@ -200,8 +212,17 @@ export function Co2Heffingenscan() {
         vrijstelling en wetsvoorstel komen uit de wet en van de Nederlandse Emissieautoriteit, peildatum {datum(PEILDATUM)}.
         Hoeveel uw verwerker doorberekent, hangt af van uw contract.
       </PaginaKop>
+      <OpDezePagina
+        links={[
+          { id: 'gratis', label: 'Heffing in één jaar' },
+          { id: 'pro', label: 'Verloop en scenario’s (Pro)' },
+          { id: 'tarieven', label: 'Tarieven per jaar' },
+          { id: 'ontwikkelingen', label: 'Wat kan er veranderen' },
+          { id: 'bronnen', label: 'Bronnen en peildatum' },
+        ]}
+      />
 
-      <h2 className="sectie" style={{ marginBottom: 12 }}>
+      <h2 className="sectie" id="gratis" style={{ marginBottom: 12 }}>
         Gratis: heffing in één jaar
       </h2>
       <div className="raster raster-tool">
@@ -235,7 +256,7 @@ export function Co2Heffingenscan() {
               max={25}
               waarde={invoer.inflatiePct}
               onChange={(n) => zet('inflatiePct', n)}
-              hint="Aanname. Het tarief wordt jaarlijks gecorrigeerd voor inflatie. Met 0 % rekent de scan met de bedragen uit de wet."
+              hint={`Aanname. Het tarief wordt jaarlijks gecorrigeerd voor inflatie (art. 90 Wbm). Met 0 % rekent de scan met de bedragen uit de wet. Ter oriëntatie: de wettelijke correctie per 1 januari 2027 is ${procent(inflatiecorrectie2027.pct)} (memorie van toelichting Belastingplan 2027).`}
             />
             <fieldset>
               <legend>Vrijgestelde uitstoot (dispensatierechten)</legend>
@@ -319,7 +340,7 @@ export function Co2Heffingenscan() {
         </Uitkomst>
       </div>
 
-      <h2 className="sectie" style={{ margin: '28px 0 12px' }}>
+      <h2 className="sectie" id="pro" style={{ margin: '28px 0 12px' }}>
         Pro voor leden
       </h2>
       <Vergrendeld
@@ -334,7 +355,7 @@ export function Co2Heffingenscan() {
         <Co2Pro invoer={invoer} zet={zet} padId={padId} deelParams={deelParams} />
       </Vergrendeld>
 
-      <h2 className="sectie" style={{ margin: '28px 0 12px' }}>
+      <h2 className="sectie" id="tarieven" style={{ margin: '28px 0 12px' }}>
         Tarieven en regels
       </h2>
       <div className="stapel">
@@ -391,7 +412,7 @@ export function Co2Heffingenscan() {
           </p>
         </Kaart>
         <div className="raster raster-2">
-          <Kaart titel="Wat kan er veranderen">
+          <Kaart titel="Wat kan er veranderen" id="ontwikkelingen">
             <ul className="opsomming">
               {ontwikkelingen.map((o) => (
                 <li key={o.titel}>
@@ -403,7 +424,7 @@ export function Co2Heffingenscan() {
               ))}
             </ul>
           </Kaart>
-          <Bronnenlijst regels={bronRegels} sub={<>Alle bronnen geraadpleegd op {datum(PEILDATUM)}.</>} />
+          <Bronnenlijst id="bronnen" regels={bronRegels} sub={<>Alle bronnen geraadpleegd op {datum(PEILDATUM)}.</>} />
         </div>
       </div>
       <RapportVoet tekst={`Tarieven en regels: wet en NEa, peildatum ${datum(PEILDATUM)}`} />

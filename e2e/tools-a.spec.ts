@@ -163,6 +163,25 @@ test.describe('CO2-heffingenscan', () => {
   });
 });
 
+test.describe('Navigatie en printweergave', () => {
+  for (const [pad, titel, anker] of [
+    ['/tools/indexcalculator', 'Indexcalculator', 'Bronnen en peildatum'],
+    ['/tools/co2-heffingenscan', 'CO2-heffingenscan', 'Tarieven per jaar'],
+  ] as const) {
+    test(`${titel}: inhoudsopgave en rapportkop bij printen`, async ({ page }) => {
+      await page.goto(pad);
+      const nav = page.getByRole('navigation', { name: 'Op deze pagina' });
+      await nav.getByRole('link', { name: anker }).click();
+      await expect(page).toHaveURL(/#/);
+      await page.emulateMedia({ media: 'print' });
+      await expect(page.locator('.rapportkop')).toBeVisible();
+      await expect(page.locator('.rapportkop')).toContainText(`Rapport ${titel}`);
+      await expect(nav).toBeHidden();
+      await expect(page.getByRole('button', { name: 'CSV downloaden' }).first()).toBeHidden();
+    });
+  }
+});
+
 test.describe('Pro voor leden', () => {
   test.skip(!EMAIL || !WACHTWOORD, 'Zet E2E_EMAIL en E2E_WACHTWOORD om het Pro-deel te testen.');
 

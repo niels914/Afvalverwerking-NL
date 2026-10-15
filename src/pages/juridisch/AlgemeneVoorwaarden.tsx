@@ -51,8 +51,8 @@ const secties: Sectie[] = [
           {[
             'Deze voorwaarden gelden voor elk gebruik van het platform en voor elk lidmaatschap. Voor de gratis onderdelen gelden alleen de artikelen 1, 2, 8 tot en met 12, 15 en 16.',
             <>
-              Waar deze voorwaarden niets regelen, gelden aanvullend de algemene voorwaarden van {aanbieder.naam}. Spreken
-              die twee elkaar tegen, dan gaan deze voorwaarden voor. Afspraken in de orderbevestiging gaan voor allebei.
+              Waar deze voorwaarden niets regelen, gelden aanvullend de algemene voorwaarden van {aanbieder.handelsnaam},
+              gedeponeerd bij de griffie van de rechtbank Gelderland onder nummer A/05/26/4. Spreken die twee elkaar tegen, dan gaan deze voorwaarden voor. Afspraken in de orderbevestiging gaan voor allebei.
             </>,
             'Verwijst uw organisatie naar eigen inkoopvoorwaarden, dan gelden die alleen voor zover KplusV ze schriftelijk heeft aanvaard.',
             'Is een bepaling in deze voorwaarden ongeldig, dan blijven de andere bepalingen gelden. KplusV vervangt de ongeldige bepaling dan door een bepaling die het doel zoveel mogelijk benadert.',
@@ -113,8 +113,8 @@ const secties: Sectie[] = [
           ]}
         </Leden>
         <Toetspunt>
-          Een opzegtermijn van één maand is kort ten opzichte van wat gebruikelijk is. Dat is bewust gekozen omdat het om
-          een abonnement gaat; bevestig dat deze termijn ook voor KplusV werkbaar is.
+          Een opzegtermijn van {maanden(v.opzegtermijnMaanden)} is kort ten opzichte van wat gebruikelijk is. Dat is bewust
+          gekozen omdat het om een abonnement gaat; bevestig dat deze termijn ook voor KplusV werkbaar is.
         </Toetspunt>
       </>
     ),

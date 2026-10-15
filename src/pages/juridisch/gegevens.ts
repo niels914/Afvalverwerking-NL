@@ -71,7 +71,7 @@ export const bronnen = {
     peildatum: '2026-10-15',
   },
   avg: {
-    feit: 'Algemene verordening gegevensbescherming (AVG); antwoord op een verzoek binnen een maand (artikel 12 lid 3)',
+    feit: 'Algemene verordening gegevensbescherming (AVG); antwoord op een verzoek binnen een maand (artikel 12 lid 3); melding van een datalek binnen 72 uur (artikel 33) en aan betrokkenen bij hoog risico (artikel 34)',
     titel: 'Verordening (EU) 2016/679 (EUR-Lex)',
     url: 'https://eur-lex.europa.eu/eli/reg/2016/679/oj',
     peildatum: '2026-10-15',

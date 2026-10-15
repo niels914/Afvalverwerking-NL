@@ -20,6 +20,8 @@ export interface CbsReeks {
   basisjaar: string;
   /** Laatste wijziging van de tabel bij CBS (ISO-datum en tijd). */
   tabelGewijzigd: string;
+  /** Dag waarop deze reeks is opgehaald (ISO). */
+  peildatum: string;
   bronUrl: string;
   apiUrl: string;
   eersteMaand: string;

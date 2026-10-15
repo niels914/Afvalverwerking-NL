@@ -74,6 +74,8 @@ export interface Tariefpad {
   vast: Record<number, number>;
   /** Wettelijke verhoging per jaar, bovenop het tarief van het jaar ervoor, vóór inflatiecorrectie. */
   verhogingen: Record<number, number>;
+  /** Worden nog niet toegepaste verhogingen jaarlijks mee geïndexeerd (art. 90 Wbm)? */
+  verhogingenGeindexeerd: boolean;
   /** AVI-correctiefactor voor dispensatierechten per jaar. Na het laatste jaar geldt de laatste waarde. */
   correctiefactor: Record<number, number>;
   toelichting: string;
@@ -88,9 +90,11 @@ const geldend: Tariefpad = {
   status: 'officieel',
   vast: { 2021: 30.48, 2022: 41.75, 2023: 55.94, 2024: 74.17, 2025: 87.9, 2026: 103.66 },
   verhogingen: { 2027: 49.66, 2028: 50.42, 2029: 50.42, 2030: 49.39 },
+  // Art. 90 Wbm noemt art. 71p, eerste en tweede lid: ook de verhogingen zelf worden jaarlijks geïndexeerd.
+  verhogingenGeindexeerd: true,
   correctiefactor: { 2025: 1, 2026: 0.85, 2027: 0.7, 2028: 0.55, 2029: 0.4, 2030: 0.25, 2031: 0.17, 2032: 0.09, 2033: 0 },
   toelichting:
-    'Tarief 2026 € 103,66 per ton CO2 (art. 71p lid 1). Verhoging 2027 t/m 2030 volgens art. 71p lid 2, daarna jaarlijkse inflatiecorrectie (art. 90). AVI-correctiefactor volgens art. 16b.17 lid 4 Wet milieubeheer.',
+    'Tarief 2026 € 103,66 per ton CO2 (art. 71p lid 1). Verhoging 2027 t/m 2030 volgens art. 71p lid 2. Het tarief en de nog niet toegepaste verhogingen worden jaarlijks gecorrigeerd voor inflatie (art. 90). AVI-correctiefactor volgens art. 16b.17 lid 4 Wet milieubeheer.',
   bron: bronnen.wbm71p,
 };
 
@@ -102,6 +106,8 @@ const voorstel: Tariefpad = {
   status: 'voorstel',
   vast: { 2021: 30.48, 2022: 41.75, 2023: 55.94, 2024: 74.17, 2025: 87.9, 2026: 103.66, 2027: 129.15 },
   verhogingen: { 2028: 22.79, 2029: 23.54, 2030: 24.1, 2031: 24.61, 2032: 25.15, 2033: 25.68, 2034: 26.22, 2035: 26.77 },
+  // Art. XXVII, onderdeel D: art. 90 is niet meer van toepassing op art. 71p lid 2 (verhogingen houden al rekening met inflatie).
+  verhogingenGeindexeerd: false,
   correctiefactor: {
     2025: 1,
     2026: 0.85,
@@ -139,6 +145,13 @@ export const kentalEmissiefactor = {
   biogeenAandeel: 0.64,
   waarde: Math.round(((9.4 * 107.4 * (1 - 0.64)) / 1000) * 1000) / 1000,
 };
+
+/**
+ * Wettelijke inflatiecorrectie per 1 januari 2027 zonder de voorgestelde beperking: 2,6 % (tabelcorrectiefactor 1,026).
+ * Het voorgestelde AVI-tarief 2027 van € 129,15 is daar al mee geïndexeerd. Bron: MvT Belastingplan 2027.
+ * Alleen ter oriëntatie in de tool; latere jaren zijn niet bekend en blijven een aanname van de gebruiker.
+ */
+export const inflatiecorrectie2027 = { pct: 2.6, bron: bronnen.bp2027 };
 
 export const scanJaren = { eerste: 2026, laatste: 2035 };
 

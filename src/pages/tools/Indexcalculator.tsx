@@ -4,6 +4,7 @@ import { Vergrendeld } from '../../components/betaalmuur/Vergrendeld';
 import { LijnGrafiek } from '../../components/grafiek/Grafieken';
 import { Bronnenlijst, type BronRegel } from '../../components/rekenen/Bronnen';
 import { ExportKnoppen } from '../../components/rekenen/Export';
+import { OpDezePagina } from '../../components/rekenen/OpDezePagina';
 import type { CsvCel } from '../../components/rekenen/export';
 import { RapportKnop, RapportKop, RapportVoet, Uitkomst } from '../../components/rekenen/Uitkomst';
 import { Badge, GetalVeld, Kaart, KeuzeVeld, PaginaKop, Tegel, ToegangBadge } from '../../components/ui';
@@ -116,7 +117,7 @@ export function Indexcalculator() {
     ),
     bron: `CBS StatLine ${r.tabelId}: ${r.tabelTitel} (tabel bijgewerkt ${datum(r.tabelGewijzigd.slice(0, 10))})`,
     url: r.bronUrl,
-    peildatum: indexbron.peildatum,
+    peildatum: r.peildatum ?? indexbron.peildatum,
   }));
 
   return (
@@ -127,8 +128,16 @@ export function Indexcalculator() {
         diesel. Kies jaar- of maandcijfers zoals in uw contract staat. Leden rekenen met een eigen weging en zien het
         tarief per contractjaar.
       </PaginaKop>
+      <OpDezePagina
+        links={[
+          { id: 'gratis', label: 'Indexeren met één reeks' },
+          { id: 'pro', label: 'Eigen weging en contractjaren (Pro)' },
+          { id: 'reeksen', label: 'Waarom deze reeksen' },
+          { id: 'bronnen', label: 'Bronnen en peildatum' },
+        ]}
+      />
 
-      <h2 className="sectie" style={{ marginBottom: 12 }}>
+      <h2 className="sectie" id="gratis" style={{ marginBottom: 12 }}>
         Gratis: indexeren met één reeks
       </h2>
       <div className="raster raster-tool">
@@ -203,7 +212,7 @@ export function Indexcalculator() {
         </Uitkomst>
       </div>
 
-      <h2 className="sectie" style={{ margin: '28px 0 12px' }}>
+      <h2 className="sectie" id="pro" style={{ margin: '28px 0 12px' }}>
         Pro voor leden
       </h2>
       <Vergrendeld
@@ -218,7 +227,7 @@ export function Indexcalculator() {
         <IndexPro invoer={invoer} zet={zet} deelParams={deelParams} />
       </Vergrendeld>
 
-      <h2 className="sectie" style={{ margin: '28px 0 12px' }}>
+      <h2 className="sectie" id="reeksen" style={{ margin: '28px 0 12px' }}>
         Over de reeksen
       </h2>
       <div className="raster raster-2">
@@ -252,6 +261,7 @@ export function Indexcalculator() {
           </p>
         </Kaart>
         <Bronnenlijst
+          id="bronnen"
           regels={bronRegels}
           sub={
             <>

@@ -59,8 +59,21 @@ describe('CO2-heffingenscan: wettelijk tariefpad', () => {
   it('telt eerst de verhoging op en corrigeert daarna voor inflatie', () => {
     // 2027: (103,66 + 49,66) × 1,02 = 156,3864
     expect(tariefInJaar(tariefpaden.geldend, 2027, 2)).toBeCloseTo(156.3864, 4);
-    // 2028: (156,3864 + 50,42) × 1,02
-    expect(tariefInJaar(tariefpaden.geldend, 2028, 2)).toBeCloseTo((156.3864 + 50.42) * 1.02, 4);
+    // 2028: de verhoging voor 2028 is per 1 januari 2027 zelf ook geïndexeerd (art. 90 Wbm noemt art. 71p lid 2):
+    // (156,3864 + 50,42 × 1,02) × 1,02
+    expect(tariefInJaar(tariefpaden.geldend, 2028, 2)).toBeCloseTo((156.3864 + 50.42 * 1.02) * 1.02, 4);
+    // 2029: (t2028 + 50,42 × 1,02²) × 1,02
+    const t2028 = (156.3864 + 50.42 * 1.02) * 1.02;
+    expect(tariefInJaar(tariefpaden.geldend, 2029, 2)).toBeCloseTo((t2028 + 50.42 * 1.02 ** 2) * 1.02, 4);
+  });
+
+  it('indexeert de verhogingen in het wetsvoorstel niet apart (BP 2027, art. XXVII onderdeel D)', () => {
+    // 2028: (129,15 + 22,79) × 1,02; 2029: (t2028 + 23,54) × 1,02
+    const t2028 = (129.15 + 22.79) * 1.02;
+    expect(tariefInJaar(tariefpaden.voorstel, 2028, 2)).toBeCloseTo(t2028, 4);
+    expect(tariefInJaar(tariefpaden.voorstel, 2029, 2)).toBeCloseTo((t2028 + 23.54) * 1.02, 4);
+    // Zonder vlag gedraagt het pad zich als niet-geïndexeerd.
+    expect(tariefInJaar({ vast: { 2026: 100 }, verhogingen: { 2027: 10, 2028: 10 } }, 2028, 10)).toBeCloseTo((110 * 1.1 + 10) * 1.1, 6);
   });
 
   it('volgt het wetsvoorstel Belastingplan 2027 tot en met 2035', () => {
