@@ -18,12 +18,14 @@ interface UitkomstProps {
   children: ReactNode;
   /** Extra toelichting onder de formule, bijv. aannames. */
   toelichting?: ReactNode;
+  /** Label rechtsboven. Standaard het dummylabel; tools met echte bronnen geven hier een eigen label. */
+  label?: ReactNode;
 }
 
 /** Uitkomstblok voor alle rekentools: dummylabel, uitkomst, formule en invoerwaarden. */
-export function Uitkomst({ titel = 'Uitkomst', formule, invoer, children, toelichting }: UitkomstProps) {
+export function Uitkomst({ titel = 'Uitkomst', formule, invoer, children, toelichting, label }: UitkomstProps) {
   return (
-    <Kaart titel={titel} actie={<span className="dummylabel">Dummyberekening, indicatief en fictief</span>}>
+    <Kaart titel={titel} actie={label ?? <span className="dummylabel">Dummyberekening, indicatief en fictief</span>}>
       <div aria-live="polite">{children}</div>
       <div className="verantwoording">
         <h3>Zo ontstaat deze uitkomst</h3>
@@ -64,7 +66,7 @@ export function RapportKnop() {
 }
 
 /** Kop en voet die alleen in de printweergave verschijnen. */
-export function RapportKop({ titel }: { titel: string }) {
+export function RapportKop({ titel, ondertitel = 'Dummyberekening, indicatief en fictief' }: { titel: string; ondertitel?: string }) {
   const vandaag = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
   return (
     <div className="print-alleen rapportkop">
@@ -73,18 +75,18 @@ export function RapportKop({ titel }: { titel: string }) {
         <h1>Rapport {titel}</h1>
       </div>
       <p>
-        KplusV · {platform.korteNaam} · {vandaag} · Dummyberekening, indicatief en fictief
+        KplusV · {platform.korteNaam} · {vandaag} · {ondertitel}
       </p>
       <div className="kpv-streep" />
     </div>
   );
 }
 
-export function RapportVoet() {
+export function RapportVoet({ tekst = 'Prototype: alle waarden zijn fictief' }: { tekst?: string }) {
   return (
     <div className="print-alleen rapportvoet">
       <span>KplusV · Verschil zien, verschil maken</span>
-      <span>Prototype: alle waarden zijn fictief</span>
+      <span>{tekst}</span>
     </div>
   );
 }

@@ -1,0 +1,338 @@
+/* Lidmaatschap en aanmelden. Alleen tokens uit src/styles/tokens.css. */
+
+/* Op deze pagina */
+.lm-inhoud {
+  border-left: 4px solid var(--paars);
+  padding: 4px 0 4px 14px;
+  margin: 0 0 8px;
+}
+.lm-inhoud h2 {
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+.lm-inhoud ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  font-size: 14px;
+}
+.lm-inhoud a {
+  font-weight: 500;
+}
+
+.lm-sectie {
+  margin-top: 32px;
+  scroll-margin-top: 16px;
+}
+.lm-sectie > h2 {
+  border-left: 4px solid var(--paars);
+  padding-left: 12px;
+  margin-bottom: 12px;
+}
+.lm-sectie > p,
+.lm-sectie > ul {
+  max-width: 75ch;
+}
+.lm-sectie > * + * {
+  margin-top: 12px;
+}
+
+/* Staffelkaarten */
+.lm-staffels {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 1000px) {
+  .lm-staffels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 600px) {
+  .lm-staffels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.lm-staffel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lm-staffel > * + * {
+  margin-top: 0;
+}
+.lm-staffel .bedrag {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--donkerviolet);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+.lm-staffel .knop {
+  margin-top: auto;
+  align-self: flex-start;
+}
+.lm-staffel .voor-wie {
+  color: var(--tekst-2);
+  font-size: 14px;
+}
+
+/* Gegevenslijsten (voorwaarden, samenvatting) */
+.lm-gegevens {
+  display: grid;
+  grid-template-columns: minmax(0, 15em) minmax(0, 1fr);
+  gap: 8px 20px;
+  margin: 0;
+  font-size: 14px;
+}
+.lm-gegevens dt {
+  color: var(--tekst-secundair);
+  font-weight: 500;
+}
+.lm-gegevens dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .lm-gegevens {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+  .lm-gegevens dd {
+    margin-bottom: 8px;
+  }
+}
+
+/* Tabellen met tekst die mag afbreken */
+.lm-tabel th,
+.lm-tabel td {
+  white-space: normal;
+}
+.lm-tabel td.num,
+.lm-tabel th.num {
+  white-space: nowrap;
+}
+.lm-tabel th[scope='row'] {
+  font-weight: 500;
+  color: var(--tekst);
+  min-width: 10em;
+}
+.lm-ja::before {
+  content: '✓ ';
+  color: var(--paars);
+  font-weight: 700;
+}
+.lm-nee {
+  color: var(--tekst-secundair);
+}
+.lm-nee::before {
+  content: '– ';
+}
+
+/* Stappenplan */
+.lm-stappenplan {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+  counter-reset: lmstap;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+@media (max-width: 900px) {
+  .lm-stappenplan {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.lm-stappenplan li {
+  counter-increment: lmstap;
+  background: var(--wit);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  display: grid;
+  gap: 4px;
+  align-content: start;
+}
+.lm-stappenplan li::before {
+  content: 'Stap ' counter(lmstap);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--paars);
+  font-weight: 700;
+}
+.lm-stappenplan b {
+  color: var(--donkerviolet);
+}
+
+/* Veelgestelde vragen */
+.lm-vragen {
+  display: grid;
+  gap: 8px;
+}
+.lm-vragen details {
+  background: var(--wit);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+}
+.lm-vragen summary {
+  cursor: pointer;
+  padding: 12px 16px;
+  font-weight: 600;
+  color: var(--donkerviolet);
+  list-style: none;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.lm-vragen summary::-webkit-details-marker {
+  display: none;
+}
+.lm-vragen summary::before {
+  content: '+';
+  flex: none;
+  width: 20px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--paars);
+}
+.lm-vragen details[open] summary::before {
+  content: '−';
+}
+.lm-vragen summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.lm-vragen .antwoord {
+  padding: 0 16px 14px 46px;
+  display: grid;
+  gap: 8px;
+  color: var(--tekst-2);
+  max-width: 80ch;
+}
+
+/* Bronnen */
+.lm-bron {
+  font-size: 12.5px;
+  color: var(--tekst-secundair);
+}
+.lm-bronnen {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 8px;
+  font-size: 13.5px;
+}
+.lm-bronnen li {
+  overflow-wrap: anywhere;
+}
+
+/* Aanmelden: formulier met prijsblok ernaast */
+.lm-aanmelden {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .lm-aanmelden {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.lm-prijsblok {
+  position: sticky;
+  top: 16px;
+}
+@media (max-width: 900px) {
+  .lm-prijsblok {
+    position: static;
+  }
+}
+.lm-formdeel {
+  display: grid;
+  gap: 14px;
+}
+.lm-formdeel + .lm-formdeel {
+  border-top: 1px solid var(--rand);
+  padding-top: 18px;
+  margin-top: 6px;
+}
+.lm-formdeel > legend {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--donkerviolet);
+  margin-bottom: 4px;
+  float: left;
+  width: 100%;
+}
+.lm-formdeel > legend + * {
+  clear: both;
+}
+.lm-optioneel {
+  font-weight: 400;
+  color: var(--tekst-secundair);
+}
+.lm-akkoord {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 14px;
+}
+.lm-akkoord input {
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  flex: none;
+  accent-color: var(--paars);
+}
+.lm-foutsamenvatting {
+  border: 2px solid #b91c1c;
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  background: var(--wit);
+}
+.lm-foutsamenvatting h2 {
+  font-size: 15px;
+  color: #b91c1c;
+  margin-bottom: 6px;
+}
+.lm-foutsamenvatting ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 14px;
+}
+.lm-foutsamenvatting a {
+  color: #b91c1c;
+}
+.lm-totaal {
+  border-top: 2px solid var(--donkerviolet);
+  padding-top: 8px;
+  font-weight: 700;
+}
+.lm-ordernummer {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--donkerviolet);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.lm-vervolg {
+  margin: 0;
+  padding-left: 22px;
+  display: grid;
+  gap: 10px;
+}
+.lm-vervolg li::marker {
+  color: var(--paars);
+  font-weight: 700;
+}
+
+@media print {
+  .lm-geen-print {
+    display: none !important;
+  }
+}

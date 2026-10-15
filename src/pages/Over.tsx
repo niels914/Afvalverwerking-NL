@@ -2,14 +2,17 @@ import type { ReactNode } from 'react';
 import { FeedbackFormulier } from '../components/FeedbackFormulier';
 import { GratisBetaald } from '../components/GratisBetaald';
 import { Badge, PaginaKop } from '../components/ui';
+import { Link } from 'react-router-dom';
+import { staffels } from '../data/lidmaatschap';
 import { contact } from '../data/site';
 import { euro } from '../lib/format';
 
 // Pagina voor collega's en relaties die het idee voor het eerst zien.
 // Bewust GEEN lijst met organisaties die we willen benaderen: lezers zijn elkaars concurrent of afnemer.
 
+// Rekenvoorbeeld verdienmodel: het aantal leden is een aanname, het gemiddelde volgt uit de conceptprijzen.
 const voorbeeldAantal = 10;
-const voorbeeldGemiddeld = 5000;
+const voorbeeldGemiddeld = Math.round(staffels.reduce((som, s) => som + s.prijsExclBtw, 0) / staffels.length);
 
 function Sectie({ nr, titel, id, children, badge }: { nr: number; titel: string; id?: string; children: ReactNode; badge?: ReactNode }) {
   return (
@@ -61,12 +64,24 @@ export function Over() {
 
       <Sectie nr={5} titel="Verdienmodel" badge={<Badge soort="voorbeeld">Concept</Badge>}>
         <p>
-          Een jaarabonnement per organisatie met een staffel naar omvang. Daarnaast maatwerk en jaarlijks onderhoud van
-          indexcijfers.
+          Een jaarabonnement per organisatie, niet per gebruiker, met een staffel naar soort en omvang. Betaling op factuur.
+          De conceptprijzen per jaar, exclusief btw:
         </p>
+        <ul className="opsomming">
+          {staffels.map((s) => (
+            <li key={s.id}>
+              {s.naam}: <strong>{euro(s.prijsExclBtw)}</strong> <span className="muted">({s.voorWie.toLowerCase()})</span>
+            </li>
+          ))}
+        </ul>
         <p>
-          Rekenvoorbeeld: bij {voorbeeldAantal} organisaties à gemiddeld {euro(voorbeeldGemiddeld)} is dat{' '}
-          <strong>{euro(voorbeeldAantal * voorbeeldGemiddeld)} per jaar</strong>.
+          Daarnaast zijn maatwerk en advies mogelijk. Alle prijzen, voorwaarden en het aanmeldformulier staan op{' '}
+          <Link to="/lidmaatschap">Lidmaatschap en prijzen</Link>.
+        </p>
+        <p className="klein muted">
+          Rekenvoorbeeld met een aanname, geen prognose: bij {voorbeeldAantal} leden met gemiddeld {euro(voorbeeldGemiddeld)}{' '}
+          per jaar is de omzet {euro(voorbeeldAantal * voorbeeldGemiddeld)} per jaar. Het aantal leden is niet bekend; het
+          gemiddelde is het ongewogen gemiddelde van de vier conceptprijzen.
         </p>
       </Sectie>
 

@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { RolSchakelaar } from '../betaalmuur/RolSchakelaar';
+import { AccountKnop } from '../betaalmuur/AccountKnop';
 import { useRol } from '../betaalmuur/RolContext';
 import { navigatie, platform } from '../../data/site';
 import { Banner } from './Banner';
 import { Voettekst } from './Voettekst';
 
-/** Kleurstreep, navbar met rolschakelaar, prototypebanner, inhoud en voettekst. */
+/** Kleurstreep, navbar met accountknop, prototypebanner, inhoud en voettekst. */
 export function Layout() {
   const [menuOpen, setMenuOpen] = useState(false);
   const locatie = useLocation();
@@ -37,7 +37,7 @@ export function Layout() {
             <span className="app">{platform.naam}</span>
           </Link>
           <div className="nav-rechts">
-            <RolSchakelaar />
+            <AccountKnop />
             <button
               type="button"
               className="menuknop"

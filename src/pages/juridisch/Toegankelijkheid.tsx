@@ -1,1 +1,211 @@
-export function Toegankelijkheid() { return <h1>Toegankelijkheid (in aanbouw)</h1>; }
+import { platform } from '../../data/site';
+import { datum, getal } from '../../lib/format';
+import { aanbieder, bronnen } from './gegevens';
+import { BronRegel, ContactBlok, JuridischDocument, Toetspunt, type Sectie } from './JuridischDocument';
+import { bekendeProblemen, meting, status } from './toegankelijkheid';
+
+// Toegankelijkheidsverklaring volgens de opbouw van het model van de Rijksoverheid: status, onderzoek,
+// bekende problemen, maatregelen en contact. De meetgegevens staan in toegankelijkheid.ts.
+
+const secties: Sectie[] = [
+  {
+    id: 'inzet',
+    titel: 'Onze inzet',
+    inhoud: (
+      <>
+        <p>
+          KplusV wil dat iedereen het {platform.korteNaam} kan gebruiken, ook mensen die slecht zien, kleuren anders zien, alleen
+          een toetsenbord gebruiken of een schermlezer of vergroting gebruiken.
+        </p>
+        <p>
+          Het platform streeft naar WCAG 2.1 niveau AA, de norm die ook voor overheidswebsites geldt. Als bedrijf is KplusV niet
+          verplicht een toegankelijkheidsverklaring te publiceren. Omdat veel gebruikers bij een overheid werken, volgen wij
+          toch de opbouw van het model van de Rijksoverheid.
+        </p>
+        <BronRegel sleutel="wcag" voorvoegsel="Norm" />
+        <BronRegel sleutel="bdto" voorvoegsel="Wettelijke plicht voor overheden" />
+      </>
+    ),
+  },
+  {
+    id: 'status',
+    titel: 'Status',
+    inhoud: (
+      <>
+        <p className="jd-status">
+          <span className="jd-status-letter" aria-hidden="true">
+            {status.letter}
+          </span>
+          Status {status.letter}: {status.label}
+        </p>
+        <p>{status.toelichting}</p>
+        <p>
+          De status volgt de indeling A tot en met E van de Rijksoverheid. Het platform staat niet in het register van Logius;
+          dit is onze eigen beoordeling.
+        </p>
+        <BronRegel sleutel="statussen" />
+        <Toetspunt>
+          Besluit of KplusV een volledig onderzoek laat doen door een onafhankelijke deskundige (bijvoorbeeld een bureau met
+          een WCAG-EM-werkwijze). Met een gepland onderzoek binnen zes maanden wordt de status C.
+        </Toetspunt>
+      </>
+    ),
+  },
+  {
+    id: 'onderzoek',
+    titel: 'Hoe wij hebben gemeten',
+    inhoud: (
+      <>
+        <p>
+          Laatste meting: {datum(meting.datum)}. {meting.omgeving}
+        </p>
+        <h3>Automatische controle met axe</h3>
+        <p>
+          Met axe-core {meting.axe.versie} zijn alle {getal(meting.axe.aantalPaginas)} pagina’s gecontroleerd op{' '}
+          {meting.axe.regels}, op een schermbreedte van {meting.axe.breedtes.map((b) => `${b} pixels`).join(' en ')}.{' '}
+          {meting.axe.paginasZonderBevindingen === meting.axe.aantalPaginas
+            ? 'Op geen enkele pagina vond axe een probleem.'
+            : `Op ${getal(meting.axe.paginasZonderBevindingen)} van de ${getal(meting.axe.aantalPaginas)} pagina’s vond axe geen probleem. De gevonden problemen staan hieronder bij Bekende problemen.`}
+        </p>
+        {meting.lighthouse.uitkomsten.length > 0 && (
+          <>
+            <h3>Lighthouse</h3>
+            <p>
+              Met Lighthouse {meting.lighthouse.versie} ({meting.lighthouse.instelling}). Een score loopt van 0 tot 100.
+            </p>
+            <div className="tabel-container" role="region" aria-label="Lighthouse-scores per pagina" tabIndex={0}>
+              <table>
+                <caption className="visueel-verborgen">Lighthouse-scores per pagina</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Pagina</th>
+                    <th scope="col" className="num">
+                      Toegankelijkheid
+                    </th>
+                    <th scope="col" className="num">
+                      Prestaties
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {meting.lighthouse.uitkomsten.map((u) => (
+                    <tr key={u.pagina}>
+                      <th scope="row">{u.pagina}</th>
+                      <td className="num">{getal(u.toegankelijkheid)}</td>
+                      <td className="num">{getal(u.prestaties)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
+        <h3>Handmatige controles</h3>
+        <ul>
+          {meting.handmatig.map((h) => (
+            <li key={h}>{h}</li>
+          ))}
+        </ul>
+        <p>
+          Automatische hulpmiddelen vinden maar een deel van de problemen. Een volledig onderzoek door een deskundige is nog niet
+          gedaan; zie Status.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: 'bekende-problemen',
+    titel: 'Bekende problemen',
+    inhoud:
+      bekendeProblemen.length === 0 ? (
+        <p>Bij de laatste meting zijn geen problemen gevonden. Merkt u toch iets, meld het ons dan.</p>
+      ) : (
+        <>
+          <p>Deze onderdelen voldoen nog niet. Per probleem staat wat het voor u betekent en wat wij eraan doen.</p>
+          <div className="jd-blokken">
+            {bekendeProblemen.map((p, i) => (
+              <section key={i} className="jd-blok" aria-labelledby={`probleem-${i}`}>
+                <h3 id={`probleem-${i}`}>{p.onderdeel}</h3>
+                <dl className="jd-gegevens">
+                  <dt>Probleem</dt>
+                  <dd>{p.probleem}</dd>
+                  <dt>WCAG</dt>
+                  <dd>{p.criterium}</dd>
+                  <dt>Wat merkt u</dt>
+                  <dd>{p.gevolg}</dd>
+                  <dt>Aanpak</dt>
+                  <dd>{p.aanpak}</dd>
+                </dl>
+              </section>
+            ))}
+          </div>
+        </>
+      ),
+  },
+  {
+    id: 'inhoud-van-anderen',
+    titel: 'Inhoud van anderen',
+    inhoud: (
+      <p>
+        Het platform linkt naar documenten en websites van anderen, zoals onderzoeken, nieuwsberichten en aankondigingen op
+        TenderNed. KplusV kan die niet aanpassen en kan niet garanderen dat ze toegankelijk zijn. De kaartondergrond komt van
+        OpenStreetMap; de gegevens op de kaart staan ook in tekst en tabellen op dezelfde pagina.
+      </p>
+    ),
+  },
+  {
+    id: 'maatregelen',
+    titel: 'Wat wij doen',
+    inhoud: (
+      <ul>
+        <li>Toegankelijkheid is een eis bij het ontwerpen en bouwen van elke pagina en elke rekentool.</li>
+        <li>Een automatische test controleert bij elke nieuwe versie onder meer de 400 pixels brede weergave en de opbouw van de juridische pagina’s.</li>
+        <li>Na grotere wijzigingen meten wij opnieuw met axe en Lighthouse en werken wij deze verklaring bij.</li>
+        <li>Kleuren komen uit één set huisstijlkleuren, zodat een contrastprobleem op één plek op te lossen is.</li>
+        <li>Betekenis hangt nooit alleen van kleur af: er staat altijd tekst of een teken bij.</li>
+      </ul>
+    ),
+  },
+  {
+    id: 'melden',
+    titel: 'Probleem melden',
+    inhoud: (
+      <>
+        <p>
+          Loopt u tegen een probleem aan, of hebt u informatie in een andere vorm nodig? Laat het ons weten. Noem de pagina en
+          wat er misgaat. U krijgt binnen vijf werkdagen een reactie; waar mogelijk lossen wij het probleem op of zoeken wij een
+          andere manier om u de informatie te geven.
+        </p>
+        <ContactBlok onderwerp="Toegankelijkheid: probleem melden" />
+        <p>
+          Bent u niet tevreden over hoe wij met uw melding omgaan? Neem dan contact op met {aanbieder.handelsnaam} via <a href={`mailto:${aanbieder.emailAlgemeen}`}>{aanbieder.emailAlgemeen}</a>.
+        </p>
+      </>
+    ),
+  },
+  {
+    id: 'model',
+    titel: 'Over deze verklaring',
+    inhoud: (
+      <>
+        <p>
+          Deze verklaring volgt de opbouw van het model van de Rijksoverheid. Wij herzien haar na elke nieuwe meting en ten
+          minste eenmaal per jaar.
+        </p>
+        <p>
+          Meer over het model: <a href={bronnen.modelverklaring.url}>{bronnen.modelverklaring.titel}</a>.
+        </p>
+      </>
+    ),
+  },
+];
+
+export function Toegankelijkheid() {
+  return (
+    <JuridischDocument
+      id="toegankelijkheid"
+      intro="Hoe toegankelijk dit platform is, hoe wij dat hebben gemeten, welke problemen bekend zijn en waar u een probleem kunt melden."
+      secties={secties}
+    />
+  );
+}

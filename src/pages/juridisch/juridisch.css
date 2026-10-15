@@ -1,0 +1,330 @@
+/* Juridische pagina's (algemene voorwaarden, privacy, cookies, toegankelijkheid, disclaimer) en de voettekst.
+   Alleen tokens uit src/styles/tokens.css. Voorvoegsel jd- voor de pagina's, voet- voor de voettekst. */
+
+/* ---------- Document ---------- */
+.jd {
+  max-width: 800px;
+  padding-top: 24px;
+}
+.jd {
+  /* Linkkleur: --blauw haalt op de paginaachtergrond net geen 4,5:1 (gemeten 4,28:1). Iets donkerder: ruim 6:1. */
+  --jd-link: color-mix(in srgb, var(--blauw) 80%, #000);
+}
+.jd a {
+  color: var(--jd-link);
+}
+.jd a:hover {
+  color: var(--donkerviolet);
+}
+.jd-kop {
+  display: grid;
+  gap: 12px;
+}
+.jd-kop .jd-lead {
+  font-size: 16px;
+  color: var(--tekst-2);
+  max-width: 68ch;
+}
+.jd-meta {
+  font-size: 13px;
+  color: var(--tekst-secundair);
+}
+
+/* Conceptmarkering: tekst plus icoon plus rand, nooit alleen kleur. */
+.jd-concept {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 12px;
+  align-items: start;
+  background: var(--waarschuwing-bg);
+  border: 2px solid var(--waarschuwing-rand);
+  border-left-width: 8px;
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  color: var(--waarschuwing-tekst);
+}
+.jd-concept-icoon {
+  font-size: 20px;
+  line-height: 1.2;
+}
+.jd-concept strong {
+  display: block;
+  font-size: 15.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+.jd-concept p {
+  font-size: 13.5px;
+}
+
+/* Inhoudsopgave */
+.jd-inhoud {
+  margin-top: 22px;
+  background: var(--wit);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius-kaart);
+  padding: 14px 18px 16px;
+}
+.jd-inhoud h2 {
+  font-size: 15.5px;
+  color: var(--donkerviolet);
+  margin-bottom: 6px;
+}
+.jd-inhoud ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  columns: 2 260px;
+  column-gap: 28px;
+}
+.jd-inhoud li {
+  break-inside: avoid;
+  position: relative;
+  padding: 4px 0 4px 18px;
+}
+/* Pijltje als vormteken; geen tekst, dus schermlezers lezen het niet voor. */
+.jd-inhoud li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.85em;
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid var(--paars);
+  border-top: 2px solid var(--paars);
+  transform: rotate(45deg);
+}
+
+/* Secties */
+.jd-sectie {
+  margin-top: 30px;
+  scroll-margin-top: 16px;
+}
+.jd-sectie > h2 {
+  font-size: 20px;
+  color: var(--donkerviolet);
+  padding-left: 12px;
+  border-left: 4px solid var(--paars);
+  margin-bottom: 10px;
+}
+.jd-sectie h3 {
+  margin-top: 16px;
+  margin-bottom: 4px;
+}
+.jd-sectie p,
+.jd-sectie ul,
+.jd-sectie ol,
+.jd-sectie dl {
+  max-width: 70ch;
+}
+.jd-sectie p + p,
+.jd-sectie p + ul,
+.jd-sectie ul + p,
+.jd-sectie p + ol,
+.jd-sectie ol + p,
+.jd-sectie .jd-blok + p,
+.jd-sectie p + .jd-blok {
+  margin-top: 10px;
+}
+.jd-sectie ul,
+.jd-sectie ol {
+  margin-block: 6px 0;
+  padding-left: 22px;
+}
+.jd-sectie li + li {
+  margin-top: 4px;
+}
+.jd-artikel {
+  list-style: none;
+  padding-left: 0 !important;
+  counter-reset: lid;
+}
+.jd-artikel > li {
+  counter-increment: lid;
+  display: grid;
+  grid-template-columns: 2.6em minmax(0, 1fr);
+}
+.jd-artikel > li::before {
+  content: attr(data-nr);
+  font-weight: 600;
+  color: var(--tekst-secundair);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Blokken met gegevens (per opslagsleutel, per dienst, per verwerking) */
+.jd-blokken {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+.jd-blok {
+  background: var(--wit);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+}
+.jd-blok h3 {
+  margin: 0 0 6px;
+  overflow-wrap: anywhere;
+}
+.jd-blok code {
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.jd-gegevens {
+  display: grid;
+  grid-template-columns: minmax(0, 11em) minmax(0, 1fr);
+  gap: 4px 14px;
+  margin: 0;
+  font-size: 14px;
+}
+.jd-gegevens dt {
+  font-weight: 600;
+  color: var(--tekst-2);
+}
+.jd-gegevens dd {
+  margin: 0;
+}
+@media (max-width: 560px) {
+  .jd-gegevens {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  .jd-gegevens dd + dt {
+    margin-top: 8px;
+  }
+}
+
+/* Tabellen in juridische teksten: tekst mag afbreken */
+.jd .tabel-container td,
+.jd .tabel-container th {
+  white-space: normal;
+}
+
+/* Kaders */
+.jd-kader {
+  background: var(--kaartvlak);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  border-left: 4px solid var(--lichtviolet);
+}
+.jd-kader > * + * {
+  margin-top: 8px;
+}
+.jd-toetspunt {
+  border-left-color: var(--waarschuwing-rand);
+  background: var(--waarschuwing-bg);
+}
+.jd-bron {
+  font-size: 12.5px;
+  color: var(--tekst-2);
+  margin-top: 6px;
+}
+.jd-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 15.5px;
+  border: 2px solid var(--tekst-2);
+  border-radius: var(--radius-klein);
+  padding: 4px 12px;
+  background: var(--wit);
+}
+.jd-status-letter {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--tekst-2);
+  color: var(--wit);
+}
+.jd-naarboven {
+  margin-top: 34px;
+  font-size: 14px;
+}
+.jd-contact {
+  margin-top: 30px;
+}
+
+/* ---------- Bètamelding (Banner.tsx) ---------- */
+.banner .banner-beta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  align-items: baseline;
+}
+.banner .banner-label {
+  display: inline-block;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  padding: 0 8px;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.banner a {
+  color: inherit;
+  font-weight: 600;
+}
+
+/* ---------- Voettekst (Voettekst.tsx) ---------- */
+footer.voet .wrap.voet-raster {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 22px 32px;
+  padding-block: 26px 30px;
+  font-size: 13px;
+  color: var(--tekst-2);
+}
+.voet-raster h2 {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--donkerviolet);
+  margin-bottom: 6px;
+}
+.voet-raster address {
+  font-style: normal;
+}
+.voet-raster ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.voet-raster a {
+  color: var(--tekst-2);
+  display: inline-block;
+  padding: 3px 0;
+}
+.voet-raster a:hover {
+  color: var(--donkerviolet);
+}
+.voet-onder {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 16px;
+  border-top: 1px solid var(--rand);
+  padding-top: 12px;
+  color: var(--tekst-secundair);
+  font-size: 12.5px;
+}
+@media (max-width: 760px) {
+  footer.voet .wrap.voet-raster {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media print {
+  .jd-inhoud,
+  .jd-naarboven {
+    display: none;
+  }
+  .jd-sectie {
+    break-inside: auto;
+  }
+}

@@ -71,6 +71,22 @@ export function staffelVan(id: StaffelId): Staffel {
   return s;
 }
 
+/** Organisatietype zoals de aanmelder het kiest. De staffel volgt daaruit (zie src/lib/prijs.ts). */
+export type Organisatietype = 'samenwerkingsverband' | 'gemeente' | 'verwerker';
+
+export interface OrganisatietypeOptie {
+  waarde: Organisatietype;
+  label: string;
+  /** Overheden mogen het btw-nummer leeg laten. */
+  overheid: boolean;
+}
+
+export const organisatietypen: OrganisatietypeOptie[] = [
+  { waarde: 'samenwerkingsverband', label: 'Samenwerkingsverband van gemeenten (bijv. gemeenschappelijke regeling)', overheid: true },
+  { waarde: 'gemeente', label: 'Gemeente', overheid: true },
+  { waarde: 'verwerker', label: 'Afvalverwerker of sorteerder', overheid: false },
+];
+
 /** Vanaf dit aantal gemeenten geldt het tarief voor een groot samenwerkingsverband. */
 export const grensGrootSamenwerkingsverband = 4;
 
@@ -84,7 +100,7 @@ export const voorwaarden = {
   verlengingMaanden: 12,
   /** Opzeggen kan tot uiterlijk zoveel maanden vóór de einddatum. */
   opzegtermijnMaanden: 1,
-  /** Betaaltermijn van de factuur. 30 dagen is het wettelijk maximum voor overheden zonder afspraak (art. 6:119ab BW). */
+  /** Betaaltermijn van de factuur. 30 dagen is de wettelijke termijn voor overheidsinstanties zonder andere afspraak (art. 6:119b lid 2 en 5 BW). */
   betaaltermijnDagen: 30,
   /** Prijswijzigingen voor een nieuw contractjaar melden we uiterlijk zoveel maanden van tevoren. */
   prijswijzigingAankondigingMaanden: 3,
@@ -198,10 +214,10 @@ export const bronnen = {
     peildatum: '2026-10-14',
   },
   betaaltermijn: {
-    feit: 'Zonder andere afspraak betaalt een overheidsinstantie binnen 30 dagen na ontvangst van de factuur',
-    titel: 'Burgerlijk Wetboek Boek 6, artikel 119ab (wetten.overheid.nl)',
-    url: 'https://wetten.overheid.nl/jci1.3:c:BWBR0005289&boek=6&titeldeel=5&afdeling=2A&artikel=119ab',
-    peildatum: '2026-10-14',
+    feit: 'Een overheidsinstantie die geen andere uiterste betaaldag heeft afgesproken, is na 30 dagen na ontvangst van de factuur wettelijke rente verschuldigd; een langere termijn kan alleen uitdrukkelijk en tot ten hoogste 60 dagen',
+    titel: 'Burgerlijk Wetboek Boek 6, artikel 119b, lid 2 en 5 (wetten.overheid.nl)',
+    url: 'https://wetten.overheid.nl/jci1.3:c:BWBR0005289&boek=6&titeldeel=1&afdeling=11&artikel=119b',
+    peildatum: '2026-10-15',
   },
   drempel: {
     feit: 'Europese drempel leveringen en diensten decentrale overheid 2026–2027: € 216.000 excl. btw',
@@ -220,6 +236,18 @@ export const bronnen = {
     titel: 'Logius – E-factureren',
     url: 'https://www.logius.nl/onze-dienstverlening/gegevensuitwisseling/e-factureren',
     peildatum: '2026-10-14',
+  },
+  kvk: {
+    feit: 'Een KVK-nummer heeft acht cijfers; ook overheden staan in het Handelsregister',
+    titel: 'KVK – KVK-nummer: goed om te weten',
+    url: 'https://www.kvk.nl/over-het-handelsregister/kvk-nummer-alles-wat-je-moet-weten/',
+    peildatum: '2026-10-15',
+  },
+  btwId: {
+    feit: 'Een btw-identificatienummer is NL + 9 cijfers + B + 2 cijfers, bijvoorbeeld NL123456789B01',
+    titel: 'Ondernemersplein (KVK en Rijksoverheid) – Nummers voor de btw',
+    url: 'https://ondernemersplein.overheid.nl/geldzaken-en-belastingen/omzetbelasting-btw/nummers-voor-de-btw/',
+    peildatum: '2026-10-15',
   },
 } as const;
 

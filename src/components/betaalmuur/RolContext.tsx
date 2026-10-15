@@ -1,45 +1,24 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import { AuthProvider, isToegangOnbekend, useAuth } from '../../lib/auth';
 
-// Demo-schakelaar voor de betaalmuur: "Bekijk als Bezoeker | Lid".
-// Er is geen echte login; de keuze staat alleen in localStorage van deze browser.
+// Compatibele hook voor de rest van het platform. Vroeger was dit een demo-schakelaar "Bekijk als";
+// nu komt alles uit de echte sessie (Supabase Auth) en isLid uit rpc('is_lid'). Zie src/lib/auth.tsx.
 
-export type Rol = 'bezoeker' | 'lid';
+export type Rol = 'bezoeker' | 'ingelogd' | 'lid';
 
-const OPSLAGSLEUTEL = 'afvalplatform-rol';
-
-function leesRol(): Rol {
-  try {
-    return localStorage.getItem(OPSLAGSLEUTEL) === 'lid' ? 'lid' : 'bezoeker';
-  } catch {
-    return 'bezoeker';
-  }
-}
-
-interface RolWaarde {
+export interface RolWaarde {
+  /** 'bezoeker' (niet ingelogd), 'ingelogd' (wel ingelogd, geen lid) of 'lid'. */
   rol: Rol;
+  /** True als de ingelogde gebruiker via een actieve organisatie lid is. */
   isLid: boolean;
-  zetRol: (rol: Rol) => void;
+  /** True zolang sessie of lidmaatschap nog wordt gecontroleerd. */
+  laden: boolean;
 }
 
-const RolCtx = createContext<RolWaarde | null>(null);
-
-export function RolProvider({ children }: { children: ReactNode }) {
-  const [rol, setRol] = useState<Rol>(leesRol);
-
-  const zetRol = useCallback((nieuw: Rol) => {
-    setRol(nieuw);
-    try {
-      localStorage.setItem(OPSLAGSLEUTEL, nieuw);
-    } catch {
-      // Opslaan mislukt (privévenster of geblokkeerde opslag): de keuze geldt dan alleen voor deze sessie.
-    }
-  }, []);
-
-  return <RolCtx.Provider value={{ rol, isLid: rol === 'lid', zetRol }}>{children}</RolCtx.Provider>;
-}
+/** @deprecated Gebruik AuthProvider uit src/lib/auth.tsx. Blijft bestaan voor oude imports. */
+export const RolProvider = AuthProvider;
 
 export function useRol(): RolWaarde {
-  const waarde = useContext(RolCtx);
-  if (!waarde) throw new Error('useRol moet binnen <RolProvider> gebruikt worden');
-  return waarde;
+  const auth = useAuth();
+  const rol: Rol = auth.isLid ? 'lid' : auth.status === 'in' ? 'ingelogd' : 'bezoeker';
+  return { rol, isLid: auth.isLid, laden: isToegangOnbekend(auth) };
 }

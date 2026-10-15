@@ -1,0 +1,187 @@
+/* Toegang: accountknop in de navbar, inlog- en accountpagina, betaalmuur.
+   Alleen tokens uit src/styles/tokens.css. */
+
+/* ---------- Accountknop (navbar) ---------- */
+.accountknop {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--wit);
+  font-size: 13.5px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.accountknop:hover,
+.accountknop[aria-current='page'] {
+  background: var(--wit);
+  color: var(--donkerviolet);
+}
+.accountknop:focus-visible {
+  outline-color: var(--wit);
+}
+.accountknop-status {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+}
+.accountknop-status[data-lid='true']::before {
+  content: '✓ ';
+}
+
+/* ---------- Inloggen en account ---------- */
+.toegang-raster {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 820px) {
+  .toegang-raster {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.toegang-formulier {
+  display: grid;
+  gap: 14px;
+  max-width: 480px;
+}
+.toegang-formulier .knop,
+.toegang-formulier button {
+  justify-self: start;
+}
+.toegang-scheiding {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--tekst-secundair);
+  font-size: 13px;
+  margin: 4px 0;
+}
+.toegang-scheiding::before,
+.toegang-scheiding::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--rand);
+}
+.wachtwoord-rij {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.wachtwoord-rij label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--tekst-2);
+}
+.linkknop {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--blauw);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.linkknop:hover {
+  background: none;
+  color: var(--donkerviolet);
+}
+.invoer .toon-knop {
+  border: 0;
+  border-left: 1px solid var(--rand);
+  border-radius: 0;
+  background: var(--kaartvlak);
+  color: var(--donkerviolet);
+  font-size: 12.5px;
+  padding: 0 12px;
+}
+.invoer .toon-knop:focus-visible {
+  outline-offset: -3px;
+}
+.melding-fout {
+  border: 1px solid #b91c1c;
+  background: #fef2f2;
+  color: #7f1d1d;
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+.melding-fout strong {
+  display: block;
+  margin-bottom: 2px;
+}
+.gegevens {
+  display: grid;
+  grid-template-columns: minmax(0, 11em) minmax(0, 1fr);
+  gap: 8px 16px;
+  margin: 0;
+  font-size: 14px;
+}
+.gegevens dt {
+  color: var(--tekst-secundair);
+  font-weight: 500;
+}
+.gegevens dd {
+  margin: 0;
+  color: var(--tekst);
+  overflow-wrap: anywhere;
+}
+@media (max-width: 480px) {
+  .gegevens {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2px;
+  }
+  .gegevens dd + dt {
+    margin-top: 8px;
+  }
+}
+.statuslabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--rand);
+}
+.statuslabel[data-soort='actief'] {
+  background: var(--succes-bg);
+  border-color: var(--succes-rand);
+  color: var(--succes-tekst);
+}
+.statuslabel[data-soort='let-op'] {
+  background: var(--waarschuwing-bg);
+  border-color: var(--waarschuwing-rand);
+  color: var(--waarschuwing-tekst);
+}
+.statuslabel[data-soort='geen'] {
+  background: var(--rij);
+  color: var(--tekst-2);
+}
+
+/* ---------- Betaalmuur ---------- */
+.slotkaart .knoppen {
+  margin-top: 2px;
+}
+.slotkaart .wie {
+  overflow-wrap: anywhere;
+}
+.scheidingslijn {
+  border: 0;
+  border-top: 1px solid var(--rand);
+  margin: 4px 0;
+}

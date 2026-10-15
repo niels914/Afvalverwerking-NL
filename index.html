@@ -8,9 +8,6 @@
     <meta name="theme-color" content="#5760A6" />
     <title>Ledenplatform Restafvalkaart</title>
     <link rel="icon" href="/logo-kplusv.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" />
   </head>
   <body>
     <!--
@@ -33,6 +30,43 @@
       <textarea name="collega_bijdrage"></textarea>
       <input name="contact_toestemming" />
       <input type="email" name="email" />
+    </form>
+    <!--
+      Verborgen statische kopie van het aanmeldformulier lidmaatschap (Netlify Forms).
+      Houd de veldnamen gelijk aan aanmeldVelden in src/data/lidmaatschap.ts.
+    -->
+    <form name="aanmelding" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input type="hidden" name="form-name" value="aanmelding" />
+      <input name="bot-field" />
+      <input name="ordernummer" />
+      <input name="organisatie" />
+      <input name="type" />
+      <input name="aantal_gemeenten" />
+      <input name="staffel" />
+      <input name="kvk" />
+      <input name="btw_nummer" />
+      <input name="oin" />
+      <input name="factuur_adres" />
+      <input name="factuur_postcode" />
+      <input name="factuur_plaats" />
+      <input name="factuur_ter_attentie" />
+      <input type="email" name="crediteuren_email" />
+      <input name="factuurvorm" />
+      <input name="peppol_id" />
+      <input name="inkoopordernummer" />
+      <input name="contact_naam" />
+      <input name="contact_functie" />
+      <input type="email" name="contact_email" />
+      <input name="contact_telefoon" />
+      <textarea name="toegang"></textarea>
+      <input name="startdatum" />
+      <input name="einddatum" />
+      <input name="prijs_excl_btw" />
+      <input name="btw" />
+      <input name="prijs_incl_btw" />
+      <textarea name="opmerkingen"></textarea>
+      <input name="akkoord_voorwaarden" />
+      <input name="akkoord_privacy" />
     </form>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
