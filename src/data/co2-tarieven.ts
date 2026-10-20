@@ -3,7 +3,7 @@
 // Waar staat "status: 'voorstel'" gaat het om het wetsvoorstel Belastingplan 2027 (nog geen wet).
 // Bijwerken: zie docs/stukken/tools-a.md, paragraaf "Onderhoud CO2-heffingenscan".
 
-export const PEILDATUM = '2026-10-15';
+export const PEILDATUM = '2026-10-19';
 
 export interface Bron {
   titel: string;
@@ -151,6 +151,23 @@ export const kentalEmissiefactor = {
  * Het voorgestelde AVI-tarief 2027 van € 129,15 is daar al mee geïndexeerd. Bron: MvT Belastingplan 2027.
  * Alleen ter oriëntatie in de tool; latere jaren zijn niet bekend en blijven een aanname van de gebruiker.
  */
+/**
+ * Tariefpad in prijspeil 2026 (afgerond op hele euro's) uit de memorie van toelichting bij het Belastingplan 2027,
+ * tabel 12. Hiermee zijn geldend recht en voorstel eerlijk te vergelijken: beide zonder inflatie na 2026.
+ */
+export const tariefpadPrijspeil2026: { jaar: number; geldend: number; voorstel: number }[] = [
+  { jaar: 2026, geldend: 104, voorstel: 104 },
+  { jaar: 2027, geldend: 154, voorstel: 126 },
+  { jaar: 2028, geldend: 204, voorstel: 148 },
+  { jaar: 2029, geldend: 254, voorstel: 170 },
+  { jaar: 2030, geldend: 304, voorstel: 193 },
+  { jaar: 2031, geldend: 304, voorstel: 215 },
+  { jaar: 2032, geldend: 304, voorstel: 237 },
+  { jaar: 2033, geldend: 304, voorstel: 259 },
+  { jaar: 2034, geldend: 304, voorstel: 281 },
+  { jaar: 2035, geldend: 304, voorstel: 304 },
+];
+
 export const inflatiecorrectie2027 = { pct: 2.6, bron: bronnen.bp2027 };
 
 export const scanJaren = { eerste: 2026, laatste: 2035 };

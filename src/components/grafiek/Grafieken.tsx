@@ -115,7 +115,8 @@ export function LijnGrafiek({ titel, labels, reeksen, formatY, vanafNul = true }
         ))}
         <line className="as" x1={m.l} x2={B - m.r} y1={y(onder)} y2={y(onder)} />
         {labels.map((l, i) =>
-          i % elke === 0 || i === labels.length - 1 ? (
+          // Laatste label altijd; een tussenlabel vlak ervoor laten we weg, zodat ze niet overlappen.
+          (i % elke === 0 && labels.length - 1 - i >= elke) || i === labels.length - 1 ? (
             <text key={String(l)} x={x(i)} y={H - 8} textAnchor={i === labels.length - 1 ? 'end' : i === 0 ? 'start' : 'middle'}>
               {l}
             </text>

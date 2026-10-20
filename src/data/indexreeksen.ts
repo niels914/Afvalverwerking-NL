@@ -80,4 +80,6 @@ export const indexStandaardInvoer: IndexInvoer = {
   laatsteJaar: laatsteJaarcijfer() + 1,
   verschuiving: 1,
   peilmaand: 9,
+  plafondPct: null,
+  geenDaling: false,
 };

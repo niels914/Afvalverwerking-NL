@@ -31,6 +31,21 @@ test.describe('bezoeker', () => {
     await expect(slot.getByRole('link', { name: 'Inloggen' })).toHaveAttribute('href', '/inloggen?terug=%2Faanbestedingsarchief');
     await expect(slot.getByRole('link', { name: 'Lid worden' })).toHaveAttribute('href', '/lidmaatschap/aanmelden');
     await geenHorizontaleScroll(page);
+
+    // Accountknop is met het toetsenbord bereikbaar en heeft een zichtbare focusrand.
+    const knop = nav.getByRole('link', { name: 'Inloggen' });
+    await knop.focus();
+    await page.keyboard.press('Shift+Tab');
+    await page.keyboard.press('Tab');
+    await expect(knop).toBeFocused();
+    const rand = await knop.evaluate((el) => getComputedStyle(el).outlineStyle);
+    expect(rand).not.toBe('none');
+  });
+
+  test('inlogpagina verwijst naar privacyverklaring en aanmelden', async ({ page }) => {
+    await page.goto('/inloggen');
+    await expect(page.locator('main').getByRole('link', { name: 'privacyverklaring', exact: true })).toHaveAttribute('href', '/privacy');
+    await expect(page.getByRole('link', { name: 'Meld uw organisatie aan' })).toHaveAttribute('href', '/lidmaatschap/aanmelden');
   });
 
   test('inlogformulier: labels, controle vooraf en foutmelding van de server', async ({ page }) => {
@@ -156,6 +171,7 @@ test.describe('ingelogd', () => {
     await expect(page.getByTestId('organisatie')).toContainText('KplusV');
     await expect(page.getByTestId('lidstatus')).toContainText('Actief');
     await expect(page.getByTestId('geldig-tot')).not.toBeEmpty();
+    await expect(page.locator('main').getByRole('link', { name: 'privacyverklaring', exact: true })).toHaveAttribute('href', '/privacy');
     await geenHorizontaleScroll(page);
 
     // Controle vooraf bij wachtwoord wijzigen (er wordt niets opgeslagen).

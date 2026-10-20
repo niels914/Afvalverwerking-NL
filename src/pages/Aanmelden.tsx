@@ -32,14 +32,24 @@ import {
   publiekeMaildomeinen,
   staffels,
   voorwaarden,
+  type Aanvraagsoort,
   type Organisatietype,
   type StaffelId,
 } from '../data/lidmaatschap';
 import { contact, platform } from '../data/site';
 import { datum, euro } from '../lib/format';
-import { eersteVanVolgendeMaand, laatsteStartdatum, maakOrdernummer, vandaagIso, type Berekening } from '../lib/prijs';
+import {
+  eersteVanVolgendeMaand,
+  laatsteStartdatum,
+  maakOrdernummer,
+  offerteGeldigTot,
+  vandaagIso,
+  type Berekening,
+} from '../lib/prijs';
 
 // Aanmelden voor een lidmaatschap op factuur, in drie stappen: gegevens → controleren en verzenden → bevestiging.
+// Hetzelfde formulier dient voor een offerteaanvraag (veld `soort`, of ?soort=offerte in de URL): voor gemeenten die
+// eerst een offerte in hun inkoopsysteem moeten zetten voordat ze een inkoopordernummer krijgen.
 // Verzenden gaat naar Netlify Forms (formulier "aanmelding", verborgen kopie in index.html). Lukt dat niet,
 // dan bewaren we de aanmelding in deze browser en bieden we een e-mail met dezelfde gegevens aan.
 
@@ -48,6 +58,7 @@ type Stap = 'gegevens' | 'controle' | 'verzonden' | 'niet-verzonden';
 const CONCEPT_SLEUTEL = 'afvalplatform-aanmelding-concept';
 
 const veldLabels: Record<Veld, string> = {
+  soort: 'Wat wilt u doen',
   organisatie: 'Naam organisatie',
   type: 'Type organisatie',
   aantal_gemeenten: 'Aantal deelnemende gemeenten',
@@ -85,6 +96,10 @@ function typeVanStaffel(id: string | null): Partial<AanmeldGegevens> {
   if (s.id === 'gemeente') return { type: 'gemeente' };
   if (s.id === 'verwerker') return { type: 'verwerker' };
   return { type: 'samenwerkingsverband' };
+}
+
+function soortUitUrl(waarde: string | null): Partial<AanmeldGegevens> {
+  return waarde === 'offerte' || waarde === 'aanmelding' ? { soort: waarde as Aanvraagsoort } : {};
 }
 
 function leesConcept(): Partial<AanmeldGegevens> {
@@ -141,6 +156,7 @@ export function Aanmelden() {
     ...legeAanmelding(eersteVanVolgendeMaand(vandaag)),
     ...leesConcept(),
     ...typeVanStaffel(params.get('staffel')),
+    ...soortUitUrl(params.get('soort')),
   }));
   const [stap, setStap] = useState<Stap>('gegevens');
   const [fouten, setFouten] = useState<Fouten>({});
@@ -198,7 +214,7 @@ export function Aanmelden() {
     }
     const berekend = berekening(g);
     if (!berekend) return;
-    const velden = formulierVelden(g, berekend, maakOrdernummer(vandaag, willekeurigeCode()));
+    const velden = formulierVelden(g, berekend, maakOrdernummer(vandaag, willekeurigeCode(), g.soort));
     setBezig(true);
     try {
       const res = await fetch('/', {
@@ -208,7 +224,8 @@ export function Aanmelden() {
       });
       if (!res.ok) throw new Error(`Status ${res.status}`);
       setVerzonden({ velden, b: berekend });
-      bewaarConcept(null);
+      // Na een offerteaanvraag blijven de gegevens klaarstaan om later aan te melden; na een aanmelding niet.
+      bewaarConcept(g.soort === 'offerte' ? { ...g, soort: 'aanmelding' } : null);
       setStap('verzonden');
     } catch {
       setVerzonden({ velden, b: berekend, lokaalBewaard: bewaarLokaal(velden) });
@@ -225,17 +242,38 @@ export function Aanmelden() {
   ];
   const stapIndex = stap === 'gegevens' ? 0 : stap === 'controle' ? 1 : 2;
 
+  const offerte = g.soort === 'offerte';
   const titel =
     stap === 'gegevens'
-      ? 'Aanmelden voor een lidmaatschap'
+      ? offerte
+        ? 'Offerte aanvragen'
+        : 'Aanmelden voor een lidmaatschap'
       : stap === 'controle'
-        ? 'Controleer uw aanmelding'
+        ? offerte
+          ? 'Controleer uw offerteaanvraag'
+          : 'Controleer uw aanmelding'
         : stap === 'verzonden'
-          ? 'Aanmelding ontvangen'
-          : 'Aanmelding nog niet verzonden';
+          ? offerte
+            ? 'Offerteaanvraag ontvangen'
+            : 'Aanmelding ontvangen'
+          : offerte
+            ? 'Offerteaanvraag nog niet verzonden'
+            : 'Aanmelding nog niet verzonden';
+  const woord = offerte ? 'offerteaanvraag' : 'aanmelding';
 
   return (
     <>
+      <nav aria-label="Kruimelpad" className="lm-kruimelpad lm-geen-print">
+        <ol>
+          <li>
+            <Link to="/">Home</Link>
+          </li>
+          <li>
+            <Link to="/lidmaatschap">Lidmaatschap en prijzen</Link>
+          </li>
+          <li aria-current="page">{offerte ? 'Offerte aanvragen' : 'Aanmelden'}</li>
+        </ol>
+      </nav>
       <section className="intro">
         <h1 ref={kopRef} tabIndex={-1} style={{ outline: 'none' }}>
           {titel}
@@ -243,15 +281,22 @@ export function Aanmelden() {
         <div className="badges">
           <ConceptBadge />
         </div>
-        {stap === 'gegevens' && (
+        {stap === 'gegevens' && !offerte && (
           <p>
             Meld uw organisatie aan. U betaalt op factuur; er is geen betaling via de website. Voordat u verzendt, ziet u de
             prijs, de looptijd en al uw gegevens nog een keer. Velden zonder “optioneel” zijn verplicht.
           </p>
         )}
+        {stap === 'gegevens' && offerte && (
+          <p>
+            Vraag een offerte aan voor uw inkoopproces. U ontvangt binnen {voorwaarden.bevestigingWerkdagen} werkdagen een
+            offerte als pdf, {voorwaarden.offerteGeldigDagen} dagen geldig. Een offerteaanvraag verplicht u tot niets. Velden
+            zonder “optioneel” zijn verplicht.
+          </p>
+        )}
       </section>
 
-      <ol className="stappen lm-geen-print" aria-label="Stappen van de aanmelding">
+      <ol className="stappen lm-geen-print" aria-label={`Stappen van de ${woord}`}>
         {stappen.map((s, i) => (
           <li key={s.id} aria-current={i === stapIndex ? 'step' : undefined} data-klaar={i < stapIndex ? 'true' : undefined}>
             {s.label}
@@ -321,10 +366,18 @@ export function Aanmelden() {
           <Samenvatting g={g} onWijzig={() => setStap('gegevens')} />
           <Kaart titel="Akkoord">
             <div className="velden">
-              <Akkoord naam="akkoord_voorwaarden" waarde={g.akkoord_voorwaarden} onChange={(v) => zet('akkoord_voorwaarden', v)} fout={fouten.akkoord_voorwaarden}>
-                Ik ben bevoegd om namens {g.organisatie || 'mijn organisatie'} een lidmaatschap af te sluiten en ga akkoord met de{' '}
-                <NieuwTabblad naar="/algemene-voorwaarden">algemene voorwaarden</NieuwTabblad>.
-              </Akkoord>
+              {offerte ? (
+                <p className="klein">
+                  Met een offerteaanvraag gaat u nog niets aan. De offerte verwijst naar de{' '}
+                  <NieuwTabblad naar="/algemene-voorwaarden">algemene voorwaarden</NieuwTabblad>; daarmee gaat u pas akkoord als u
+                  de offerte aanvaardt.
+                </p>
+              ) : (
+                <Akkoord naam="akkoord_voorwaarden" waarde={g.akkoord_voorwaarden} onChange={(v) => zet('akkoord_voorwaarden', v)} fout={fouten.akkoord_voorwaarden}>
+                  Ik ben bevoegd om namens {g.organisatie || 'mijn organisatie'} een lidmaatschap af te sluiten en ga akkoord met de{' '}
+                  <NieuwTabblad naar="/algemene-voorwaarden">algemene voorwaarden</NieuwTabblad>.
+                </Akkoord>
+              )}
               <Akkoord naam="akkoord_privacy" waarde={g.akkoord_privacy} onChange={(v) => zet('akkoord_privacy', v)} fout={fouten.akkoord_privacy}>
                 Ik heb de <NieuwTabblad naar="/privacy">privacyverklaring</NieuwTabblad> gelezen.
               </Akkoord>
@@ -335,12 +388,13 @@ export function Aanmelden() {
               Terug naar gegevens
             </button>
             <button type="submit" className="primair" disabled={bezig}>
-              {bezig ? 'Bezig met verzenden…' : 'Aanmelding verzenden'}
+              {bezig ? 'Bezig met verzenden…' : offerte ? 'Offerteaanvraag verzenden' : 'Aanmelding verzenden'}
             </button>
           </div>
           <p className="klein muted">
-            Na verzenden ontvangt u binnen {voorwaarden.bevestigingWerkdagen} werkdagen een orderbevestiging per e-mail. Er gaat
-            nog geen geld van uw rekening.
+            {offerte
+              ? `Na verzenden ontvangt u binnen ${voorwaarden.bevestigingWerkdagen} werkdagen een offerte per e-mail. U krijgt geen factuur.`
+              : `Na verzenden ontvangt u binnen ${voorwaarden.bevestigingWerkdagen} werkdagen een orderbevestiging per e-mail. De factuur volgt pas op de startdatum.`}
           </p>
         </form>
       )}
@@ -352,6 +406,7 @@ export function Aanmelden() {
           g={g}
           nietVerzonden={stap === 'niet-verzonden'}
           lokaalBewaard={verzonden.lokaalBewaard}
+          vandaag={vandaag}
           onOpnieuw={() => setStap('controle')}
         />
       )}
@@ -390,8 +445,24 @@ function Gegevensformulier({
   const kanContactDomeinToevoegen =
     contactDomein !== '' && !publiekeMaildomeinen.includes(contactDomein) && !domeinen.domeinen.includes(contactDomein);
 
+  const offerte = g.soort === 'offerte';
+  const b = berekening(g);
+
   return (
-    <form onSubmit={onSubmit} noValidate className="kaart" aria-label="Gegevens voor de aanmelding">
+    <form onSubmit={onSubmit} noValidate className="kaart" aria-label={offerte ? 'Gegevens voor de offerteaanvraag' : 'Gegevens voor de aanmelding'}>
+      <KeuzeRondjes<Aanvraagsoort>
+        naam="soort"
+        legend="Wat wilt u doen?"
+        waarde={g.soort}
+        opties={[
+          { waarde: 'aanmelding', label: 'Lid worden: aanmelden op factuur' },
+          { waarde: 'offerte', label: 'Eerst een offerte ontvangen voor ons inkoopproces (verplicht tot niets)' },
+        ]}
+        onChange={(v) => zet('soort', v)}
+        fout={fouten.soort}
+        kolom
+      />
+
       <fieldset className="lm-formdeel">
         <legend>1. Organisatie</legend>
         <TekstVeld naam="organisatie" label="Naam organisatie" waarde={g.organisatie} onChange={(v) => zet('organisatie', v)} autoComplete="organization" fout={fouten.organisatie} hint="Zoals die op de factuur moet staan." />
@@ -415,6 +486,12 @@ function Gegevensformulier({
             fout={fouten.aantal_gemeenten}
             hint={`2 of 3 gemeenten: staffel klein. ${grensGrootSamenwerkingsverband} of meer: staffel groot.`}
           />
+        )}
+        {b && (
+          <p className="lm-prijs-inline klein" aria-live="polite">
+            Uw prijs: <strong>{euro(b.exclBtw)} per jaar excl. btw</strong> ({euro(b.inclBtw, 2)} incl. {b.btwPercentage} % btw),
+            staffel {b.staffel.korteNaam.toLowerCase()}.{!prijzenVastgesteld && ' Concept.'}
+          </p>
         )}
         <div className="velden-2">
           <TekstVeld naam="kvk" label="KVK-nummer" waarde={g.kvk} onChange={(v) => zet('kvk', v)} inputMode="numeric" fout={fouten.kvk} hint="8 cijfers. Ook gemeenten en gemeenschappelijke regelingen hebben er een." />
@@ -509,6 +586,7 @@ function Gegevensformulier({
         <TekstVak
           naam="toegang"
           label="E-maildomeinen die toegang krijgen"
+          optioneel={offerte}
           waarde={g.toegang}
           onChange={(v) => zet('toegang', v)}
           rijen={2}
@@ -622,6 +700,7 @@ function Samenvatting({ g, onWijzig }: { g: AanmeldGegevens; onWijzig?: () => vo
     <Kaart titel="Uw gegevens" actie={wijzig}>
       <h3 className="klein" style={{ color: 'var(--donkerviolet)' }}>Organisatie</h3>
       <dl className="lm-gegevens">
+        <Rij label="Aanvraag">{g.soort === 'offerte' ? 'Offerte, nog geen aanmelding' : 'Aanmelding als lid'}</Rij>
         <Rij label="Naam">{g.organisatie}</Rij>
         <Rij label="Type">{typeLabel(g.type)}</Rij>
         <Rij label="Aantal gemeenten">{g.type === 'samenwerkingsverband' ? g.aantal_gemeenten : ''}</Rij>
@@ -672,6 +751,7 @@ function Bevestiging({
   g,
   nietVerzonden,
   lokaalBewaard,
+  vandaag,
   onOpnieuw,
 }: {
   velden: Record<string, string>;
@@ -679,16 +759,25 @@ function Bevestiging({
   g: AanmeldGegevens;
   nietVerzonden: boolean;
   lokaalBewaard?: boolean;
+  vandaag: string;
   onOpnieuw: () => void;
 }) {
-  const mailto = `mailto:${contact.email}?subject=${encodeURIComponent(`Aanmelding lidmaatschap ${velden.organisatie} (${velden.ordernummer})`)}&body=${encodeURIComponent(mailtekst(velden))}`;
+  const offerte = velden.soort === 'offerte';
+  const woord = offerte ? 'Offerteaanvraag' : 'Aanmelding';
+  const mailto = `mailto:${contact.email}?subject=${encodeURIComponent(`${woord} lidmaatschap ${velden.organisatie} (${velden.ordernummer})`)}&body=${encodeURIComponent(mailtekst(velden))}`;
+  const domeinen = velden.toegang
+    ? velden.toegang
+        .split(', ')
+        .map((d) => `@${d}`)
+        .join(', ')
+    : '';
 
   if (nietVerzonden) {
     return (
       <div className="stapel sectie">
         <div className="notitie" role="alert">
-          <strong>Uw aanmelding is niet verzonden.</strong> De verbinding met de server lukte niet (dat gebeurt ook als het
-          platform lokaal draait).{' '}
+          <strong>Uw {woord.toLowerCase()} is niet verzonden.</strong> De verbinding met de server lukte niet (dat gebeurt ook
+          als het platform lokaal draait).{' '}
           {lokaalBewaard ? 'Uw gegevens zijn bewaard in deze browser. ' : ''}
           Probeer het opnieuw, of stuur dezelfde gegevens per e-mail.
         </div>
@@ -697,7 +786,7 @@ function Bevestiging({
             Opnieuw proberen
           </button>
           <a className="knop" href={mailto}>
-            Aanmelding per e-mail sturen
+            {woord} per e-mail sturen
           </a>
         </div>
         <Kaart titel="Prijs en looptijd">
@@ -712,44 +801,66 @@ function Bevestiging({
     <div className="stapel sectie">
       <div className="notitie succes" role="status">
         <span aria-hidden="true">✓ </span>
-        Bedankt. We hebben de aanmelding van <strong>{velden.organisatie}</strong> ontvangen.
+        Bedankt. We hebben de {woord.toLowerCase()} van <strong>{velden.organisatie}</strong> ontvangen.
       </div>
-      <Kaart titel="Orderbevestiging" actie={<ConceptBadge />}>
+      <Kaart titel={offerte ? 'Uw offerteaanvraag' : 'Uw order'} actie={<ConceptBadge />}>
         <p>
-          Uw ordernummer:
+          {offerte ? 'Uw referentienummer:' : 'Uw ordernummer:'}
           <br />
           <span className="lm-ordernummer">{velden.ordernummer}</span>
         </p>
-        <p className="klein muted">Noem dit nummer als u contact opneemt. Dit is geen factuur.</p>
+        <p className="klein muted">
+          {offerte
+            ? 'Noem dit nummer als u contact opneemt. Dit is nog geen offerte en geen factuur.'
+            : `Noem dit nummer als u contact opneemt. Dit is geen factuur. Het lidmaatschap is rond zodra KplusV de orderbevestiging per e-mail stuurt (artikel 3 van de algemene voorwaarden).`}
+        </p>
+        {offerte && <p className="klein">Zo ziet het eruit als u de offerte aanvaardt met de gekozen startdatum:</p>}
         <PrijsRegels b={b} />
       </Kaart>
       <Kaart titel="Wat er nu gebeurt">
-        <ol className="lm-vervolg">
-          <li>
-            <strong>Binnen {voorwaarden.bevestigingWerkdagen} werkdagen</strong> mailt KplusV een orderbevestiging naar{' '}
-            {velden.contact_email}
-            {!prijzenVastgesteld && ', met de definitieve prijs'}. Klopt er iets niet, reageer dan op die e-mail.
-          </li>
-          <li>
-            <strong>Vanaf {datum(b.startdatum)}</strong> kunnen collega’s met een e-mailadres op{' '}
-            {velden.toegang
-              .split(', ')
-              .map((d) => `@${d}`)
-              .join(', ')}{' '}
-            een account maken via <Link to="/inloggen">Inloggen</Link>.
-          </li>
-          <li>
-            <strong>Op {datum(b.factuurdatum)}</strong> sturen we de factuur van {euro(b.inclBtw, 2)} incl. btw naar{' '}
-            {velden.crediteuren_email}
-            {velden.inkoopordernummer ? `, met inkoopordernummer ${velden.inkoopordernummer}` : ''}. Betalen vóór{' '}
-            {datum(b.vervaldatum)}.
-            {!velden.inkoopordernummer && ' Heeft u nog een inkoopordernummer nodig op de factuur? Mail het ons vóór de startdatum.'}
-          </li>
-          <li>
-            <strong>Opzeggen</strong> kan per e-mail tot en met {datum(b.opzeggenUiterlijk)}. Anders loopt het lidmaatschap
-            door tot {datum(b.verlengdTot)}.
-          </li>
-        </ol>
+        {offerte ? (
+          <ol className="lm-vervolg">
+            <li>
+              <strong>Binnen {voorwaarden.bevestigingWerkdagen} werkdagen</strong> mailt KplusV een offerte als pdf naar{' '}
+              {velden.contact_email}
+              {!prijzenVastgesteld && ', met de definitieve prijs'}. De offerte is {voorwaarden.offerteGeldigDagen} dagen
+              geldig (bij een offerte van vandaag tot en met {datum(offerteGeldigTot(vandaag))}).
+            </li>
+            <li>
+              <strong>Akkoord?</strong> Reageer op de offerte met uw inkoopordernummer, of meld u aan via het{' '}
+              <Link to="/lidmaatschap/aanmelden?soort=aanmelding" reloadDocument>
+                aanmeldformulier
+              </Link>. Uw gegevens staan daar nog klaar
+              zolang dit tabblad open is.
+            </li>
+            <li>
+              <strong>Geen factuur</strong> zonder akkoord. Een offerteaanvraag verplicht u tot niets.
+            </li>
+          </ol>
+        ) : (
+          <ol className="lm-vervolg">
+            <li>
+              <strong>Binnen {voorwaarden.bevestigingWerkdagen} werkdagen</strong> mailt KplusV de orderbevestiging naar{' '}
+              {velden.contact_email}
+              {!prijzenVastgesteld && ', met de definitieve prijs'}. Klopt er iets niet, reageer dan op die e-mail.
+            </li>
+            <li>
+              <strong>Vanaf {datum(b.startdatum)}</strong> kunnen collega’s met een e-mailadres op {domeinen} een account maken
+              via <Link to="/inloggen">Inloggen</Link>.
+            </li>
+            <li>
+              <strong>Op {datum(b.factuurdatum)}</strong> sturen we de factuur van {euro(b.inclBtw, 2)} incl. btw naar{' '}
+              {velden.crediteuren_email}
+              {velden.inkoopordernummer ? `, met inkoopordernummer ${velden.inkoopordernummer}` : ''}. Uiterlijk betalen op{' '}
+              {datum(b.vervaldatum)}.
+              {!velden.inkoopordernummer && ' Heeft u nog een inkoopordernummer nodig op de factuur? Mail het ons vóór de startdatum.'}
+            </li>
+            <li>
+              <strong>Opzeggen</strong> kan per e-mail tot en met {datum(b.opzeggenUiterlijk)}. Anders loopt het lidmaatschap
+              door tot {datum(b.verlengdTot)}.
+            </li>
+          </ol>
+        )}
       </Kaart>
       <Samenvatting g={g} />
       <div className="knoppen lm-geen-print">

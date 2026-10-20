@@ -1,6 +1,6 @@
 # Lidmaatschap en prijzen (ronde 1)
 
-Stand: 15 oktober 2026. Prijzen en voorwaarden zijn **concept** tot Niels ze vaststelt.
+Stand: 19 oktober 2026 (ronde 1, vervolg). Prijzen en voorwaarden zijn **concept** tot Niels ze vaststelt.
 
 ## Wat er gebouwd is
 
@@ -10,15 +10,22 @@ Stand: 15 oktober 2026. Prijzen en voorwaarden zijn **concept** tot Niels ze vas
 - Prijstabel met excl. btw, btw-bedrag en incl. btw, met bronregel (Belastingdienst, peildatum).
 - Wat is inbegrepen, looptijd/verlenging/opzegging/betaling/prijswijziging/proeftoegang in het kort (met bron voor de betaaltermijn), link naar de algemene voorwaarden.
 - Vergelijkingstabel gratis versus lid; de betekenis staat in tekst (“Ja”, “Nee”, of een omschrijving), het vinkje is alleen versiering.
-- Stappenplan aanmelden → orderbevestiging → toegang → factuur, met knoppen naar het formulier en “Offerte aanvragen per e-mail”.
+- Stappenplan aanmelden → orderbevestiging → toegang → factuur, met knoppen naar het formulier en “Eerst een offerte aanvragen” (opent hetzelfde formulier met `?soort=offerte`).
 - Veelgestelde vragen (offerte en inkoopordernummer, e-factuur, aantal gebruikers, proefperiode, looptijd en opzeggen, factuurmoment, prijswijziging, maatwerk) als uitklapblokken.
 - Bronnenlijst met alle externe gegevens, URL en peildatum.
+- Onderaan een link “Naar boven” naar de inhoudsopgave (zoals op PIANOo).
 
-### `/lidmaatschap/aanmelden`: aanmelden op factuur
+### `/lidmaatschap/aanmelden`: aanmelden op factuur of eerst een offerte
+Kruimelpad Home › Lidmaatschap en prijzen › Aanmelden. Bovenaan de keuze **Wat wilt u doen?**: *Lid worden* of *Eerst een offerte ontvangen* (voor gemeenten die eerst een offerte in hun inkoopsysteem zetten en dan pas een inkoopordernummer krijgen). Bij een offerte:
+- zijn de toegangsdomeinen nog optioneel (ingevulde domeinen worden wel gecontroleerd);
+- is akkoord met de algemene voorwaarden nog niet nodig, alleen de privacyverklaring; Netlify krijgt `akkoord_voorwaarden = nvt (offerte)`;
+- krijgt de aanvraag een referentienummer `OFF-jjjjmmdd-XXXXX`, en de bevestiging zegt: offerte als pdf binnen 2 werkdagen, 30 dagen geldig, geen factuur zonder akkoord;
+- blijven de gegevens in `sessionStorage` staan, zodat “meld u aan via het aanmeldformulier” een ingevuld formulier opent.
+
 Drie stappen met stappenindicator:
-1. **Gegevens**: organisatienaam, type (keuzerondjes), aantal gemeenten (alleen bij samenwerkingsverband), KVK-nummer, btw-id (optioneel voor overheden, verplicht voor verwerkers), OIN (optioneel), factuuradres/postcode/plaats, t.a.v. (optioneel), e-mailadres crediteurenadministratie, factuurvorm (pdf of e-factuur via Peppol, dan Peppol-ID of OIN), inkoopordernummer (optioneel), contactpersoon (naam, functie, e-mail, telefoon), e-maildomeinen voor toegang (met knop “@domein van de contactpersoon toevoegen”), gewenste startdatum (vandaag tot 6 maanden vooruit, standaard de eerste van de volgende maand), opmerkingen. Ernaast (op mobiel eronder) een prijsblok dat meerekent.
+1. **Gegevens**: organisatienaam, type (keuzerondjes), aantal gemeenten (alleen bij samenwerkingsverband), KVK-nummer, btw-id (optioneel voor overheden, verplicht voor verwerkers), OIN (optioneel), factuuradres/postcode/plaats, t.a.v. (optioneel), e-mailadres crediteurenadministratie, factuurvorm (pdf of e-factuur via Peppol, dan Peppol-ID of OIN), inkoopordernummer (optioneel), contactpersoon (naam, functie, e-mail, telefoon), e-maildomeinen voor toegang (met knop “@domein van de contactpersoon toevoegen”), gewenste startdatum (vandaag tot 6 maanden vooruit, standaard de eerste van de volgende maand), opmerkingen. Ernaast een prijsblok dat meerekent. Op schermen tot 900 px staat dat blok onder het formulier; daarom staat daar de prijs ook direct onder het type organisatie.
 2. **Controleren en verzenden**: prijs en looptijd (staffel, excl./btw/incl., eerste contractjaar, factuurdatum en vervaldatum, uiterste opzegdatum, verlengd tot), alle gegevens met “Gegevens wijzigen”, akkoord met algemene voorwaarden (inclusief bevoegdheid) en privacyverklaring via links die in een nieuw tabblad openen.
-3. **Bevestiging**: ordernummer (`LID-jjjjmmdd-XXXXX`), prijs en looptijd, “Wat er nu gebeurt” (bevestiging binnen 2 werkdagen, toegang vanaf startdatum, factuur met inkoopordernummer en vervaldatum, opzeggen), samenvatting, afdrukknop.
+3. **Bevestiging**: ordernummer (`LID-jjjjmmdd-XXXXX`), met de zin dat het lidmaatschap rond is zodra KplusV de orderbevestiging mailt (gelijk aan artikel 3 van de algemene voorwaarden), prijs en looptijd, “Wat er nu gebeurt” (bevestiging binnen 2 werkdagen, toegang vanaf startdatum, factuur met inkoopordernummer en vervaldatum, opzeggen), samenvatting, afdrukknop.
 
 Validatie: foutsamenvatting bovenaan (krijgt focus, links springen naar het veld), foutmelding per veld via `aria-describedby`, `aria-invalid`. Controles: KVK 8 cijfers, btw-id `NL` + 9 cijfers + `B` + 2 cijfers, OIN 20 cijfers, postcode, e-mail, telefoon, Peppol-ID `0000:nummer`, domeinen (geen openbare maildomeinen zoals gmail.com, dezelfde lijst als de check in Supabase-tabel `organisaties`), startdatum.
 
@@ -26,6 +33,7 @@ Een concept van het formulier blijft bewaard in `sessionStorage` (`afvalplatform
 
 ### Verzenden
 - Netlify Forms, formulier **`aanmelding`**, POST naar `/` als `application/x-www-form-urlencoded`, honeypot `bot-field`. De verborgen statische kopie staat in `index.html`; een Vitest-test controleert dat de velden daarin gelijk zijn aan `aanmeldVelden` in `src/data/lidmaatschap.ts`.
+- Veld `soort` (`aanmelding` of `offerte`) staat vooraan, zodat aanmeldingen en offerteaanvragen in Netlify te filteren zijn.
 - Meegestuurd worden ook de berekende velden: `ordernummer`, `staffel`, `einddatum`, `prijs_excl_btw`, `btw`, `prijs_incl_btw`.
 - Mislukt verzenden (lokaal, of serverfout), dan: duidelijke melding dat de aanmelding **niet** is verzonden, bewaren in `localStorage` onder `afvalplatform-aanmelding`, een knop “Aanmelding per e-mail sturen” (mailto met alle gegevens) en “Opnieuw proberen”.
 
@@ -42,17 +50,18 @@ Een concept van het formulier blijft bewaard in `sessionStorage` (`afvalplatform
 | `src/pages/Lidmaatschap.tsx`, `src/pages/Aanmelden.tsx` | De twee pagina’s |
 | `src/pages/Over.tsx` | Verdienmodel toont nu de conceptstaffels; rekenvoorbeeld als aanname gelabeld |
 | `index.html` | Verborgen kopie formulier `aanmelding` |
-| `e2e/lidmaatschap.spec.ts` | End-to-end: prijzenpagina, foutmeldingen, volledige aanmelding met controle van de verzonden velden, terugval bij mislukt verzenden; op 400 px en 1280 px |
+| `e2e/lidmaatschap.spec.ts` | End-to-end: prijzenpagina, kruimelpad, foutmeldingen, volledige aanmelding met controle van de verzonden velden, offerteaanvraag en doorstap naar aanmelden, terugval bij mislukt verzenden; op 400 px en 1280 px (16 tests) |
 
 ## Onderhoud
 
 - **Prijs wijzigen:** alleen `prijsExclBtw` in `staffels` (`src/data/lidmaatschap.ts`). Pas `onderbouwing` en het commentaarblok “Keuze per staffel” aan.
 - **Prijzen vaststellen:** zet `prijzenVastgesteld` op `true`. Het conceptlabel en de conceptzinnen verdwijnen dan overal.
-- **Voorwaarden** (looptijd, opzegtermijn, betaaltermijn, proefdagen, maximale startdatum): object `voorwaarden`. Pagina’s, berekening en bevestiging volgen vanzelf. Houd de algemene voorwaarden gelijk.
+- **Voorwaarden** (looptijd, opzegtermijn, betaaltermijn, proefdagen, geldigheid offerte, maximale startdatum): object `voorwaarden`. Pagina’s, berekening en bevestiging volgen vanzelf. Houd de algemene voorwaarden gelijk.
 - **Btw-tarief:** `btwPercentage`; werk dan ook `bronnen.btw.peildatum` bij.
 - **Bronnen:** controleer de links in `bronnen` jaarlijks en zet de nieuwe peildatum. De Europese drempelbedragen wijzigen per 1 januari 2028.
 - **Formulierveld toevoegen:** in `AanmeldGegevens` en `formulierVelden` (`aanmelding.ts`), in `aanmeldVelden` (`lidmaatschap.ts`) én in de verborgen kopie in `index.html`. De test faalt als die drie uit de pas lopen.
 - **Aanmeldingen terugvinden:** Netlify → Forms → `aanmelding` (export als CSV). Zet een e-mailmelding aan onder Notifications.
+- **Na een offerteaanvraag (handmatig, KplusV):** offerte als pdf binnen 2 werkdagen naar de contactpersoon, met het referentienummer `OFF-…`, staffel, prijs en de gekozen startdatum.
 - **Na een aanmelding (handmatig, KplusV):** orderbevestiging sturen binnen 2 werkdagen, in Supabase een rij in `public.organisaties` aanmaken met `type` = `staffel`, `emaildomeinen` = `toegang`, `status` = `actief`, `geldig_tot` = `einddatum`; factuur op de startdatum.
 
 ## Bronnen (gecontroleerd)
@@ -77,4 +86,7 @@ Correctie ten opzichte van de vorige ronde: de betaaltermijn verwees naar “art
 4. **Algemene voorwaarden en privacyverklaring** (andere bouwer) moeten dezelfde looptijd, verlenging, opzegtermijn, betaaltermijn en prijswijzigingsregel bevatten als `voorwaarden`, en de verwerking van aanmeldgegevens (Netlify Forms, bewaartermijn) noemen.
 5. **Vergelijkingstabel**: de teksten per tool (“Eén jaar”, “Meerdere installaties” enz.) moeten kloppen met wat de toolbouwers uiteindelijk vrij en betaald maken.
 6. **Automatisch lidmaatschap activeren** gebeurt nog handmatig in Supabase. Een volgende stap is een Netlify-functie of Supabase-edge-functie die de inzending als `status = 'aangevraagd'` in `organisaties` zet.
-7. Netlify Forms vangt inzendingen alleen op na een deploy met form detection aan; testen kan pas na de eerste deploy.
+7. Netlify Forms vangt inzendingen alleen op na een deploy met form detection aan; testen kan pas na de eerste deploy. Netlify stuurt de aanvrager zelf geen e-mail; de bevestiging op het scherm (afdrukbaar) en de mail van KplusV zijn de bevestiging.
+8. **Kleurtoken voor fouten** ontbreekt in `src/styles/tokens.css`; `components.css` en deze module gebruiken `#b91c1c`. Deze module gebruikt nu `var(--fout, #b91c1c)`, zodat een token `--fout` vanzelf doorwerkt.
+9. **Algemene voorwaarden, artikel 3** noemt de offertegeldigheid (30 dagen) als vaste tekst. Beter: `voorwaarden.offerteGeldigDagen` uit `src/data/lidmaatschap.ts`, zodat beide gelijk blijven.
+10. **Kruimelpad** staat nu alleen op de aanmeldpagina. Een kruimelpad voor de hele site hoort in de layout (andere bouwer).

@@ -238,7 +238,7 @@ export function PrijsRegels({ b }: { b: Berekening }) {
       </dd>
       <dt>Factuur</dt>
       <dd>
-        Gedateerd {datum(b.factuurdatum)}, te betalen vóór {datum(b.vervaldatum)}
+        Gedateerd {datum(b.factuurdatum)}, uiterlijk te betalen op {datum(b.vervaldatum)}
       </dd>
       <dt>Opzeggen</dt>
       <dd>Uiterlijk {datum(b.opzeggenUiterlijk)}. Anders verlengt het lidmaatschap tot {datum(b.verlengdTot)}.</dd>

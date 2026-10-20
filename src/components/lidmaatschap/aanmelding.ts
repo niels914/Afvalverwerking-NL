@@ -6,6 +6,7 @@ import {
   AANMELD_FORMULIER,
   organisatietypen,
   publiekeMaildomeinen,
+  type Aanvraagsoort,
   type Organisatietype,
 } from '../../data/lidmaatschap';
 import { bepaalStaffel, berekenAanmelding, controleerStartdatum, type Berekening } from '../../lib/prijs';
@@ -13,6 +14,8 @@ import { bepaalStaffel, berekenAanmelding, controleerStartdatum, type Berekening
 export type Factuurvorm = 'pdf' | 'peppol';
 
 export interface AanmeldGegevens {
+  /** Direct lid worden of eerst een offerte. */
+  soort: Aanvraagsoort;
   organisatie: string;
   type: Organisatietype | '';
   aantal_gemeenten: string;
@@ -43,6 +46,7 @@ export type Fouten = Partial<Record<Veld, string>>;
 
 export function legeAanmelding(startdatum = ''): AanmeldGegevens {
   return {
+    soort: 'aanmelding',
     organisatie: '',
     type: '',
     aantal_gemeenten: '',
@@ -144,7 +148,7 @@ export function berekening(g: AanmeldGegevens): Berekening | null {
 
 /** Velden die in stap 1 (gegevens) staan, in schermvolgorde. De akkoordvelden staan in stap 2. */
 export const veldenStap1: Veld[] = [
-  'organisatie', 'type', 'aantal_gemeenten', 'kvk', 'btw_nummer', 'oin',
+  'soort', 'organisatie', 'type', 'aantal_gemeenten', 'kvk', 'btw_nummer', 'oin',
   'factuur_adres', 'factuur_postcode', 'factuur_plaats', 'factuur_ter_attentie', 'crediteuren_email',
   'factuurvorm', 'peppol_id', 'inkoopordernummer',
   'contact_naam', 'contact_functie', 'contact_email', 'contact_telefoon',
@@ -157,6 +161,7 @@ const verplicht = (s: string) => s.trim().length > 0;
 /** Controleert stap 1. Geeft per veld een foutmelding; een leeg object betekent: alles in orde. */
 export function controleerGegevens(g: AanmeldGegevens, vandaag: string): Fouten {
   const f: Fouten = {};
+  if (g.soort !== 'aanmelding' && g.soort !== 'offerte') f.soort = 'Kies of u zich aanmeldt of eerst een offerte wilt.';
   if (!verplicht(g.organisatie)) f.organisatie = 'Vul de naam van uw organisatie in.';
   if (!g.type) f.type = 'Kies het type organisatie.';
   if (g.type === 'samenwerkingsverband') {
@@ -200,7 +205,7 @@ export function controleerGegevens(g: AanmeldGegevens, vandaag: string): Fouten 
     f.toegang = `Openbare maildomeinen geven geen toegang: ${d.publiek.join(', ')}. Gebruik het domein van uw organisatie.`;
   } else if (d.ongeldig.length > 0) {
     f.toegang = `Dit is geen geldig domein: ${d.ongeldig.join(', ')}. Schrijf het zoals gemeente-voorbeeld.nl.`;
-  } else if (d.domeinen.length === 0) {
+  } else if (d.domeinen.length === 0 && g.soort !== 'offerte') {
     f.toegang = 'Vul minstens één e-maildomein in, bijvoorbeeld gemeente-voorbeeld.nl.';
   }
 
@@ -210,10 +215,10 @@ export function controleerGegevens(g: AanmeldGegevens, vandaag: string): Fouten 
   return f;
 }
 
-/** Controleert stap 2 (akkoord). */
+/** Controleert stap 2 (akkoord). Bij een offerteaanvraag is akkoord met de algemene voorwaarden nog niet nodig. */
 export function controleerAkkoord(g: AanmeldGegevens): Fouten {
   const f: Fouten = {};
-  if (!g.akkoord_voorwaarden) f.akkoord_voorwaarden = 'Ga akkoord met de algemene voorwaarden om te verzenden.';
+  if (g.soort !== 'offerte' && !g.akkoord_voorwaarden) f.akkoord_voorwaarden = 'Ga akkoord met de algemene voorwaarden om te verzenden.';
   if (!g.akkoord_privacy) f.akkoord_privacy = 'Bevestig dat u de privacyverklaring hebt gelezen.';
   return f;
 }
@@ -247,6 +252,7 @@ export function schoon(g: AanmeldGegevens): AanmeldGegevens {
 export function formulierVelden(g: AanmeldGegevens, b: Berekening, ordernummer: string): Record<string, string> {
   const s = schoon(g);
   return {
+    soort: s.soort,
     ordernummer,
     organisatie: s.organisatie,
     type: s.type,
@@ -274,7 +280,7 @@ export function formulierVelden(g: AanmeldGegevens, b: Berekening, ordernummer: 
     btw: b.btw.toFixed(2),
     prijs_incl_btw: b.inclBtw.toFixed(2),
     opmerkingen: s.opmerkingen,
-    akkoord_voorwaarden: s.akkoord_voorwaarden ? 'ja' : 'nee',
+    akkoord_voorwaarden: s.soort === 'offerte' ? 'nvt (offerte)' : s.akkoord_voorwaarden ? 'ja' : 'nee',
     akkoord_privacy: s.akkoord_privacy ? 'ja' : 'nee',
   };
 }

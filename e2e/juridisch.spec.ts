@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { aanbieder, documenten, opslag } from '../src/pages/juridisch/gegevens';
+import { bekendeProblemen, status } from '../src/pages/juridisch/toegankelijkheid';
 
 // Juridische pagina's, bètamelding, voettekst, lettertype en browseropslag.
 // Draai tegen een eigen server: PW_BASE=http://localhost:5105 npx playwright test e2e/juridisch.spec.ts
@@ -109,7 +110,12 @@ test('Poppins komt van de eigen server, niet van Google', async ({ page }) => {
 
 test('geen cookies en alleen beschreven browseropslag', async ({ page, context }) => {
   test.setTimeout(120_000);
-  const routes = ['/', '/restafvalkaart', '/nieuws', '/kennisbank', '/tools', '/tools/indexcalculator', '/lidmaatschap', '/lidmaatschap/aanmelden', '/inloggen', '/over-het-platform', '/privacy', '/cookies'];
+  const routes = [
+    '/', '/restafvalkaart', '/nieuws', '/kennisbank', '/tools', '/tools/aanbestedingstool', '/tools/indexcalculator',
+    '/tools/co2-heffingenscan', '/tools/bodemassencalculator', '/tools/pmd-rekenmodel', '/aanbestedingsarchief',
+    '/lidmaatschap', '/over-het-platform', '/lidmaatschap/aanmelden', '/inloggen', '/account',
+    ...paginas.map((d) => d.pad),
+  ];
   for (const r of routes) {
     await page.goto(r);
     await page.waitForLoadState('load');
@@ -127,4 +133,27 @@ test('geen cookies en alleen beschreven browseropslag', async ({ page, context }
   const sleutels = await page.evaluate(() => [...Object.keys(localStorage), ...Object.keys(sessionStorage)]);
   const beschreven = opslag.map((o) => o.sleutel);
   expect(sleutels.filter((s) => !beschreven.includes(s)), 'onbeschreven sleutel in browseropslag').toEqual([]);
+});
+
+test('toegankelijkheidsverklaring toont status, meting en bekende problemen uit de meetgegevens', async ({ page }) => {
+  await page.goto('/toegankelijkheid');
+  await expect(page.getByText(`Status ${status.letter}:`, { exact: false }).first()).toBeVisible();
+  const schaal = page.getByRole('list', { name: 'Statussen A tot en met E' });
+  await expect(schaal.getByRole('listitem')).toHaveCount(5);
+  await expect(schaal.locator('[aria-current="true"]')).toContainText('status van dit platform');
+  await expect(page.getByRole('region', { name: 'Lighthouse-scores per pagina' })).toBeVisible();
+  for (const p of bekendeProblemen) {
+    await expect(page.getByRole('heading', { level: 3, name: p.onderdeel })).toBeVisible();
+  }
+});
+
+test('kaartpagina zet geen cookies van OpenStreetMap en stuurt geen volledig pagina-adres mee', async ({ page, context }) => {
+  const referers: string[] = [];
+  page.on('request', (r) => {
+    if (r.url().includes('tile.openstreetmap.org')) referers.push(r.headers()['referer'] ?? '');
+  });
+  await page.goto('/restafvalkaart');
+  await page.waitForTimeout(1500);
+  expect(await context.cookies()).toEqual([]);
+  for (const r of referers) expect(new URL(r).pathname).toBe('/');
 });

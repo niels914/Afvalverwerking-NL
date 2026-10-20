@@ -12,7 +12,7 @@ import {
   Vergelijkingstabel,
   VoorwaardenKort,
 } from '../components/lidmaatschap/onderdelen';
-import { grensGrootSamenwerkingsverband, prijzenVastgesteld } from '../data/lidmaatschap';
+import { grensGrootSamenwerkingsverband, prijzenVastgesteld, voorwaarden } from '../data/lidmaatschap';
 import { contact } from '../data/site';
 
 const inhoud = [
@@ -34,7 +34,7 @@ export function Lidmaatschap() {
         factuur.
       </PaginaKop>
 
-      <nav className="lm-inhoud" aria-labelledby="lm-inhoud-kop">
+      <nav className="lm-inhoud" id="lm-inhoud" tabIndex={-1} aria-labelledby="lm-inhoud-kop">
         <h2 id="lm-inhoud-kop">Op deze pagina</h2>
         <ul>
           {inhoud.map((i) => (
@@ -94,10 +94,15 @@ export function Lidmaatschap() {
           <Link className="knop primair" to="/lidmaatschap/aanmelden">
             Naar het aanmeldformulier
           </Link>
-          <a className="knop" href={`mailto:${contact.email}?subject=Offerte%20lidmaatschap%20Ledenplatform%20Restafvalkaart`}>
-            Offerte aanvragen per e-mail
-          </a>
+          <Link className="knop" to="/lidmaatschap/aanmelden?soort=offerte">
+            Eerst een offerte aanvragen
+          </Link>
         </div>
+        <p className="klein">
+          Werkt uw organisatie met een offerte en een inkoopordernummer? Vraag dan eerst een offerte aan. U vult dezelfde
+          gegevens in en krijgt binnen {voorwaarden.bevestigingWerkdagen} werkdagen een offerte als pdf,{' '}
+          {voorwaarden.offerteGeldigDagen} dagen geldig.
+        </p>
         <p className="klein muted">
           Houd bij de hand: KVK-nummer, factuuradres, het e-mailadres van uw crediteurenadministratie en, als u dat gebruikt, uw
           inkoopordernummer.
@@ -117,6 +122,12 @@ export function Lidmaatschap() {
         </p>
         <Bronnenlijst />
       </section>
+
+      <p className="lm-naar-boven">
+        <a href="#lm-inhoud">
+          Naar boven, naar de inhoud van deze pagina <span aria-hidden="true">↑</span>
+        </a>
+      </p>
     </>
   );
 }

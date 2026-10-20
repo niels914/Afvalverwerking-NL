@@ -10,6 +10,7 @@ import {
   looptijdVan,
   maakOrdernummer,
   metBtw,
+  offerteGeldigTot,
   plusDagen,
   plusMaanden,
   prijsVoorStaffel,
@@ -165,5 +166,15 @@ describe('maakOrdernummer', () => {
   it('maakt een leesbaar nummer met datum', () => {
     expect(maakOrdernummer('2026-10-15', 'k7q3x')).toBe('LID-20261015-K7Q3X');
     expect(maakOrdernummer('2026-10-15', 'a-b')).toBe('LID-20261015-AB000');
+  });
+  it('een offerteaanvraag krijgt het voorvoegsel OFF', () => {
+    expect(maakOrdernummer('2026-10-15', 'k7q3x', 'offerte')).toBe('OFF-20261015-K7Q3X');
+  });
+});
+
+describe('offerteGeldigTot', () => {
+  it('telt de geldigheid in dagen op, over de maandgrens', () => {
+    expect(offerteGeldigTot('2026-10-15')).toBe('2026-11-14');
+    expect(offerteGeldigTot('2026-12-15')).toBe('2027-01-14');
   });
 });

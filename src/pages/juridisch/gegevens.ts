@@ -21,11 +21,11 @@ export interface DocumentMeta {
 }
 
 export const documenten: Record<DocumentId, DocumentMeta> = {
-  'algemene-voorwaarden': { titel: 'Algemene voorwaarden', pad: '/algemene-voorwaarden', versie: '0.1', gewijzigd: '2026-10-15', concept: true },
-  privacy: { titel: 'Privacyverklaring', pad: '/privacy', versie: '0.1', gewijzigd: '2026-10-15', concept: true },
-  cookies: { titel: 'Cookieverklaring', pad: '/cookies', versie: '0.1', gewijzigd: '2026-10-15', concept: true },
-  toegankelijkheid: { titel: 'Toegankelijkheidsverklaring', pad: '/toegankelijkheid', versie: '0.1', gewijzigd: '2026-10-15', concept: true },
-  disclaimer: { titel: 'Disclaimer en colofon', pad: '/disclaimer', versie: '0.1', gewijzigd: '2026-10-15', concept: true },
+  'algemene-voorwaarden': { titel: 'Algemene voorwaarden', pad: '/algemene-voorwaarden', versie: '0.1', gewijzigd: '2026-10-19', concept: true },
+  privacy: { titel: 'Privacyverklaring', pad: '/privacy', versie: '0.1', gewijzigd: '2026-10-19', concept: true },
+  cookies: { titel: 'Cookieverklaring', pad: '/cookies', versie: '0.1', gewijzigd: '2026-10-19', concept: true },
+  toegankelijkheid: { titel: 'Toegankelijkheidsverklaring', pad: '/toegankelijkheid', versie: '0.1', gewijzigd: '2026-10-19', concept: true },
+  disclaimer: { titel: 'Disclaimer en colofon', pad: '/disclaimer', versie: '0.1', gewijzigd: '2026-10-19', concept: true },
 };
 
 export interface Bron {
@@ -43,32 +43,39 @@ export const bronnen = {
     feit: 'KplusV B.V., KVK-nummer 09055476, hoofdvestiging Arnhem',
     titel: 'Companyinfo – KplusV B.V. (gegevens uit het Handelsregister)',
     url: 'https://www.companyinfo.nl/organisatieprofiel/activiteiten-van-organisatie-adviesbureaus/kplusv-b-v-arnhem-09055476-000019031661',
-    peildatum: '2026-10-15',
-    opmerking: 'Afgeleide bron. Nog controleren in het Handelsregister van KVK (kvk.nl/zoeken) of op het briefpapier van KplusV.',
+    peildatum: '2026-10-19',
+    opmerking:
+      'Afgeleide bron; OpenCorporates (opencorporates.com/companies/nl/09055476) geeft hetzelfde nummer. Nog controleren met een uittreksel uit het Handelsregister van KVK of op het briefpapier van KplusV.',
   },
   adres: {
     feit: 'Bezoekadres Westervoortsedijk 73, 6827 AV Arnhem (Arnhem Cleantech Park), telefoon 026 355 13 55',
     titel: 'KplusV – Contact',
     url: 'https://www.kplusv.nl/contact',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
   avKplusV: {
     feit: 'Algemene voorwaarden KplusV B.V., gedeponeerd op 5 februari 2026 bij de griffie van de rechtbank Gelderland onder nummer A/05/26/4',
     titel: 'KplusV – Algemene voorwaarden (pdf)',
     url: 'https://www.kplusv.nl/media/x32d0xwf/algemene-voorwaarden-kplusv.pdf',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
   telecomwet: {
     feit: 'Opslag in de browser zonder toestemming is toegestaan als die strikt noodzakelijk is voor de dienst waar de gebruiker om vraagt',
     titel: 'Telecommunicatiewet, artikel 11.7a lid 3 (wetten.overheid.nl)',
     url: 'https://wetten.overheid.nl/jci1.3:c:BWBR0009950&hoofdstuk=11&paragraaf=11.1&artikel=11.7a',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
+  },
+  acmCookies: {
+    feit: 'Functionele cookies mag een website zonder toestemming plaatsen, mits de website vertelt welke cookies zij plaatst',
+    titel: 'ACM – Cookies plaatsen',
+    url: 'https://www.acm.nl/nl/verkoop-aan-consumenten/reclame-en-verleiden/online-beinvloeden/cookies-plaatsen',
+    peildatum: '2026-10-19',
   },
   bewaarplicht: {
     feit: 'Administratieplichtigen bewaren hun administratie zeven jaar',
     titel: 'Algemene wet inzake rijksbelastingen, artikel 52 lid 4 (wetten.overheid.nl)',
     url: 'https://wetten.overheid.nl/jci1.3:c:BWBR0002320&hoofdstuk=VIII&afdeling=1&artikel=52',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
   avg: {
     feit: 'Algemene verordening gegevensbescherming (AVG); antwoord op een verzoek binnen een maand (artikel 12 lid 3); melding van een datalek binnen 72 uur (artikel 33) en aan betrokkenen bij hoog risico (artikel 34)',
@@ -86,91 +93,91 @@ export const bronnen = {
     feit: 'De Europese Commissie heeft adequaatheidsbesluiten voor onder meer het Verenigd Koninkrijk (vernieuwd in december 2025) en voor Amerikaanse bedrijven die deelnemen aan het EU-US Data Privacy Framework',
     titel: 'Europese Commissie – Adequacy decisions',
     url: 'https://commission.europa.eu/law/law-topic/data-protection/international-dimension-data-protection/adequacy-decisions_en',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
   netlifyPrivacy: {
     feit: 'Netlify, Inc. neemt deel aan het EU-US Data Privacy Framework en gebruikt daarnaast de standaardcontractbepalingen van de Europese Commissie (besluit 2021/914)',
     titel: 'Netlify – Privacy Statement (paragraaf 5 en 13)',
     url: 'https://www.netlify.com/privacy/',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
   supabasePrivacy: {
     feit: 'Supabase, Inc. baseert doorgifte naar de Verenigde Staten op standaardcontractbepalingen van de Europese Commissie',
     titel: 'Supabase – Privacy Policy',
     url: 'https://supabase.com/privacy',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
   supabaseSubverwerkers: {
     feit: 'Lijst van subverwerkers van Supabase, laatst bijgewerkt 12 oktober 2026',
     titel: 'Supabase – Subprocessor List',
     url: 'https://supabase.com/legal/subprocessors',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
   supabaseRegio: {
     feit: 'Supabase-project afvalverwerking-nl draait in regio eu-central-1 (Frankfurt am Main, Duitsland)',
     titel: 'Supabase – projectinstellingen (opgevraagd via de beheer-API)',
     url: 'https://supabase.com/docs/guides/platform/regions',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
   osmPrivacy: {
     feit: 'De OpenStreetMap Foundation verwerkt IP-adressen en verzoeken bij het leveren van kaarttegels via een wereldwijd netwerk van cacheservers; overige persoonsgegevens staan in het Verenigd Koninkrijk en Nederland',
     titel: 'OpenStreetMap Foundation – Privacy Policy',
     url: 'https://osmfoundation.org/wiki/Privacy_Policy',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
   osmTegels: {
     feit: 'Gebruik van tile.openstreetmap.org is gratis, zonder garantie op beschikbaarheid, met naamsvermelding en zonder massaal downloaden',
     titel: 'OpenStreetMap Foundation – Tile Usage Policy',
     url: 'https://operations.osmfoundation.org/policies/tiles/',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
   osmLicentie: {
     feit: 'OpenStreetMap-gegevens: © OpenStreetMap-bijdragers, Open Database License (ODbL)',
     titel: 'OpenStreetMap – Copyright and License',
     url: 'https://www.openstreetmap.org/copyright',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
   cbsLicentie: {
     feit: 'Inhoud van cbs.nl valt onder Creative Commons Naamsvermelding (CC BY 4.0): hergebruik mag met CBS als bron',
     titel: 'CBS – Copyright',
     url: 'https://www.cbs.nl/nl-nl/over-ons/website/copyright',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
   tenderned: {
     feit: 'TenderNed publiceert datasets over aanbestedingen voor analyses',
     titel: 'TenderNed – Datasets aanbesteden voor analyses',
     url: 'https://www.tenderned.nl/cms/nl/aanbesteden-in-cijfers/datasets-aanbestedingen',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
   statussen: {
     feit: 'Statussen A tot en met E voor toegankelijkheidsverklaringen; status A en B vragen een volledig onderzoek van hooguit 3 jaar oud, status C een onderzoek dat binnen 6 maanden is gepland',
     titel: 'DigiToegankelijk – Wat betekenen de statussen?',
     url: 'https://www.digitoegankelijk.nl/toegankelijkheidsverklaring/status',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
   modelverklaring: {
     feit: 'Model en invulassistent voor de toegankelijkheidsverklaring',
     titel: 'Logius – toegankelijkheidsverklaring.nl',
     url: 'https://www.toegankelijkheidsverklaring.nl/',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
   wcag: {
     feit: 'Web Content Accessibility Guidelines 2.1',
     titel: 'W3C – WCAG 2.1',
     url: 'https://www.w3.org/TR/WCAG21/',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
   bdto: {
     feit: 'Besluit digitale toegankelijkheid overheid (geldt voor overheidsinstanties)',
     titel: 'Besluit digitale toegankelijkheid overheid (wetten.overheid.nl)',
     url: 'https://wetten.overheid.nl/BWBR0040936',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
   poppins: {
     feit: 'Lettertype Poppins, SIL Open Font License 1.1, bestanden uit @fontsource/poppins 5.2.7',
     titel: 'Fontsource – Poppins',
     url: 'https://fontsource.org/fonts/poppins',
-    peildatum: '2026-10-15',
+    peildatum: '2026-10-19',
   },
 } satisfies Record<string, Bron>;
 
@@ -260,7 +267,7 @@ export const opslag: OpslagItem[] = [
 ];
 
 /** Datum waarop de cookies en opslag zijn gemeten met een echte browser (e2e/juridisch.spec.ts). */
-export const opslagGemetenOp = '2026-10-15';
+export const opslagGemetenOp = '2026-10-19';
 
 // ---------- Supabase (privacyverklaring) ----------
 
@@ -315,8 +322,8 @@ export const externeDiensten: ExterneDienst[] = [
     naam: 'OpenStreetMap',
     partij: 'OpenStreetMap Foundation (Verenigd Koninkrijk)',
     rol: 'Zelfstandig verantwoordelijk',
-    waarvoor: 'Kaarttegels op de pagina Restafvalkaart.',
-    gegevens: 'Uw IP-adres, het opgevraagde kaartdeel, het adres van de pagina (referrer) en uw browsertype. Alleen als u de kaart opent.',
+    waarvoor: 'Kaarttegels voor de kaart op de homepage en op de pagina Restafvalkaart.',
+    gegevens: 'Uw IP-adres, het opgevraagde kaartdeel, het adres van deze website (referrer) en uw browsertype. Alleen op pagina’s met een kaart.',
     waar: 'Wereldwijd netwerk van cacheservers; overige gegevens in het Verenigd Koninkrijk en Nederland.',
     doorgifte: 'Het Verenigd Koninkrijk heeft een adequaatheidsbesluit van de Europese Commissie. Via welke cacheserver een tegel komt, bepaalt het netwerk van OpenStreetMap.',
     bron: ['osmPrivacy', 'adequaatheid'],

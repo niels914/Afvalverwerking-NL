@@ -61,6 +61,14 @@ test.describe('Lidmaatschap en prijzen', () => {
     await expect(page.getByLabel('Afvalverwerker of sorteerder')).toBeChecked();
     await expect(page.getByRole('complementary', { name: 'Uw prijs' })).toContainText(/5\.500/);
   });
+
+  test('kruimelpad en naar boven', async ({ page }) => {
+    await page.goto('/lidmaatschap/aanmelden');
+    const kruimel = page.getByRole('navigation', { name: 'Kruimelpad' });
+    await expect(kruimel.getByRole('link', { name: 'Lidmaatschap en prijzen' })).toHaveAttribute('href', '/lidmaatschap');
+    await page.goto('/lidmaatschap');
+    await expect(page.getByRole('link', { name: /Naar boven/ })).toHaveAttribute('href', '#lm-inhoud');
+  });
 });
 
 test.describe('Aanmelden', () => {
@@ -111,6 +119,10 @@ test.describe('Aanmelden', () => {
     const prijs = page.getByRole('complementary', { name: 'Uw prijs' });
     await expect(prijs).toContainText('Samenwerkingsverband, klein');
     await expect(prijs).toContainText(/3\.025,00/);
+    // Op smalle schermen staat de prijs ook direct onder het type organisatie.
+    const inline = page.locator('.lm-prijs-inline');
+    if ((page.viewportSize()?.width ?? 1280) <= 900) await expect(inline).toContainText(/2\.500 per jaar excl\. btw/);
+    else await expect(inline).toBeHidden();
     await geenHorizontaleScroll(page);
 
     await page.getByRole('button', { name: 'Verder naar controleren' }).click();
@@ -147,6 +159,52 @@ test.describe('Aanmelden', () => {
     expect(body.get('toegang')).toBe('testregio.nl');
     expect(body.get('akkoord_voorwaarden')).toBe('ja');
     expect(body.get('ordernummer')).toMatch(/^LID-/);
+    expect(body.get('soort')).toBe('aanmelding');
+  });
+
+  test('offerte aanvragen: zonder toegangsdomeinen en zonder akkoord voorwaarden, daarna door naar aanmelden', async ({ page }) => {
+    let verstuurd = '';
+    await page.route('**/', async (route) => {
+      if (route.request().method() === 'POST') {
+        verstuurd = route.request().postData() ?? '';
+        await route.fulfill({ status: 200, contentType: 'text/html', body: 'ok' });
+      } else {
+        await route.continue();
+      }
+    });
+    await page.goto('/lidmaatschap');
+    await page.getByRole('link', { name: 'Eerst een offerte aanvragen' }).click();
+    await expect(page).toHaveURL(/soort=offerte/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Offerte aanvragen' })).toBeVisible();
+    await expect(page.getByLabel(/Eerst een offerte ontvangen/)).toBeChecked();
+
+    await vulGegevensIn(page);
+    await page.getByLabel('E-maildomeinen die toegang krijgen').fill('');
+    await page.getByRole('button', { name: 'Verder naar controleren' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Controleer uw offerteaanvraag' })).toBeVisible();
+    await expect(page.getByLabel(/ga akkoord met de/)).toHaveCount(0);
+
+    await page.getByRole('button', { name: 'Offerteaanvraag verzenden' }).click();
+    await expect(page.getByRole('alert')).toContainText('Privacyverklaring');
+    expect(verstuurd).toBe('');
+    await page.getByLabel(/Ik heb de privacyverklaring/).check();
+    await page.getByRole('button', { name: 'Offerteaanvraag verzenden' }).click();
+
+    await expect(page.getByRole('heading', { level: 1, name: 'Offerteaanvraag ontvangen' })).toBeVisible();
+    await expect(page.locator('.lm-ordernummer')).toHaveText(/^OFF-\d{8}-[A-Z2-9]{5}$/);
+    await expect(page.getByText(/offerte als pdf/)).toBeVisible();
+    await geenHorizontaleScroll(page);
+    const body = new URLSearchParams(verstuurd);
+    expect(body.get('soort')).toBe('offerte');
+    expect(body.get('akkoord_voorwaarden')).toBe('nvt (offerte)');
+    expect(body.get('akkoord_privacy')).toBe('ja');
+    expect(body.get('toegang')).toBe('');
+
+    // Akkoord met de offerte: gegevens staan klaar in het aanmeldformulier.
+    await page.getByRole('link', { name: 'aanmeldformulier' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Aanmelden voor een lidmaatschap' })).toBeVisible();
+    await expect(page.getByLabel('Naam organisatie')).toHaveValue('Afvalsamenwerking Testregio');
+    await expect(page.getByLabel(/^Lid worden/)).toBeChecked();
   });
 
   test('als verzenden mislukt: duidelijke melding, lokaal bewaard en e-mail als alternatief', async ({ page }) => {

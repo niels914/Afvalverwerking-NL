@@ -1,10 +1,10 @@
 import type { Tool, Toegang } from './types';
 
-// Overzicht van de rekentools. De rekenlogica staat in src/lib/calc/.
+// Overzicht van de rekentools. De rekenlogica staat in src/lib/calc/, de cijfers met bron in src/data/.
 
 export const toegangLabel: Record<Toegang, string> = {
   gratis: 'Gratis',
-  'gratis+pro': 'Gratis voorbeeld + Pro',
+  'gratis+pro': 'Gratis deel + Pro voor leden',
   leden: 'Alleen leden',
 };
 
@@ -15,40 +15,51 @@ export const tools: Tool[] = [
     pad: '/tools/aanbestedingstool',
     toegang: 'gratis',
     extraLabel: 'In ontwikkeling met CE Delft, publiek beschikbaar',
-    omschrijving: 'Stel in drie stappen de scope en de weging van gunningscriteria op en krijg een checklist voor uw aanbesteding.',
+    omschrijving:
+      'Kies per afvalstroom eisen, gunningscriteria en contractbepalingen, verdeel de weging en download het overzicht. Verwijst naar de officiële MVI-criteria en toetst de geraamde waarde aan de Europese drempel.',
   },
   {
     id: 'index',
     titel: 'Indexcalculator',
     pad: '/tools/indexcalculator',
     toegang: 'gratis+pro',
-    omschrijving: 'Bereken hoe een verwerkingstarief meebeweegt met een gewogen mix van loon-, energie- en prijsindexen.',
-    gratisDeel: 'Eén voorbeeldberekening met vaste weging.',
-    proDeel: 'Eigen wegingen en indexreeksen, meerdere contractjaren in tabel en grafiek, rapport.',
+    omschrijving: 'Bereken hoe een verwerkings- of inzameltarief meebeweegt met indexcijfers van CBS.',
+    gratisDeel: 'Eén CBS-reeks, jaar- of maandcijfers, eigen basis- en peilperiode.',
+    proDeel: 'Eigen weging over zes CBS-reeksen, tarief per contractjaar met plafond, vergelijking en rapport.',
   },
   {
     id: 'co2',
     titel: 'CO2-heffingenscan',
     pad: '/tools/co2-heffingenscan',
     toegang: 'gratis+pro',
-    omschrijving: 'Schat wat een CO2-heffing op afvalverbranding kost bij uw tonnage restafval.',
-    gratisDeel: 'Eén jaar, met instelbare voorbeeldwaarden.',
-    proDeel: 'Meerjarig verloop, scenario’s voor scheidingspercentages en effect per inwoner.',
+    omschrijving: 'Schat wat de CO2-heffing voor afvalverbranding kost bij uw tonnage restafval, volgens wet en wetsvoorstel.',
+    gratisDeel: 'Heffing in één jaar tot en met 2035, met wettelijke of eigen vrijstelling.',
+    proDeel: 'Verloop tot en met 2035, drie scenario’s voor scheiding, effect per inwoner, CSV en rapport.',
   },
   {
     id: 'bodemas',
     titel: 'Bodemassencalculator',
     pad: '/tools/bodemassencalculator',
     toegang: 'gratis+pro',
-    omschrijving: 'Bereken de netto kosten van bodemasverwerking, na aftrek van de opbrengst van teruggewonnen metalen.',
-    gratisDeel: 'Eén installatie met instelbare voorbeeldwaarden.',
-    proDeel: 'Meerdere installaties, gevoeligheidsanalyse en rapport.',
+    omschrijving: 'Bereken hoeveel bodemas en metalen vrijkomen en wat de opwerking netto kost na aftrek van de metaalopbrengst.',
+    gratisDeel: 'Eén installatie met kentallen van Rijkswaterstaat en uw eigen tarieven.',
+    proDeel: 'Meerdere installaties, gevoeligheidsanalyse, CSV en rapport.',
   },
   {
     id: 'pmd',
     titel: 'Rekenmodel bron- en nascheiding PMD',
     pad: '/tools/pmd-rekenmodel',
     toegang: 'leden',
-    omschrijving: 'Vergelijk de kosten van bron- en nascheiding van PMD: totaal, per inwoner en ingezameld tonnage.',
+    omschrijving:
+      'Vergelijk de netto kosten van bron- en nascheiding van PMD voor uw gemeente, met de vergoedingen van Verpact voor 2026 en de afvalcijfers van CBS.',
   },
 ];
+
+/** Waar elke tool mee rekent. Getoond op de overzichtspagina. */
+export const toolBronnen: Record<string, string> = {
+  aanbesteding: 'MVI-criteriatool (Rijksoverheid) en drempelbedragen van PIANOo',
+  index: 'CBS: CPI, cao-lonen, producentenprijzen en dieselprijs',
+  co2: 'Wet belastingen op milieugrondslag, Wet milieubeheer, NEa en Belastingplan 2027',
+  bodemas: 'Rijkswaterstaat, Afvalverwerking in Nederland 2024',
+  pmd: 'Akkoord Verpact, VNG en NVRD (2025), CBS per gemeente en Belastingdienst',
+};

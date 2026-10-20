@@ -43,7 +43,7 @@ const verwerkingen: Verwerking[] = [
     id: 'aanmelding',
     titel: 'Aanmelding voor een lidmaatschap',
     gegevens:
-      'Naam, functie, e-mailadres en telefoonnummer van de contactpersoon; factuuradres, ter attentie van, e-mailadres van de crediteurenadministratie; gegevens van de organisatie zoals KVK-nummer, btw-nummer, OIN en inkoopordernummer.',
+      'Naam, functie, e-mailadres en telefoonnummer van de contactpersoon; factuuradres, ter attentie van, e-mailadres van de crediteurenadministratie; gegevens van de organisatie zoals KVK-nummer, btw-nummer, OIN of Peppol-ID en inkoopordernummer; de e-maildomeinen die toegang moeten krijgen; uw opmerkingen.',
     doel: 'Uw aanmelding beoordelen, het lidmaatschap vastleggen, factureren en contact houden over het lidmaatschap.',
     grondslag:
       'Uitvoering van de overeenkomst met uw organisatie en het gerechtvaardigd belang om met de contactpersoon te communiceren. Voor de factuurgegevens: de wettelijke bewaarplicht (artikel 6 lid 1 onder c AVG).',
@@ -255,7 +255,7 @@ const secties: Sectie[] = [
           </li>
           <li>
             <strong>OpenStreetMap</strong> levert de kaarttegels via een wereldwijd netwerk. Uw IP-adres gaat naar de server die
-            de tegel levert. Dat gebeurt alleen op de pagina Restafvalkaart.
+            de tegel levert. Dat gebeurt alleen op pagina’s met een kaart: de homepage en de pagina Restafvalkaart.
           </li>
         </ul>
         <BronRegel sleutel="adequaatheid" />

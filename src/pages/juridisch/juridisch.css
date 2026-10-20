@@ -240,6 +240,43 @@
   background: var(--tekst-2);
   color: var(--wit);
 }
+/* Statusschaal A–E: letter in tekst, huidige status vet en met rand, niet alleen kleur. */
+.jd-schaal {
+  list-style: none;
+  padding-left: 0 !important;
+  margin-top: 10px !important;
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+}
+.jd-schaal li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-klein);
+  margin-top: 0 !important;
+}
+.jd-schaal li[aria-current] {
+  border: 2px solid var(--tekst-2);
+  background: var(--wit);
+}
+.jd-schaal-letter {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid var(--tekst-2);
+  font-weight: 700;
+  font-size: 13px;
+}
+.jd-schaal li[aria-current] .jd-schaal-letter {
+  background: var(--tekst-2);
+  color: var(--wit);
+}
 .jd-naarboven {
   margin-top: 34px;
   font-size: 14px;

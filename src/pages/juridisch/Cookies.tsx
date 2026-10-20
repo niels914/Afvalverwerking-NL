@@ -89,14 +89,18 @@ const secties: Sectie[] = [
     inhoud: (
       <>
         <p>
-          <strong>OpenStreetMap.</strong> Op de pagina Restafvalkaart haalt uw browser kaarttegels op bij de servers van
-          OpenStreetMap. Daarbij gaan uw IP-adres en het adres van de pagina mee, zoals bij elk bezoek aan een website. Bij
+          <strong>OpenStreetMap.</strong> Op de homepage en de pagina Restafvalkaart haalt uw browser kaarttegels op bij de
+          servers van OpenStreetMap. Daarbij gaan uw IP-adres en het adres van deze website mee, zoals bij elk bezoek aan een
+          website. Bij
           onze meting zette OpenStreetMap geen cookies. Meer hierover in de <Link to="/privacy#doorgifte">privacyverklaring</Link>.
         </p>
         <p>
-          <strong>Netlify.</strong> Netlify host de site en ontvangt de formulieren. Voor gewone hosting en formulieren zet
-          Netlify geen cookies. De diensten van Netlify die wel cookies gebruiken, zoals Netlify Identity en split testing,
-          gebruikt dit platform niet.
+          <strong>Netlify.</strong> Netlify host de site en ontvangt de formulieren. Het platform gebruikt geen diensten
+          van Netlify die cookies zetten, zoals Netlify Identity of split testing.
+        </p>
+        <p>
+          <strong>Hoe gemeten.</strong> De meting is gedaan op een kopie van de site op een testserver. Na de eerste publicatie
+          op Netlify herhalen wij de meting op de echte site en passen wij deze verklaring aan als dat nodig is.
         </p>
         <p>
           <strong>Geen verbinding met Google.</strong> Het lettertype Poppins staat op de eigen server van het platform. Er zijn
@@ -125,6 +129,7 @@ const secties: Sectie[] = [
         </ul>
         <p>Daarom is er geen toestemmingsbanner. Komt er ooit opslag bij die niet noodzakelijk is, dan vragen wij eerst toestemming.</p>
         <BronRegel sleutel="telecomwet" />
+        <BronRegel sleutel="acmCookies" voorvoegsel="Uitleg van de toezichthouder" />
         <Toetspunt>
           De reservekopieën in localStorage blijven staan tot de gebruiker de browsergegevens wist en bevatten
           contactgegevens. Beoordeel of dat nog binnen &lsquo;strikt noodzakelijk&rsquo; valt, of dat de kopie na het versturen per
@@ -155,8 +160,9 @@ const secties: Sectie[] = [
     titel: 'Hoe wij deze lijst bijhouden',
     inhoud: (
       <p>
-        Bij elke nieuwe versie van de site controleert een automatische test of elke sleutel die de code in de browser opslaat,
-        op deze pagina staat. Een tweede test opent de site in een echte browser en controleert dat er geen cookies worden gezet.
+        Een automatische test controleert of elke sleutel die de code in de browser opslaat, op deze pagina staat. Een tweede
+        test opent de site in een echte browser en controleert dat er geen cookies worden gezet. Wij draaien beide tests voor
+        elke nieuwe versie van de site.
         Verandert er iets, dan passen wij deze verklaring aan en verhogen wij het versienummer.
       </p>
     ),

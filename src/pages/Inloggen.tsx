@@ -303,6 +303,10 @@ export function Inloggen() {
         </li>
       </ul>
       <p className="klein muted">
+        Na het inloggen bewaart uw browser een sessiesleutel, zodat u ingelogd blijft. Wat we vastleggen en waarom, staat in de{' '}
+        <Link to="/privacy">privacyverklaring</Link>.
+      </p>
+      <p className="klein muted">
         Vragen over inloggen? Mail <a href={`mailto:${contact.email}`}>{contact.email}</a>.
       </p>
     </Kaart>

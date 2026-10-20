@@ -128,6 +128,17 @@ describe('controleerGegevens', () => {
     expect(controleerGegevens(geldig({ startdatum: '2026-10-01' }), vandaag)).toHaveProperty('startdatum');
   });
 
+  it('offerte: toegangsdomeinen mogen nog leeg, ingevulde domeinen worden wel gecontroleerd', () => {
+    expect(controleerGegevens(geldig({ soort: 'offerte', toegang: '' }), vandaag)).toEqual({});
+    expect(controleerGegevens(geldig({ soort: 'offerte', toegang: 'gmail.com' }), vandaag)).toHaveProperty('toegang');
+    expect(controleerGegevens(geldig({ soort: 'aanmelding', toegang: '' }), vandaag)).toHaveProperty('toegang');
+  });
+
+  it('offerte: alleen de privacyverklaring is nodig, nog geen akkoord met de voorwaarden', () => {
+    expect(Object.keys(controleerAkkoord(geldig({ soort: 'offerte' })))).toEqual(['akkoord_privacy']);
+    expect(controleerAkkoord(geldig({ soort: 'offerte', akkoord_privacy: true }))).toEqual({});
+  });
+
   it('akkoord is verplicht', () => {
     expect(Object.keys(controleerAkkoord(geldig()))).toEqual(['akkoord_voorwaarden', 'akkoord_privacy']);
     expect(controleerAkkoord(geldig({ akkoord_voorwaarden: true, akkoord_privacy: true }))).toEqual({});
@@ -147,6 +158,16 @@ describe('verzenden', () => {
     expect(velden.toegang).toBe('voorbeeld.nl, gemeente-a.nl');
     expect(velden.crediteuren_email).toBe('facturen@voorbeeld.nl');
     expect(velden.factuur_postcode).toBe('1234 AB');
+    expect(velden.soort).toBe('aanmelding');
+    expect(velden.akkoord_voorwaarden).toBe('ja');
+  });
+
+  it('offerteaanvraag: soort offerte, akkoord voorwaarden niet van toepassing', () => {
+    const g = geldig({ soort: 'offerte', akkoord_privacy: true });
+    const velden = formulierVelden(g, berekening(g)!, 'OFF-20261015-ABCDE');
+    expect(velden.soort).toBe('offerte');
+    expect(velden.akkoord_voorwaarden).toBe('nvt (offerte)');
+    expect(velden.akkoord_privacy).toBe('ja');
   });
 
   it('codeert met formuliernaam en lege honeypot', () => {

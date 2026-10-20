@@ -1,0 +1,2426 @@
+{
+ "peildatum": "2026-10-19",
+ "jaar": 2024,
+ "bronnen": {
+  "gemeente": {
+   "tabelId": "83452NED",
+   "titel": "Huishoudelijk afval per gemeente per inwoner",
+   "gewijzigd": "2026-07-16",
+   "url": "https://opendata.cbs.nl/statline/#/CBS/nl/dataset/83452NED/table"
+  },
+  "landelijk": {
+   "tabelId": "83558NED",
+   "titel": "Gemeentelijke afvalstoffen; hoeveelheden",
+   "gewijzigd": "2026-07-16",
+   "url": "https://opendata.cbs.nl/statline/#/CBS/nl/dataset/83558NED/table"
+  },
+  "inwoners": {
+   "tabelId": "70072ned",
+   "titel": "Regionale kerncijfers Nederland",
+   "gewijzigd": "2026-10-16",
+   "url": "https://opendata.cbs.nl/statline/#/CBS/nl/dataset/70072ned/table"
+  }
+ },
+ "toelichting": "pmdKgPerInw = PMD-fractie + kunststof verpakkingen + drankenkartons + metalen verpakkingen (blik), gescheiden ingezameld, kg per inwoner. restafvalKgPerInw = huishoudelijk restafval (fijn, zonder grof), kg per inwoner. inwoners = bevolking op 1 januari van hetzelfde jaar.",
+ "landelijk": {
+  "jaar": 2025,
+  "pmdKgPerInw": 21,
+  "restafvalKgPerInw": 147
+ },
+ "gemeenten": [
+  {
+   "code": "GM0518",
+   "naam": "'s-Gravenhage (gemeente)",
+   "inwoners": 566221,
+   "pmdKgPerInw": 3.7,
+   "restafvalKgPerInw": 270
+  },
+  {
+   "code": "GM0796",
+   "naam": "'s-Hertogenbosch",
+   "inwoners": 160757,
+   "pmdKgPerInw": 14.2,
+   "restafvalKgPerInw": 188.8
+  },
+  {
+   "code": "GM1680",
+   "naam": "Aa en Hunze",
+   "inwoners": 25845,
+   "pmdKgPerInw": 37.7,
+   "restafvalKgPerInw": 123
+  },
+  {
+   "code": "GM0358",
+   "naam": "Aalsmeer",
+   "inwoners": 33279,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 161.3
+  },
+  {
+   "code": "GM0197",
+   "naam": "Aalten",
+   "inwoners": 27308,
+   "pmdKgPerInw": 39.2,
+   "restafvalKgPerInw": 45.6
+  },
+  {
+   "code": "GM0059",
+   "naam": "Achtkarspelen",
+   "inwoners": 28226,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 208.8
+  },
+  {
+   "code": "GM0482",
+   "naam": "Alblasserdam",
+   "inwoners": 20314,
+   "pmdKgPerInw": 25.7,
+   "restafvalKgPerInw": 163.4
+  },
+  {
+   "code": "GM0613",
+   "naam": "Albrandswaard",
+   "inwoners": 26428,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 173.2
+  },
+  {
+   "code": "GM0361",
+   "naam": "Alkmaar",
+   "inwoners": 112304,
+   "pmdKgPerInw": 27.8,
+   "restafvalKgPerInw": 171.6
+  },
+  {
+   "code": "GM0141",
+   "naam": "Almelo",
+   "inwoners": 74317,
+   "pmdKgPerInw": 32.8,
+   "restafvalKgPerInw": 184.6
+  },
+  {
+   "code": "GM0034",
+   "naam": "Almere",
+   "inwoners": 226500,
+   "pmdKgPerInw": 13.2,
+   "restafvalKgPerInw": 166.4
+  },
+  {
+   "code": "GM0484",
+   "naam": "Alphen aan den Rijn",
+   "inwoners": 114966,
+   "pmdKgPerInw": 23.3,
+   "restafvalKgPerInw": 171.9
+  },
+  {
+   "code": "GM1723",
+   "naam": "Alphen-Chaam",
+   "inwoners": 10455,
+   "pmdKgPerInw": 37.1,
+   "restafvalKgPerInw": 75.6
+  },
+  {
+   "code": "GM1959",
+   "naam": "Altena",
+   "inwoners": 58277,
+   "pmdKgPerInw": 29.3,
+   "restafvalKgPerInw": 76.7
+  },
+  {
+   "code": "GM0060",
+   "naam": "Ameland",
+   "inwoners": 3839,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 344.8
+  },
+  {
+   "code": "GM0307",
+   "naam": "Amersfoort",
+   "inwoners": 161852,
+   "pmdKgPerInw": 25,
+   "restafvalKgPerInw": 160
+  },
+  {
+   "code": "GM0362",
+   "naam": "Amstelveen",
+   "inwoners": 95014,
+   "pmdKgPerInw": 23.5,
+   "restafvalKgPerInw": 151.3
+  },
+  {
+   "code": "GM0363",
+   "naam": "Amsterdam",
+   "inwoners": 931298,
+   "pmdKgPerInw": 0.7,
+   "restafvalKgPerInw": 230.3
+  },
+  {
+   "code": "GM0200",
+   "naam": "Apeldoorn",
+   "inwoners": 168211,
+   "pmdKgPerInw": 55.1,
+   "restafvalKgPerInw": 53.7
+  },
+  {
+   "code": "GM0202",
+   "naam": "Arnhem",
+   "inwoners": 167632,
+   "pmdKgPerInw": 17.8,
+   "restafvalKgPerInw": 216.2
+  },
+  {
+   "code": "GM0106",
+   "naam": "Assen",
+   "inwoners": 69701,
+   "pmdKgPerInw": 29.7,
+   "restafvalKgPerInw": 161.2
+  },
+  {
+   "code": "GM0743",
+   "naam": "Asten",
+   "inwoners": 17302,
+   "pmdKgPerInw": 31.5,
+   "restafvalKgPerInw": 50.5
+  },
+  {
+   "code": "GM0744",
+   "naam": "Baarle-Nassau",
+   "inwoners": 7076,
+   "pmdKgPerInw": 28,
+   "restafvalKgPerInw": 52.6
+  },
+  {
+   "code": "GM0308",
+   "naam": "Baarn",
+   "inwoners": 25065,
+   "pmdKgPerInw": 20.6,
+   "restafvalKgPerInw": 129.8
+  },
+  {
+   "code": "GM0489",
+   "naam": "Barendrecht",
+   "inwoners": 48690,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 192.7
+  },
+  {
+   "code": "GM0203",
+   "naam": "Barneveld",
+   "inwoners": 62592,
+   "pmdKgPerInw": 33.1,
+   "restafvalKgPerInw": 115.6
+  },
+  {
+   "code": "GM0888",
+   "naam": "Beek (L.)",
+   "inwoners": 16215,
+   "pmdKgPerInw": 29.2,
+   "restafvalKgPerInw": 91.1
+  },
+  {
+   "code": "GM1954",
+   "naam": "Beekdaelen",
+   "inwoners": 35896,
+   "pmdKgPerInw": 17.9,
+   "restafvalKgPerInw": 119.6
+  },
+  {
+   "code": "GM0889",
+   "naam": "Beesel",
+   "inwoners": 13394,
+   "pmdKgPerInw": 33.7,
+   "restafvalKgPerInw": 60
+  },
+  {
+   "code": "GM1945",
+   "naam": "Berg en Dal",
+   "inwoners": 35474,
+   "pmdKgPerInw": 35.2,
+   "restafvalKgPerInw": 42.6
+  },
+  {
+   "code": "GM1724",
+   "naam": "Bergeijk",
+   "inwoners": 19196,
+   "pmdKgPerInw": 31.4,
+   "restafvalKgPerInw": 43.9
+  },
+  {
+   "code": "GM0893",
+   "naam": "Bergen (L.)",
+   "inwoners": 13154,
+   "pmdKgPerInw": 27.9,
+   "restafvalKgPerInw": 116.7
+  },
+  {
+   "code": "GM0373",
+   "naam": "Bergen (NH.)",
+   "inwoners": 29932,
+   "pmdKgPerInw": 40.4,
+   "restafvalKgPerInw": 92.9
+  },
+  {
+   "code": "GM0748",
+   "naam": "Bergen op Zoom",
+   "inwoners": 69694,
+   "pmdKgPerInw": 14,
+   "restafvalKgPerInw": 169.4
+  },
+  {
+   "code": "GM1859",
+   "naam": "Berkelland",
+   "inwoners": 43933,
+   "pmdKgPerInw": 31.2,
+   "restafvalKgPerInw": 140.1
+  },
+  {
+   "code": "GM1721",
+   "naam": "Bernheze",
+   "inwoners": 32527,
+   "pmdKgPerInw": 29.2,
+   "restafvalKgPerInw": 70.1
+  },
+  {
+   "code": "GM0753",
+   "naam": "Best",
+   "inwoners": 31223,
+   "pmdKgPerInw": 34.2,
+   "restafvalKgPerInw": 107.3
+  },
+  {
+   "code": "GM0209",
+   "naam": "Beuningen",
+   "inwoners": 26725,
+   "pmdKgPerInw": 35.1,
+   "restafvalKgPerInw": 52.4
+  },
+  {
+   "code": "GM0375",
+   "naam": "Beverwijk",
+   "inwoners": 42866,
+   "pmdKgPerInw": 19.4,
+   "restafvalKgPerInw": 210.8
+  },
+  {
+   "code": "GM1728",
+   "naam": "Bladel",
+   "inwoners": 20985,
+   "pmdKgPerInw": 34,
+   "restafvalKgPerInw": 40
+  },
+  {
+   "code": "GM0376",
+   "naam": "Blaricum",
+   "inwoners": 12724,
+   "pmdKgPerInw": 25.9,
+   "restafvalKgPerInw": 149.6
+  },
+  {
+   "code": "GM0377",
+   "naam": "Bloemendaal",
+   "inwoners": 23786,
+   "pmdKgPerInw": 16.2,
+   "restafvalKgPerInw": 167.7
+  },
+  {
+   "code": "GM1901",
+   "naam": "Bodegraven-Reeuwijk",
+   "inwoners": 36569,
+   "pmdKgPerInw": 24.6,
+   "restafvalKgPerInw": 99.5
+  },
+  {
+   "code": "GM0755",
+   "naam": "Boekel",
+   "inwoners": 11293,
+   "pmdKgPerInw": 38.9,
+   "restafvalKgPerInw": 18.5
+  },
+  {
+   "code": "GM1681",
+   "naam": "Borger-Odoorn",
+   "inwoners": 26014,
+   "pmdKgPerInw": 32.4,
+   "restafvalKgPerInw": 68
+  },
+  {
+   "code": "GM0147",
+   "naam": "Borne",
+   "inwoners": 24639,
+   "pmdKgPerInw": 42,
+   "restafvalKgPerInw": 83.1
+  },
+  {
+   "code": "GM0654",
+   "naam": "Borsele",
+   "inwoners": 23121,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 172.6
+  },
+  {
+   "code": "GM0757",
+   "naam": "Boxtel",
+   "inwoners": 33979,
+   "pmdKgPerInw": 27.8,
+   "restafvalKgPerInw": 72.3
+  },
+  {
+   "code": "GM0758",
+   "naam": "Breda",
+   "inwoners": 188078,
+   "pmdKgPerInw": 24.9,
+   "restafvalKgPerInw": 146.7
+  },
+  {
+   "code": "GM1876",
+   "naam": "Bronckhorst",
+   "inwoners": 36119,
+   "pmdKgPerInw": 42.6,
+   "restafvalKgPerInw": 32.6
+  },
+  {
+   "code": "GM0213",
+   "naam": "Brummen",
+   "inwoners": 21286,
+   "pmdKgPerInw": 35.5,
+   "restafvalKgPerInw": 104.1
+  },
+  {
+   "code": "GM0899",
+   "naam": "Brunssum",
+   "inwoners": 27770,
+   "pmdKgPerInw": 29.1,
+   "restafvalKgPerInw": 135.1
+  },
+  {
+   "code": "GM0312",
+   "naam": "Bunnik",
+   "inwoners": 16108,
+   "pmdKgPerInw": 14.8,
+   "restafvalKgPerInw": 132.7
+  },
+  {
+   "code": "GM0313",
+   "naam": "Bunschoten",
+   "inwoners": 22619,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 169.5
+  },
+  {
+   "code": "GM0214",
+   "naam": "Buren",
+   "inwoners": 27773,
+   "pmdKgPerInw": 37.4,
+   "restafvalKgPerInw": 61.9
+  },
+  {
+   "code": "GM0502",
+   "naam": "Capelle aan den IJssel",
+   "inwoners": 67925,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 247.4
+  },
+  {
+   "code": "GM0383",
+   "naam": "Castricum",
+   "inwoners": 36366,
+   "pmdKgPerInw": 31.4,
+   "restafvalKgPerInw": 81.6
+  },
+  {
+   "code": "GM0109",
+   "naam": "Coevorden",
+   "inwoners": 35725,
+   "pmdKgPerInw": 48.8,
+   "restafvalKgPerInw": 133.7
+  },
+  {
+   "code": "GM1706",
+   "naam": "Cranendonck",
+   "inwoners": 20841,
+   "pmdKgPerInw": 36.3,
+   "restafvalKgPerInw": 37.6
+  },
+  {
+   "code": "GM0216",
+   "naam": "Culemborg",
+   "inwoners": 29944,
+   "pmdKgPerInw": 33,
+   "restafvalKgPerInw": 72.2
+  },
+  {
+   "code": "GM0148",
+   "naam": "Dalfsen",
+   "inwoners": 29683,
+   "pmdKgPerInw": 40.1,
+   "restafvalKgPerInw": 60.9
+  },
+  {
+   "code": "GM1891",
+   "naam": "Dantumadiel",
+   "inwoners": 19135,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 196.1
+  },
+  {
+   "code": "GM0310",
+   "naam": "De Bilt",
+   "inwoners": 43718,
+   "pmdKgPerInw": 29.2,
+   "restafvalKgPerInw": 121.7
+  },
+  {
+   "code": "GM1940",
+   "naam": "De Fryske Marren",
+   "inwoners": 51929,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 156.6
+  },
+  {
+   "code": "GM0736",
+   "naam": "De Ronde Venen",
+   "inwoners": 45813,
+   "pmdKgPerInw": 18.4,
+   "restafvalKgPerInw": 140
+  },
+  {
+   "code": "GM1690",
+   "naam": "De Wolden",
+   "inwoners": 24580,
+   "pmdKgPerInw": 37.5,
+   "restafvalKgPerInw": 102.9
+  },
+  {
+   "code": "GM0503",
+   "naam": "Delft",
+   "inwoners": 109577,
+   "pmdKgPerInw": 15.3,
+   "restafvalKgPerInw": 175.5
+  },
+  {
+   "code": "GM0400",
+   "naam": "Den Helder",
+   "inwoners": 56432,
+   "pmdKgPerInw": 24,
+   "restafvalKgPerInw": 200.1
+  },
+  {
+   "code": "GM0762",
+   "naam": "Deurne",
+   "inwoners": 33180,
+   "pmdKgPerInw": 30.8,
+   "restafvalKgPerInw": 66.8
+  },
+  {
+   "code": "GM0150",
+   "naam": "Deventer",
+   "inwoners": 103405,
+   "pmdKgPerInw": 31.9,
+   "restafvalKgPerInw": 72.4
+  },
+  {
+   "code": "GM0384",
+   "naam": "Diemen",
+   "inwoners": 32977,
+   "pmdKgPerInw": 13.1,
+   "restafvalKgPerInw": 187.9
+  },
+  {
+   "code": "GM1980",
+   "naam": "Dijk en Waard",
+   "inwoners": 90076,
+   "pmdKgPerInw": 38.3,
+   "restafvalKgPerInw": 142.3
+  },
+  {
+   "code": "GM1774",
+   "naam": "Dinkelland",
+   "inwoners": 26739,
+   "pmdKgPerInw": 33.6,
+   "restafvalKgPerInw": 67.6
+  },
+  {
+   "code": "GM0221",
+   "naam": "Doesburg",
+   "inwoners": 11079,
+   "pmdKgPerInw": 40.1,
+   "restafvalKgPerInw": 74.4
+  },
+  {
+   "code": "GM0222",
+   "naam": "Doetinchem",
+   "inwoners": 59623,
+   "pmdKgPerInw": 26.8,
+   "restafvalKgPerInw": 105.4
+  },
+  {
+   "code": "GM0766",
+   "naam": "Dongen",
+   "inwoners": 27095,
+   "pmdKgPerInw": 28.9,
+   "restafvalKgPerInw": 91.6
+  },
+  {
+   "code": "GM0505",
+   "naam": "Dordrecht",
+   "inwoners": 122070,
+   "pmdKgPerInw": 18.4,
+   "restafvalKgPerInw": 174
+  },
+  {
+   "code": "GM0498",
+   "naam": "Drechterland",
+   "inwoners": 20496,
+   "pmdKgPerInw": 29.1,
+   "restafvalKgPerInw": 119.6
+  },
+  {
+   "code": "GM1719",
+   "naam": "Drimmelen",
+   "inwoners": 28192,
+   "pmdKgPerInw": 28.8,
+   "restafvalKgPerInw": 79.4
+  },
+  {
+   "code": "GM0303",
+   "naam": "Dronten",
+   "inwoners": 44354,
+   "pmdKgPerInw": 24,
+   "restafvalKgPerInw": 131.1
+  },
+  {
+   "code": "GM0225",
+   "naam": "Druten",
+   "inwoners": 19590,
+   "pmdKgPerInw": 37,
+   "restafvalKgPerInw": 58.3
+  },
+  {
+   "code": "GM0226",
+   "naam": "Duiven",
+   "inwoners": 24872,
+   "pmdKgPerInw": 28.6,
+   "restafvalKgPerInw": 76.4
+  },
+  {
+   "code": "GM1711",
+   "naam": "Echt-Susteren",
+   "inwoners": 32041,
+   "pmdKgPerInw": 26.4,
+   "restafvalKgPerInw": 88.1
+  },
+  {
+   "code": "GM0385",
+   "naam": "Edam-Volendam",
+   "inwoners": 36917,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 223.3
+  },
+  {
+   "code": "GM0228",
+   "naam": "Ede",
+   "inwoners": 123532,
+   "pmdKgPerInw": 34,
+   "restafvalKgPerInw": 83.5
+  },
+  {
+   "code": "GM0317",
+   "naam": "Eemnes",
+   "inwoners": 9755,
+   "pmdKgPerInw": 32.9,
+   "restafvalKgPerInw": 137.3
+  },
+  {
+   "code": "GM1979",
+   "naam": "Eemsdelta",
+   "inwoners": 45106,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 165.4
+  },
+  {
+   "code": "GM0770",
+   "naam": "Eersel",
+   "inwoners": 20199,
+   "pmdKgPerInw": 31.7,
+   "restafvalKgPerInw": 44.3
+  },
+  {
+   "code": "GM1903",
+   "naam": "Eijsden-Margraten",
+   "inwoners": 26034,
+   "pmdKgPerInw": 26.8,
+   "restafvalKgPerInw": 91.7
+  },
+  {
+   "code": "GM0772",
+   "naam": "Eindhoven",
+   "inwoners": 246417,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 208
+  },
+  {
+   "code": "GM0230",
+   "naam": "Elburg",
+   "inwoners": 23906,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 203.8
+  },
+  {
+   "code": "GM0114",
+   "naam": "Emmen",
+   "inwoners": 109346,
+   "pmdKgPerInw": 40.2,
+   "restafvalKgPerInw": 128.2
+  },
+  {
+   "code": "GM0388",
+   "naam": "Enkhuizen",
+   "inwoners": 18895,
+   "pmdKgPerInw": 18.2,
+   "restafvalKgPerInw": 159.2
+  },
+  {
+   "code": "GM0153",
+   "naam": "Enschede",
+   "inwoners": 161738,
+   "pmdKgPerInw": 49.2,
+   "restafvalKgPerInw": 93.6
+  },
+  {
+   "code": "GM0232",
+   "naam": "Epe",
+   "inwoners": 33168,
+   "pmdKgPerInw": 40.9,
+   "restafvalKgPerInw": 78.7
+  },
+  {
+   "code": "GM0233",
+   "naam": "Ermelo",
+   "inwoners": 27856,
+   "pmdKgPerInw": 3,
+   "restafvalKgPerInw": 124.7
+  },
+  {
+   "code": "GM0777",
+   "naam": "Etten-Leur",
+   "inwoners": 45237,
+   "pmdKgPerInw": 40.5,
+   "restafvalKgPerInw": 64.8
+  },
+  {
+   "code": "GM0779",
+   "naam": "Geertruidenberg",
+   "inwoners": 22060,
+   "pmdKgPerInw": 40.2,
+   "restafvalKgPerInw": 95.8
+  },
+  {
+   "code": "GM1771",
+   "naam": "Geldrop-Mierlo",
+   "inwoners": 40733,
+   "pmdKgPerInw": 33.3,
+   "restafvalKgPerInw": 116.3
+  },
+  {
+   "code": "GM1652",
+   "naam": "Gemert-Bakel",
+   "inwoners": 31435,
+   "pmdKgPerInw": 35,
+   "restafvalKgPerInw": 58.4
+  },
+  {
+   "code": "GM0907",
+   "naam": "Gennep",
+   "inwoners": 17789,
+   "pmdKgPerInw": 30,
+   "restafvalKgPerInw": 99.1
+  },
+  {
+   "code": "GM0784",
+   "naam": "Gilze en Rijen",
+   "inwoners": 27343,
+   "pmdKgPerInw": 47.8,
+   "restafvalKgPerInw": 34.5
+  },
+  {
+   "code": "GM1924",
+   "naam": "Goeree-Overflakkee",
+   "inwoners": 51867,
+   "pmdKgPerInw": 31.4,
+   "restafvalKgPerInw": 97
+  },
+  {
+   "code": "GM0664",
+   "naam": "Goes",
+   "inwoners": 39682,
+   "pmdKgPerInw": 21.1,
+   "restafvalKgPerInw": 129.3
+  },
+  {
+   "code": "GM0785",
+   "naam": "Goirle",
+   "inwoners": 24327,
+   "pmdKgPerInw": 28.8,
+   "restafvalKgPerInw": 92.5
+  },
+  {
+   "code": "GM1942",
+   "naam": "Gooise Meren",
+   "inwoners": 60370,
+   "pmdKgPerInw": 25.9,
+   "restafvalKgPerInw": 149.5
+  },
+  {
+   "code": "GM0512",
+   "naam": "Gorinchem",
+   "inwoners": 38671,
+   "pmdKgPerInw": 16.9,
+   "restafvalKgPerInw": 139.2
+  },
+  {
+   "code": "GM0513",
+   "naam": "Gouda",
+   "inwoners": 75758,
+   "pmdKgPerInw": 27.6,
+   "restafvalKgPerInw": 113.3
+  },
+  {
+   "code": "GM0014",
+   "naam": "Groningen (gemeente)",
+   "inwoners": 243768,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 189.4
+  },
+  {
+   "code": "GM1729",
+   "naam": "Gulpen-Wittem",
+   "inwoners": 14054,
+   "pmdKgPerInw": 30,
+   "restafvalKgPerInw": 86.7
+  },
+  {
+   "code": "GM0158",
+   "naam": "Haaksbergen",
+   "inwoners": 24359,
+   "pmdKgPerInw": 35.6,
+   "restafvalKgPerInw": 129.3
+  },
+  {
+   "code": "GM0392",
+   "naam": "Haarlem",
+   "inwoners": 167636,
+   "pmdKgPerInw": 13.6,
+   "restafvalKgPerInw": 196.7
+  },
+  {
+   "code": "GM0394",
+   "naam": "Haarlemmermeer",
+   "inwoners": 163128,
+   "pmdKgPerInw": 41.9,
+   "restafvalKgPerInw": 102.7
+  },
+  {
+   "code": "GM1655",
+   "naam": "Halderberge",
+   "inwoners": 31183,
+   "pmdKgPerInw": 28.6,
+   "restafvalKgPerInw": 129.5
+  },
+  {
+   "code": "GM0160",
+   "naam": "Hardenberg",
+   "inwoners": 62932,
+   "pmdKgPerInw": 34.2,
+   "restafvalKgPerInw": 98.4
+  },
+  {
+   "code": "GM0243",
+   "naam": "Harderwijk",
+   "inwoners": 49387,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 149.5
+  },
+  {
+   "code": "GM0523",
+   "naam": "Hardinxveld-Giessendam",
+   "inwoners": 18762,
+   "pmdKgPerInw": 16.9,
+   "restafvalKgPerInw": 139.2
+  },
+  {
+   "code": "GM0072",
+   "naam": "Harlingen",
+   "inwoners": 16229,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 205.2
+  },
+  {
+   "code": "GM0244",
+   "naam": "Hattem",
+   "inwoners": 12624,
+   "pmdKgPerInw": 42.1,
+   "restafvalKgPerInw": 51.8
+  },
+  {
+   "code": "GM0396",
+   "naam": "Heemskerk",
+   "inwoners": 39452,
+   "pmdKgPerInw": 27.7,
+   "restafvalKgPerInw": 178
+  },
+  {
+   "code": "GM0397",
+   "naam": "Heemstede",
+   "inwoners": 27593,
+   "pmdKgPerInw": 14,
+   "restafvalKgPerInw": 152.9
+  },
+  {
+   "code": "GM0246",
+   "naam": "Heerde",
+   "inwoners": 19226,
+   "pmdKgPerInw": 31.5,
+   "restafvalKgPerInw": 83
+  },
+  {
+   "code": "GM0074",
+   "naam": "Heerenveen",
+   "inwoners": 51787,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 127.2
+  },
+  {
+   "code": "GM0917",
+   "naam": "Heerlen",
+   "inwoners": 87461,
+   "pmdKgPerInw": 26.9,
+   "restafvalKgPerInw": 147
+  },
+  {
+   "code": "GM1658",
+   "naam": "Heeze-Leende",
+   "inwoners": 16807,
+   "pmdKgPerInw": 29.3,
+   "restafvalKgPerInw": 77.1
+  },
+  {
+   "code": "GM0399",
+   "naam": "Heiloo",
+   "inwoners": 24312,
+   "pmdKgPerInw": 31.7,
+   "restafvalKgPerInw": 81.2
+  },
+  {
+   "code": "GM0163",
+   "naam": "Hellendoorn",
+   "inwoners": 36264,
+   "pmdKgPerInw": 33.5,
+   "restafvalKgPerInw": 126
+  },
+  {
+   "code": "GM0794",
+   "naam": "Helmond",
+   "inwoners": 95874,
+   "pmdKgPerInw": 31.1,
+   "restafvalKgPerInw": 102.7
+  },
+  {
+   "code": "GM0531",
+   "naam": "Hendrik-Ido-Ambacht",
+   "inwoners": 32689,
+   "pmdKgPerInw": 27.6,
+   "restafvalKgPerInw": 91.1
+  },
+  {
+   "code": "GM0164",
+   "naam": "Hengelo (O.)",
+   "inwoners": 83058,
+   "pmdKgPerInw": 53.6,
+   "restafvalKgPerInw": 65.6
+  },
+  {
+   "code": "GM1966",
+   "naam": "Het Hogeland",
+   "inwoners": 48224,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 129.6
+  },
+  {
+   "code": "GM0252",
+   "naam": "Heumen",
+   "inwoners": 16836,
+   "pmdKgPerInw": 30.4,
+   "restafvalKgPerInw": 45.6
+  },
+  {
+   "code": "GM0797",
+   "naam": "Heusden",
+   "inwoners": 46026,
+   "pmdKgPerInw": 32.7,
+   "restafvalKgPerInw": 55.5
+  },
+  {
+   "code": "GM0534",
+   "naam": "Hillegom",
+   "inwoners": 22822,
+   "pmdKgPerInw": 28.1,
+   "restafvalKgPerInw": 97.3
+  },
+  {
+   "code": "GM0798",
+   "naam": "Hilvarenbeek",
+   "inwoners": 15961,
+   "pmdKgPerInw": 30.9,
+   "restafvalKgPerInw": 67
+  },
+  {
+   "code": "GM0402",
+   "naam": "Hilversum",
+   "inwoners": 94435,
+   "pmdKgPerInw": 25.9,
+   "restafvalKgPerInw": 149.6
+  },
+  {
+   "code": "GM1963",
+   "naam": "Hoeksche Waard",
+   "inwoners": 90256,
+   "pmdKgPerInw": 27.5,
+   "restafvalKgPerInw": 120.2
+  },
+  {
+   "code": "GM1735",
+   "naam": "Hof van Twente",
+   "inwoners": 35446,
+   "pmdKgPerInw": 44.9,
+   "restafvalKgPerInw": 73.1
+  },
+  {
+   "code": "GM1911",
+   "naam": "Hollands Kroon",
+   "inwoners": 49522,
+   "pmdKgPerInw": 40.3,
+   "restafvalKgPerInw": 94.1
+  },
+  {
+   "code": "GM0118",
+   "naam": "Hoogeveen",
+   "inwoners": 56591,
+   "pmdKgPerInw": 41.4,
+   "restafvalKgPerInw": 139.6
+  },
+  {
+   "code": "GM0405",
+   "naam": "Hoorn",
+   "inwoners": 75645,
+   "pmdKgPerInw": 26.6,
+   "restafvalKgPerInw": 151.4
+  },
+  {
+   "code": "GM1507",
+   "naam": "Horst aan de Maas",
+   "inwoners": 43917,
+   "pmdKgPerInw": 39.5,
+   "restafvalKgPerInw": 24.8
+  },
+  {
+   "code": "GM0321",
+   "naam": "Houten",
+   "inwoners": 50847,
+   "pmdKgPerInw": 24,
+   "restafvalKgPerInw": 127.6
+  },
+  {
+   "code": "GM0406",
+   "naam": "Huizen",
+   "inwoners": 41193,
+   "pmdKgPerInw": 25.9,
+   "restafvalKgPerInw": 149.5
+  },
+  {
+   "code": "GM0677",
+   "naam": "Hulst",
+   "inwoners": 27330,
+   "pmdKgPerInw": 26.6,
+   "restafvalKgPerInw": 132.4
+  },
+  {
+   "code": "GM0353",
+   "naam": "IJsselstein",
+   "inwoners": 33421,
+   "pmdKgPerInw": 24.8,
+   "restafvalKgPerInw": 166.9
+  },
+  {
+   "code": "GM1884",
+   "naam": "Kaag en Braassem",
+   "inwoners": 29168,
+   "pmdKgPerInw": 27.2,
+   "restafvalKgPerInw": 94.2
+  },
+  {
+   "code": "GM0166",
+   "naam": "Kampen",
+   "inwoners": 56177,
+   "pmdKgPerInw": 43.5,
+   "restafvalKgPerInw": 54
+  },
+  {
+   "code": "GM0678",
+   "naam": "Kapelle",
+   "inwoners": 13009,
+   "pmdKgPerInw": 19.7,
+   "restafvalKgPerInw": 112.2
+  },
+  {
+   "code": "GM0537",
+   "naam": "Katwijk",
+   "inwoners": 66966,
+   "pmdKgPerInw": 23.3,
+   "restafvalKgPerInw": 146.1
+  },
+  {
+   "code": "GM0928",
+   "naam": "Kerkrade",
+   "inwoners": 45311,
+   "pmdKgPerInw": 26.6,
+   "restafvalKgPerInw": 141.5
+  },
+  {
+   "code": "GM1598",
+   "naam": "Koggenland",
+   "inwoners": 23587,
+   "pmdKgPerInw": 34,
+   "restafvalKgPerInw": 120
+  },
+  {
+   "code": "GM0542",
+   "naam": "Krimpen aan den IJssel",
+   "inwoners": 29626,
+   "pmdKgPerInw": 22,
+   "restafvalKgPerInw": 177.5
+  },
+  {
+   "code": "GM1931",
+   "naam": "Krimpenerwaard",
+   "inwoners": 57785,
+   "pmdKgPerInw": 26.4,
+   "restafvalKgPerInw": 105.8
+  },
+  {
+   "code": "GM1659",
+   "naam": "Laarbeek",
+   "inwoners": 23220,
+   "pmdKgPerInw": 36.3,
+   "restafvalKgPerInw": 54.8
+  },
+  {
+   "code": "GM1982",
+   "naam": "Land van Cuijk",
+   "inwoners": 91722,
+   "pmdKgPerInw": 39.4,
+   "restafvalKgPerInw": 21.9
+  },
+  {
+   "code": "GM0882",
+   "naam": "Landgraaf",
+   "inwoners": 37112,
+   "pmdKgPerInw": 29.1,
+   "restafvalKgPerInw": 125.9
+  },
+  {
+   "code": "GM0415",
+   "naam": "Landsmeer",
+   "inwoners": 11661,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 195.4
+  },
+  {
+   "code": "GM1621",
+   "naam": "Lansingerland",
+   "inwoners": 65594,
+   "pmdKgPerInw": 24.3,
+   "restafvalKgPerInw": 113.3
+  },
+  {
+   "code": "GM0417",
+   "naam": "Laren (NH.)",
+   "inwoners": 11439,
+   "pmdKgPerInw": 25.9,
+   "restafvalKgPerInw": 149.6
+  },
+  {
+   "code": "GM0080",
+   "naam": "Leeuwarden",
+   "inwoners": 128810,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 154.2
+  },
+  {
+   "code": "GM0546",
+   "naam": "Leiden",
+   "inwoners": 130108,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 201.3
+  },
+  {
+   "code": "GM0547",
+   "naam": "Leiderdorp",
+   "inwoners": 27736,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 162.5
+  },
+  {
+   "code": "GM1916",
+   "naam": "Leidschendam-Voorburg",
+   "inwoners": 78229,
+   "pmdKgPerInw": 16.9,
+   "restafvalKgPerInw": 192.8
+  },
+  {
+   "code": "GM0995",
+   "naam": "Lelystad",
+   "inwoners": 84080,
+   "pmdKgPerInw": 24.7,
+   "restafvalKgPerInw": 170.1
+  },
+  {
+   "code": "GM1640",
+   "naam": "Leudal",
+   "inwoners": 36006,
+   "pmdKgPerInw": 23.3,
+   "restafvalKgPerInw": 76
+  },
+  {
+   "code": "GM0327",
+   "naam": "Leusden",
+   "inwoners": 31681,
+   "pmdKgPerInw": 36.5,
+   "restafvalKgPerInw": 60.6
+  },
+  {
+   "code": "GM1705",
+   "naam": "Lingewaard",
+   "inwoners": 47314,
+   "pmdKgPerInw": 28.2,
+   "restafvalKgPerInw": 71.1
+  },
+  {
+   "code": "GM0553",
+   "naam": "Lisse",
+   "inwoners": 23447,
+   "pmdKgPerInw": 39.2,
+   "restafvalKgPerInw": 98.5
+  },
+  {
+   "code": "GM0262",
+   "naam": "Lochem",
+   "inwoners": 34289,
+   "pmdKgPerInw": 36.2,
+   "restafvalKgPerInw": 79.7
+  },
+  {
+   "code": "GM0809",
+   "naam": "Loon op Zand",
+   "inwoners": 23850,
+   "pmdKgPerInw": 27.6,
+   "restafvalKgPerInw": 94.8
+  },
+  {
+   "code": "GM0331",
+   "naam": "Lopik",
+   "inwoners": 14724,
+   "pmdKgPerInw": 35.2,
+   "restafvalKgPerInw": 115.9
+  },
+  {
+   "code": "GM0168",
+   "naam": "Losser",
+   "inwoners": 23376,
+   "pmdKgPerInw": 42.3,
+   "restafvalKgPerInw": 86
+  },
+  {
+   "code": "GM0263",
+   "naam": "Maasdriel",
+   "inwoners": 26197,
+   "pmdKgPerInw": 32.2,
+   "restafvalKgPerInw": 48.8
+  },
+  {
+   "code": "GM1641",
+   "naam": "Maasgouw",
+   "inwoners": 24406,
+   "pmdKgPerInw": 22,
+   "restafvalKgPerInw": 83
+  },
+  {
+   "code": "GM1991",
+   "naam": "Maashorst",
+   "inwoners": 59222,
+   "pmdKgPerInw": 26.8,
+   "restafvalKgPerInw": 130.4
+  },
+  {
+   "code": "GM0556",
+   "naam": "Maassluis",
+   "inwoners": 35832,
+   "pmdKgPerInw": 6.2,
+   "restafvalKgPerInw": 253.3
+  },
+  {
+   "code": "GM0935",
+   "naam": "Maastricht",
+   "inwoners": 125285,
+   "pmdKgPerInw": 29.1,
+   "restafvalKgPerInw": 87.8
+  },
+  {
+   "code": "GM0420",
+   "naam": "Medemblik",
+   "inwoners": 46002,
+   "pmdKgPerInw": 33.5,
+   "restafvalKgPerInw": 75.6
+  },
+  {
+   "code": "GM0938",
+   "naam": "Meerssen",
+   "inwoners": 18576,
+   "pmdKgPerInw": 27,
+   "restafvalKgPerInw": 94.8
+  },
+  {
+   "code": "GM1948",
+   "naam": "Meierijstad",
+   "inwoners": 84304,
+   "pmdKgPerInw": 27.3,
+   "restafvalKgPerInw": 68
+  },
+  {
+   "code": "GM0119",
+   "naam": "Meppel",
+   "inwoners": 35810,
+   "pmdKgPerInw": 29.8,
+   "restafvalKgPerInw": 147.5
+  },
+  {
+   "code": "GM0687",
+   "naam": "Middelburg (Z.)",
+   "inwoners": 50004,
+   "pmdKgPerInw": 19.3,
+   "restafvalKgPerInw": 124.5
+  },
+  {
+   "code": "GM1842",
+   "naam": "Midden-Delfland",
+   "inwoners": 19377,
+   "pmdKgPerInw": 32.6,
+   "restafvalKgPerInw": 129.6
+  },
+  {
+   "code": "GM1731",
+   "naam": "Midden-Drenthe",
+   "inwoners": 34092,
+   "pmdKgPerInw": 31,
+   "restafvalKgPerInw": 128.9
+  },
+  {
+   "code": "GM1952",
+   "naam": "Midden-Groningen",
+   "inwoners": 61433,
+   "pmdKgPerInw": 25.8,
+   "restafvalKgPerInw": 124
+  },
+  {
+   "code": "GM1709",
+   "naam": "Moerdijk",
+   "inwoners": 38091,
+   "pmdKgPerInw": 26.1,
+   "restafvalKgPerInw": 142.2
+  },
+  {
+   "code": "GM1978",
+   "naam": "Molenlanden",
+   "inwoners": 45271,
+   "pmdKgPerInw": 16.9,
+   "restafvalKgPerInw": 139.2
+  },
+  {
+   "code": "GM1955",
+   "naam": "Montferland",
+   "inwoners": 36873,
+   "pmdKgPerInw": 26.9,
+   "restafvalKgPerInw": 99.3
+  },
+  {
+   "code": "GM0335",
+   "naam": "Montfoort",
+   "inwoners": 13868,
+   "pmdKgPerInw": 20.8,
+   "restafvalKgPerInw": 160.7
+  },
+  {
+   "code": "GM0944",
+   "naam": "Mook en Middelaar",
+   "inwoners": 8153,
+   "pmdKgPerInw": 25.6,
+   "restafvalKgPerInw": 59.7
+  },
+  {
+   "code": "GM1740",
+   "naam": "Neder-Betuwe",
+   "inwoners": 25708,
+   "pmdKgPerInw": 33.9,
+   "restafvalKgPerInw": 53.6
+  },
+  {
+   "code": "GM0946",
+   "naam": "Nederweert",
+   "inwoners": 17492,
+   "pmdKgPerInw": 32.5,
+   "restafvalKgPerInw": 55.8
+  },
+  {
+   "code": "GM0356",
+   "naam": "Nieuwegein",
+   "inwoners": 65971,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 207.3
+  },
+  {
+   "code": "GM0569",
+   "naam": "Nieuwkoop",
+   "inwoners": 29501,
+   "pmdKgPerInw": 39.1,
+   "restafvalKgPerInw": 95.4
+  },
+  {
+   "code": "GM0267",
+   "naam": "Nijkerk",
+   "inwoners": 45361,
+   "pmdKgPerInw": 31.8,
+   "restafvalKgPerInw": 81.7
+  },
+  {
+   "code": "GM0268",
+   "naam": "Nijmegen",
+   "inwoners": 187049,
+   "pmdKgPerInw": 32.8,
+   "restafvalKgPerInw": 71.5
+  },
+  {
+   "code": "GM1930",
+   "naam": "Nissewaard",
+   "inwoners": 87639,
+   "pmdKgPerInw": 32.6,
+   "restafvalKgPerInw": 204.9
+  },
+  {
+   "code": "GM1970",
+   "naam": "Noardeast-Fryslân",
+   "inwoners": 45866,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 197.2
+  },
+  {
+   "code": "GM1695",
+   "naam": "Noord-Beveland",
+   "inwoners": 7943,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 234.2
+  },
+  {
+   "code": "GM1699",
+   "naam": "Noordenveld",
+   "inwoners": 31686,
+   "pmdKgPerInw": 24.5,
+   "restafvalKgPerInw": 158.1
+  },
+  {
+   "code": "GM0171",
+   "naam": "Noordoostpolder",
+   "inwoners": 50035,
+   "pmdKgPerInw": 39.2,
+   "restafvalKgPerInw": 65.5
+  },
+  {
+   "code": "GM0575",
+   "naam": "Noordwijk",
+   "inwoners": 45734,
+   "pmdKgPerInw": 17.2,
+   "restafvalKgPerInw": 164.2
+  },
+  {
+   "code": "GM0820",
+   "naam": "Nuenen, Gerwen en Nederwetten",
+   "inwoners": 24231,
+   "pmdKgPerInw": 34.5,
+   "restafvalKgPerInw": 76.1
+  },
+  {
+   "code": "GM0302",
+   "naam": "Nunspeet",
+   "inwoners": 29072,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 193.8
+  },
+  {
+   "code": "GM0579",
+   "naam": "Oegstgeest",
+   "inwoners": 25948,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 167.7
+  },
+  {
+   "code": "GM0823",
+   "naam": "Oirschot",
+   "inwoners": 19280,
+   "pmdKgPerInw": 30.4,
+   "restafvalKgPerInw": 52.1
+  },
+  {
+   "code": "GM0824",
+   "naam": "Oisterwijk",
+   "inwoners": 32952,
+   "pmdKgPerInw": 28.7,
+   "restafvalKgPerInw": 90.9
+  },
+  {
+   "code": "GM1895",
+   "naam": "Oldambt",
+   "inwoners": 39405,
+   "pmdKgPerInw": 33.8,
+   "restafvalKgPerInw": 122.5
+  },
+  {
+   "code": "GM0269",
+   "naam": "Oldebroek",
+   "inwoners": 24281,
+   "pmdKgPerInw": 0.2,
+   "restafvalKgPerInw": 152.7
+  },
+  {
+   "code": "GM0173",
+   "naam": "Oldenzaal",
+   "inwoners": 31794,
+   "pmdKgPerInw": 43.2,
+   "restafvalKgPerInw": 102.2
+  },
+  {
+   "code": "GM1773",
+   "naam": "Olst-Wijhe",
+   "inwoners": 18835,
+   "pmdKgPerInw": 42,
+   "restafvalKgPerInw": 54.2
+  },
+  {
+   "code": "GM0175",
+   "naam": "Ommen",
+   "inwoners": 19031,
+   "pmdKgPerInw": 38.1,
+   "restafvalKgPerInw": 62.6
+  },
+  {
+   "code": "GM1586",
+   "naam": "Oost Gelre",
+   "inwoners": 29969,
+   "pmdKgPerInw": 38.1,
+   "restafvalKgPerInw": 41.2
+  },
+  {
+   "code": "GM0826",
+   "naam": "Oosterhout",
+   "inwoners": 57924,
+   "pmdKgPerInw": 37.9,
+   "restafvalKgPerInw": 66.8
+  },
+  {
+   "code": "GM0085",
+   "naam": "Ooststellingwerf",
+   "inwoners": 25824,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 132.6
+  },
+  {
+   "code": "GM0431",
+   "naam": "Oostzaan",
+   "inwoners": 9694,
+   "pmdKgPerInw": 14.3,
+   "restafvalKgPerInw": 178.6
+  },
+  {
+   "code": "GM0432",
+   "naam": "Opmeer",
+   "inwoners": 12199,
+   "pmdKgPerInw": 29.8,
+   "restafvalKgPerInw": 111.1
+  },
+  {
+   "code": "GM0086",
+   "naam": "Opsterland",
+   "inwoners": 30059,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 149
+  },
+  {
+   "code": "GM0828",
+   "naam": "Oss",
+   "inwoners": 94634,
+   "pmdKgPerInw": 25.6,
+   "restafvalKgPerInw": 132.2
+  },
+  {
+   "code": "GM1509",
+   "naam": "Oude IJsselstreek",
+   "inwoners": 39402,
+   "pmdKgPerInw": 39.9,
+   "restafvalKgPerInw": 64.8
+  },
+  {
+   "code": "GM0437",
+   "naam": "Ouder-Amstel",
+   "inwoners": 14447,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 147.2
+  },
+  {
+   "code": "GM0589",
+   "naam": "Oudewater",
+   "inwoners": 10223,
+   "pmdKgPerInw": 23,
+   "restafvalKgPerInw": 120.1
+  },
+  {
+   "code": "GM1734",
+   "naam": "Overbetuwe",
+   "inwoners": 48919,
+   "pmdKgPerInw": 33.6,
+   "restafvalKgPerInw": 68.5
+  },
+  {
+   "code": "GM0590",
+   "naam": "Papendrecht",
+   "inwoners": 32178,
+   "pmdKgPerInw": 37.7,
+   "restafvalKgPerInw": 71.7
+  },
+  {
+   "code": "GM1894",
+   "naam": "Peel en Maas",
+   "inwoners": 45534,
+   "pmdKgPerInw": 28.7,
+   "restafvalKgPerInw": 47.3
+  },
+  {
+   "code": "GM0765",
+   "naam": "Pekela",
+   "inwoners": 12517,
+   "pmdKgPerInw": 28.1,
+   "restafvalKgPerInw": 154.5
+  },
+  {
+   "code": "GM1926",
+   "naam": "Pijnacker-Nootdorp",
+   "inwoners": 57932,
+   "pmdKgPerInw": 26,
+   "restafvalKgPerInw": 160
+  },
+  {
+   "code": "GM0439",
+   "naam": "Purmerend",
+   "inwoners": 95168,
+   "pmdKgPerInw": 8.9,
+   "restafvalKgPerInw": 216.6
+  },
+  {
+   "code": "GM0273",
+   "naam": "Putten",
+   "inwoners": 24978,
+   "pmdKgPerInw": 30.2,
+   "restafvalKgPerInw": 65
+  },
+  {
+   "code": "GM0177",
+   "naam": "Raalte",
+   "inwoners": 38364,
+   "pmdKgPerInw": 35.6,
+   "restafvalKgPerInw": 96
+  },
+  {
+   "code": "GM0703",
+   "naam": "Reimerswaal",
+   "inwoners": 23325,
+   "pmdKgPerInw": 21.3,
+   "restafvalKgPerInw": 106.6
+  },
+  {
+   "code": "GM0274",
+   "naam": "Renkum",
+   "inwoners": 31419,
+   "pmdKgPerInw": 27.9,
+   "restafvalKgPerInw": 73
+  },
+  {
+   "code": "GM0339",
+   "naam": "Renswoude",
+   "inwoners": 5753,
+   "pmdKgPerInw": 40.2,
+   "restafvalKgPerInw": 61.4
+  },
+  {
+   "code": "GM1667",
+   "naam": "Reusel-De Mierden",
+   "inwoners": 13577,
+   "pmdKgPerInw": 40.3,
+   "restafvalKgPerInw": 4.9
+  },
+  {
+   "code": "GM0275",
+   "naam": "Rheden",
+   "inwoners": 43661,
+   "pmdKgPerInw": 19.5,
+   "restafvalKgPerInw": 153.8
+  },
+  {
+   "code": "GM0340",
+   "naam": "Rhenen",
+   "inwoners": 20235,
+   "pmdKgPerInw": 20.8,
+   "restafvalKgPerInw": 126.2
+  },
+  {
+   "code": "GM0597",
+   "naam": "Ridderkerk",
+   "inwoners": 47721,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 196.8
+  },
+  {
+   "code": "GM1742",
+   "naam": "Rijssen-Holten",
+   "inwoners": 38675,
+   "pmdKgPerInw": 31.2,
+   "restafvalKgPerInw": 123.5
+  },
+  {
+   "code": "GM0603",
+   "naam": "Rijswijk (ZH.)",
+   "inwoners": 59642,
+   "pmdKgPerInw": 13.7,
+   "restafvalKgPerInw": 206
+  },
+  {
+   "code": "GM1669",
+   "naam": "Roerdalen",
+   "inwoners": 20806,
+   "pmdKgPerInw": 24.3,
+   "restafvalKgPerInw": 89
+  },
+  {
+   "code": "GM0957",
+   "naam": "Roermond",
+   "inwoners": 60743,
+   "pmdKgPerInw": 25.2,
+   "restafvalKgPerInw": 153.3
+  },
+  {
+   "code": "GM1674",
+   "naam": "Roosendaal",
+   "inwoners": 77559,
+   "pmdKgPerInw": 23.3,
+   "restafvalKgPerInw": 111.5
+  },
+  {
+   "code": "GM0599",
+   "naam": "Rotterdam",
+   "inwoners": 670610,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 265.8
+  },
+  {
+   "code": "GM0277",
+   "naam": "Rozendaal",
+   "inwoners": 1831,
+   "pmdKgPerInw": 26.3,
+   "restafvalKgPerInw": 95.6
+  },
+  {
+   "code": "GM0840",
+   "naam": "Rucphen",
+   "inwoners": 23920,
+   "pmdKgPerInw": 25.5,
+   "restafvalKgPerInw": 145.4
+  },
+  {
+   "code": "GM0441",
+   "naam": "Schagen",
+   "inwoners": 47744,
+   "pmdKgPerInw": 30.2,
+   "restafvalKgPerInw": 138
+  },
+  {
+   "code": "GM0279",
+   "naam": "Scherpenzeel",
+   "inwoners": 10343,
+   "pmdKgPerInw": 27,
+   "restafvalKgPerInw": 75.1
+  },
+  {
+   "code": "GM0606",
+   "naam": "Schiedam",
+   "inwoners": 81838,
+   "pmdKgPerInw": 1.5,
+   "restafvalKgPerInw": 232.8
+  },
+  {
+   "code": "GM0088",
+   "naam": "Schiermonnikoog",
+   "inwoners": 972,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 371.4
+  },
+  {
+   "code": "GM1676",
+   "naam": "Schouwen-Duiveland",
+   "inwoners": 34631,
+   "pmdKgPerInw": 29.4,
+   "restafvalKgPerInw": 141.8
+  },
+  {
+   "code": "GM0965",
+   "naam": "Simpelveld",
+   "inwoners": 10255,
+   "pmdKgPerInw": 31.5,
+   "restafvalKgPerInw": 116.6
+  },
+  {
+   "code": "GM0845",
+   "naam": "Sint-Michielsgestel",
+   "inwoners": 30094,
+   "pmdKgPerInw": 29.9,
+   "restafvalKgPerInw": 79.1
+  },
+  {
+   "code": "GM1883",
+   "naam": "Sittard-Geleen",
+   "inwoners": 92650,
+   "pmdKgPerInw": 31.2,
+   "restafvalKgPerInw": 112.2
+  },
+  {
+   "code": "GM0610",
+   "naam": "Sliedrecht",
+   "inwoners": 26261,
+   "pmdKgPerInw": 17.2,
+   "restafvalKgPerInw": 207.8
+  },
+  {
+   "code": "GM1714",
+   "naam": "Sluis",
+   "inwoners": 23150,
+   "pmdKgPerInw": 20.6,
+   "restafvalKgPerInw": 182.6
+  },
+  {
+   "code": "GM0090",
+   "naam": "Smallingerland",
+   "inwoners": 56661,
+   "pmdKgPerInw": 34.8,
+   "restafvalKgPerInw": 132.4
+  },
+  {
+   "code": "GM0342",
+   "naam": "Soest",
+   "inwoners": 47682,
+   "pmdKgPerInw": 22.4,
+   "restafvalKgPerInw": 139.4
+  },
+  {
+   "code": "GM0847",
+   "naam": "Someren",
+   "inwoners": 20188,
+   "pmdKgPerInw": 32,
+   "restafvalKgPerInw": 59.7
+  },
+  {
+   "code": "GM0848",
+   "naam": "Son en Breugel",
+   "inwoners": 17959,
+   "pmdKgPerInw": 26.6,
+   "restafvalKgPerInw": 108.5
+  },
+  {
+   "code": "GM0037",
+   "naam": "Stadskanaal",
+   "inwoners": 32013,
+   "pmdKgPerInw": 23.7,
+   "restafvalKgPerInw": 136.3
+  },
+  {
+   "code": "GM0180",
+   "naam": "Staphorst",
+   "inwoners": 17739,
+   "pmdKgPerInw": 32.9,
+   "restafvalKgPerInw": 52.3
+  },
+  {
+   "code": "GM0532",
+   "naam": "Stede Broec",
+   "inwoners": 22217,
+   "pmdKgPerInw": 28.7,
+   "restafvalKgPerInw": 126.4
+  },
+  {
+   "code": "GM0851",
+   "naam": "Steenbergen",
+   "inwoners": 24476,
+   "pmdKgPerInw": 36.1,
+   "restafvalKgPerInw": 130.3
+  },
+  {
+   "code": "GM1708",
+   "naam": "Steenwijkerland",
+   "inwoners": 45472,
+   "pmdKgPerInw": 40,
+   "restafvalKgPerInw": 67.1
+  },
+  {
+   "code": "GM0971",
+   "naam": "Stein (L.)",
+   "inwoners": 24744,
+   "pmdKgPerInw": 26.4,
+   "restafvalKgPerInw": 99.5
+  },
+  {
+   "code": "GM1904",
+   "naam": "Stichtse Vecht",
+   "inwoners": 65878,
+   "pmdKgPerInw": 22.1,
+   "restafvalKgPerInw": 170.2
+  },
+  {
+   "code": "GM1900",
+   "naam": "Súdwest-Fryslân",
+   "inwoners": 90421,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 195.6
+  },
+  {
+   "code": "GM0715",
+   "naam": "Terneuzen",
+   "inwoners": 55132,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 227.2
+  },
+  {
+   "code": "GM0093",
+   "naam": "Terschelling",
+   "inwoners": 4898,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 322.8
+  },
+  {
+   "code": "GM0448",
+   "naam": "Texel",
+   "inwoners": 13815,
+   "pmdKgPerInw": 33.3,
+   "restafvalKgPerInw": 220.3
+  },
+  {
+   "code": "GM1525",
+   "naam": "Teylingen",
+   "inwoners": 38470,
+   "pmdKgPerInw": 28.4,
+   "restafvalKgPerInw": 110.6
+  },
+  {
+   "code": "GM0716",
+   "naam": "Tholen",
+   "inwoners": 26851,
+   "pmdKgPerInw": 22.1,
+   "restafvalKgPerInw": 115.7
+  },
+  {
+   "code": "GM0281",
+   "naam": "Tiel",
+   "inwoners": 42370,
+   "pmdKgPerInw": 37.4,
+   "restafvalKgPerInw": 71.1
+  },
+  {
+   "code": "GM0855",
+   "naam": "Tilburg",
+   "inwoners": 229836,
+   "pmdKgPerInw": 28.2,
+   "restafvalKgPerInw": 122.6
+  },
+  {
+   "code": "GM0183",
+   "naam": "Tubbergen",
+   "inwoners": 21397,
+   "pmdKgPerInw": 33.5,
+   "restafvalKgPerInw": 55.9
+  },
+  {
+   "code": "GM1700",
+   "naam": "Twenterand",
+   "inwoners": 34073,
+   "pmdKgPerInw": 38.2,
+   "restafvalKgPerInw": 64.5
+  },
+  {
+   "code": "GM1730",
+   "naam": "Tynaarlo",
+   "inwoners": 34736,
+   "pmdKgPerInw": 36.3,
+   "restafvalKgPerInw": 86.7
+  },
+  {
+   "code": "GM0737",
+   "naam": "Tytsjerksteradiel",
+   "inwoners": 32595,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 146
+  },
+  {
+   "code": "GM0450",
+   "naam": "Uitgeest",
+   "inwoners": 13400,
+   "pmdKgPerInw": 35.5,
+   "restafvalKgPerInw": 74.6
+  },
+  {
+   "code": "GM0451",
+   "naam": "Uithoorn",
+   "inwoners": 31685,
+   "pmdKgPerInw": 23.9,
+   "restafvalKgPerInw": 173
+  },
+  {
+   "code": "GM0184",
+   "naam": "Urk",
+   "inwoners": 21958,
+   "pmdKgPerInw": 21.9,
+   "restafvalKgPerInw": 139
+  },
+  {
+   "code": "GM0344",
+   "naam": "Utrecht (gemeente)",
+   "inwoners": 374238,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 196.4
+  },
+  {
+   "code": "GM1581",
+   "naam": "Utrechtse Heuvelrug",
+   "inwoners": 50550,
+   "pmdKgPerInw": 31.8,
+   "restafvalKgPerInw": 112.7
+  },
+  {
+   "code": "GM0981",
+   "naam": "Vaals",
+   "inwoners": 10121,
+   "pmdKgPerInw": 25.2,
+   "restafvalKgPerInw": 117.5
+  },
+  {
+   "code": "GM0994",
+   "naam": "Valkenburg aan de Geul",
+   "inwoners": 16431,
+   "pmdKgPerInw": 27.9,
+   "restafvalKgPerInw": 72.1
+  },
+  {
+   "code": "GM0858",
+   "naam": "Valkenswaard",
+   "inwoners": 31714,
+   "pmdKgPerInw": 11.3,
+   "restafvalKgPerInw": 204.4
+  },
+  {
+   "code": "GM0047",
+   "naam": "Veendam",
+   "inwoners": 27520,
+   "pmdKgPerInw": 42,
+   "restafvalKgPerInw": 162.3
+  },
+  {
+   "code": "GM0345",
+   "naam": "Veenendaal",
+   "inwoners": 69440,
+   "pmdKgPerInw": 38.7,
+   "restafvalKgPerInw": 82.1
+  },
+  {
+   "code": "GM0717",
+   "naam": "Veere",
+   "inwoners": 22067,
+   "pmdKgPerInw": 26.8,
+   "restafvalKgPerInw": 140.9
+  },
+  {
+   "code": "GM0861",
+   "naam": "Veldhoven",
+   "inwoners": 46827,
+   "pmdKgPerInw": 29.5,
+   "restafvalKgPerInw": 111.8
+  },
+  {
+   "code": "GM0453",
+   "naam": "Velsen",
+   "inwoners": 69241,
+   "pmdKgPerInw": 38.9,
+   "restafvalKgPerInw": 107.3
+  },
+  {
+   "code": "GM0983",
+   "naam": "Venlo",
+   "inwoners": 103789,
+   "pmdKgPerInw": 15.9,
+   "restafvalKgPerInw": 158
+  },
+  {
+   "code": "GM0984",
+   "naam": "Venray",
+   "inwoners": 44662,
+   "pmdKgPerInw": 33,
+   "restafvalKgPerInw": 46.9
+  },
+  {
+   "code": "GM1961",
+   "naam": "Vijfheerenlanden",
+   "inwoners": 61669,
+   "pmdKgPerInw": 16.9,
+   "restafvalKgPerInw": 139.2
+  },
+  {
+   "code": "GM0622",
+   "naam": "Vlaardingen",
+   "inwoners": 76409,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 268.9
+  },
+  {
+   "code": "GM0096",
+   "naam": "Vlieland",
+   "inwoners": 1255,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 494.7
+  },
+  {
+   "code": "GM0718",
+   "naam": "Vlissingen",
+   "inwoners": 45389,
+   "pmdKgPerInw": 12.7,
+   "restafvalKgPerInw": 211.2
+  },
+  {
+   "code": "GM0986",
+   "naam": "Voerendaal",
+   "inwoners": 12375,
+   "pmdKgPerInw": 23.8,
+   "restafvalKgPerInw": 122.8
+  },
+  {
+   "code": "GM1992",
+   "naam": "Voorne aan Zee",
+   "inwoners": 74304,
+   "pmdKgPerInw": 14.8,
+   "restafvalKgPerInw": 196.7
+  },
+  {
+   "code": "GM0626",
+   "naam": "Voorschoten",
+   "inwoners": 25625,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 188.6
+  },
+  {
+   "code": "GM0285",
+   "naam": "Voorst",
+   "inwoners": 25377,
+   "pmdKgPerInw": 28.6,
+   "restafvalKgPerInw": 76.1
+  },
+  {
+   "code": "GM0865",
+   "naam": "Vught",
+   "inwoners": 32356,
+   "pmdKgPerInw": 25.4,
+   "restafvalKgPerInw": 77.2
+  },
+  {
+   "code": "GM1949",
+   "naam": "Waadhoeke",
+   "inwoners": 46911,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 193.5
+  },
+  {
+   "code": "GM0866",
+   "naam": "Waalre",
+   "inwoners": 17988,
+   "pmdKgPerInw": 26.8,
+   "restafvalKgPerInw": 85.2
+  },
+  {
+   "code": "GM0867",
+   "naam": "Waalwijk",
+   "inwoners": 50302,
+   "pmdKgPerInw": 25,
+   "restafvalKgPerInw": 91.9
+  },
+  {
+   "code": "GM0627",
+   "naam": "Waddinxveen",
+   "inwoners": 34000,
+   "pmdKgPerInw": 25.2,
+   "restafvalKgPerInw": 108.8
+  },
+  {
+   "code": "GM0289",
+   "naam": "Wageningen",
+   "inwoners": 42579,
+   "pmdKgPerInw": 23.4,
+   "restafvalKgPerInw": 98.7
+  },
+  {
+   "code": "GM0629",
+   "naam": "Wassenaar",
+   "inwoners": 27100,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 227.1
+  },
+  {
+   "code": "GM0852",
+   "naam": "Waterland",
+   "inwoners": 17525,
+   "pmdKgPerInw": 23.3,
+   "restafvalKgPerInw": 154
+  },
+  {
+   "code": "GM0988",
+   "naam": "Weert",
+   "inwoners": 51079,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 233.5
+  },
+  {
+   "code": "GM1960",
+   "naam": "West Betuwe",
+   "inwoners": 52948,
+   "pmdKgPerInw": 35.1,
+   "restafvalKgPerInw": 56.3
+  },
+  {
+   "code": "GM0668",
+   "naam": "West Maas en Waal",
+   "inwoners": 20330,
+   "pmdKgPerInw": 40.9,
+   "restafvalKgPerInw": 55.2
+  },
+  {
+   "code": "GM1969",
+   "naam": "Westerkwartier",
+   "inwoners": 64896,
+   "pmdKgPerInw": 26.4,
+   "restafvalKgPerInw": 110.6
+  },
+  {
+   "code": "GM1701",
+   "naam": "Westerveld",
+   "inwoners": 20003,
+   "pmdKgPerInw": 50.2,
+   "restafvalKgPerInw": 88.5
+  },
+  {
+   "code": "GM0293",
+   "naam": "Westervoort",
+   "inwoners": 15151,
+   "pmdKgPerInw": 25.7,
+   "restafvalKgPerInw": 91.9
+  },
+  {
+   "code": "GM1950",
+   "naam": "Westerwolde",
+   "inwoners": 26465,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 181.7
+  },
+  {
+   "code": "GM1783",
+   "naam": "Westland",
+   "inwoners": 115941,
+   "pmdKgPerInw": 34,
+   "restafvalKgPerInw": 186.3
+  },
+  {
+   "code": "GM0098",
+   "naam": "Weststellingwerf",
+   "inwoners": 26487,
+   "pmdKgPerInw": 0,
+   "restafvalKgPerInw": 223.4
+  },
+  {
+   "code": "GM0189",
+   "naam": "Wierden",
+   "inwoners": 24931,
+   "pmdKgPerInw": 40.2,
+   "restafvalKgPerInw": 64.9
+  },
+  {
+   "code": "GM0296",
+   "naam": "Wijchen",
+   "inwoners": 41545,
+   "pmdKgPerInw": 32.7,
+   "restafvalKgPerInw": 83.9
+  },
+  {
+   "code": "GM1696",
+   "naam": "Wijdemeren",
+   "inwoners": 24605,
+   "pmdKgPerInw": 25.9,
+   "restafvalKgPerInw": 149.6
+  },
+  {
+   "code": "GM0352",
+   "naam": "Wijk bij Duurstede",
+   "inwoners": 23945,
+   "pmdKgPerInw": 33,
+   "restafvalKgPerInw": 91.7
+  },
+  {
+   "code": "GM0294",
+   "naam": "Winterswijk",
+   "inwoners": 29231,
+   "pmdKgPerInw": 44.5,
+   "restafvalKgPerInw": 61.8
+  },
+  {
+   "code": "GM0873",
+   "naam": "Woensdrecht",
+   "inwoners": 22208,
+   "pmdKgPerInw": 17.5,
+   "restafvalKgPerInw": 128.2
+  },
+  {
+   "code": "GM0632",
+   "naam": "Woerden",
+   "inwoners": 53724,
+   "pmdKgPerInw": 21.1,
+   "restafvalKgPerInw": 150.9
+  },
+  {
+   "code": "GM0880",
+   "naam": "Wormerland",
+   "inwoners": 16552,
+   "pmdKgPerInw": 34.7,
+   "restafvalKgPerInw": 90.9
+  },
+  {
+   "code": "GM0351",
+   "naam": "Woudenberg",
+   "inwoners": 14637,
+   "pmdKgPerInw": 29.4,
+   "restafvalKgPerInw": 75.6
+  },
+  {
+   "code": "GM0479",
+   "naam": "Zaanstad",
+   "inwoners": 161389,
+   "pmdKgPerInw": 25.2,
+   "restafvalKgPerInw": 181.6
+  },
+  {
+   "code": "GM0297",
+   "naam": "Zaltbommel",
+   "inwoners": 30385,
+   "pmdKgPerInw": 37.5,
+   "restafvalKgPerInw": 67.7
+  },
+  {
+   "code": "GM0473",
+   "naam": "Zandvoort",
+   "inwoners": 17469,
+   "pmdKgPerInw": 13.8,
+   "restafvalKgPerInw": 206.7
+  },
+  {
+   "code": "GM0050",
+   "naam": "Zeewolde",
+   "inwoners": 23899,
+   "pmdKgPerInw": 25.9,
+   "restafvalKgPerInw": 119.2
+  },
+  {
+   "code": "GM0355",
+   "naam": "Zeist",
+   "inwoners": 66641,
+   "pmdKgPerInw": 17.2,
+   "restafvalKgPerInw": 157.4
+  },
+  {
+   "code": "GM0299",
+   "naam": "Zevenaar",
+   "inwoners": 45041,
+   "pmdKgPerInw": 27.2,
+   "restafvalKgPerInw": 92.4
+  },
+  {
+   "code": "GM0637",
+   "naam": "Zoetermeer",
+   "inwoners": 128434,
+   "pmdKgPerInw": 8,
+   "restafvalKgPerInw": 202
+  },
+  {
+   "code": "GM0638",
+   "naam": "Zoeterwoude",
+   "inwoners": 9732,
+   "pmdKgPerInw": 158.1,
+   "restafvalKgPerInw": 83.7
+  },
+  {
+   "code": "GM1892",
+   "naam": "Zuidplas",
+   "inwoners": 47843,
+   "pmdKgPerInw": 21.5,
+   "restafvalKgPerInw": 98.3
+  },
+  {
+   "code": "GM0879",
+   "naam": "Zundert",
+   "inwoners": 22553,
+   "pmdKgPerInw": 27.1,
+   "restafvalKgPerInw": 42.2
+  },
+  {
+   "code": "GM0301",
+   "naam": "Zutphen",
+   "inwoners": 48752,
+   "pmdKgPerInw": 30.3,
+   "restafvalKgPerInw": 97.1
+  },
+  {
+   "code": "GM1896",
+   "naam": "Zwartewaterland",
+   "inwoners": 23448,
+   "pmdKgPerInw": 41.9,
+   "restafvalKgPerInw": 59.7
+  },
+  {
+   "code": "GM0642",
+   "naam": "Zwijndrecht",
+   "inwoners": 44874,
+   "pmdKgPerInw": 32.1,
+   "restafvalKgPerInw": 105
+  },
+  {
+   "code": "GM0193",
+   "naam": "Zwolle",
+   "inwoners": 133141,
+   "pmdKgPerInw": 36.2,
+   "restafvalKgPerInw": 88.6
+  }
+ ]
+}

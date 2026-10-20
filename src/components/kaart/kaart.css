@@ -1,0 +1,259 @@
+/* Restafvalkaart: choropleet, legenda, zoeken, paneel en tabel. Kleuren uit tokens.css,
+   behalve de kaartreeks (src/lib/kaartdata.ts, KLEUREN). */
+
+.kaart-wrap {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+.kaart-wrap .leaflet-container {
+  background: var(--wit);
+}
+.kaart-laden,
+.kaart-melding {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  text-align: center;
+  color: var(--tekst-2);
+  font-size: 14px;
+}
+.kaart-melding {
+  position: static;
+  height: 100%;
+  background: var(--waarschuwing-bg);
+  color: var(--waarschuwing-tekst);
+}
+.kaart-mini {
+  cursor: default;
+}
+.leaflet-container .leaflet-control-attribution {
+  font-size: 10.5px;
+  max-width: 100%;
+  white-space: normal;
+}
+.leaflet-container a.leaflet-control-zoom-in:focus-visible,
+.leaflet-container a.leaflet-control-zoom-out:focus-visible,
+.leaflet-container:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Legenda */
+.legenda {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+.legenda figcaption {
+  font-size: 14px;
+}
+.legenda ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 6px 14px;
+  font-size: 13px;
+}
+.legenda li {
+  display: grid;
+  grid-template-columns: 22px 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+.legenda .vlak {
+  width: 22px;
+  height: 14px;
+  border-radius: 3px;
+}
+.legenda .vlak.geen {
+  border: 1px dashed var(--grijs-vergelijking);
+}
+.legenda .aantal {
+  color: var(--tekst-secundair);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Bediening boven de kaart */
+.kaart-bediening {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px 16px;
+  align-items: end;
+}
+@media (max-width: 640px) {
+  .kaart-bediening {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.zoek-gemeente {
+  position: relative;
+}
+.zoek-gemeente .rij {
+  display: flex;
+  gap: 8px;
+  min-width: 0;
+}
+.zoek-gemeente .rij input {
+  width: 100%;
+}
+.zoek-gemeente .rij button {
+  flex: none;
+}
+.zoek-gemeente .rij .invoer {
+  flex: 1;
+  min-width: 0;
+}
+.suggesties {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 4px;
+  border: 1px solid var(--rand);
+  border-radius: var(--radius-klein);
+  background: var(--wit);
+  display: grid;
+  gap: 2px;
+}
+.suggesties button {
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--tekst);
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.suggesties button:hover,
+.suggesties button:focus-visible {
+  background: var(--kaartvlak);
+}
+.suggesties .muted {
+  font-size: 12.5px;
+}
+
+/* Paneel met kerncijfers */
+.gemeente-paneel .tegels {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.vergelijking {
+  font-size: 13px;
+  color: var(--tekst-2);
+  margin: 0;
+}
+.samenstelling {
+  width: 100%;
+}
+.samenstelling th[scope='row'] {
+  font-weight: 400;
+  text-align: left;
+}
+.balkje {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--lichtviolet);
+  margin-top: 3px;
+}
+.aanbesteding-link {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  background: var(--kaartvlak);
+}
+.aanbesteding-link p {
+  margin: 0;
+  font-size: 13.5px;
+}
+
+/* Tabelweergave */
+.tabel-bediening {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  align-items: end;
+  margin-bottom: 12px;
+}
+.tabel-bediening .veld {
+  min-width: 180px;
+}
+.kaarttabel {
+  max-height: 560px;
+  overflow: auto;
+}
+.kaarttabel table {
+  min-width: 640px;
+}
+.kaarttabel thead th {
+  position: sticky;
+  top: 0;
+  background: var(--wit);
+  z-index: 1;
+}
+.kaarttabel th button {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+  text-align: inherit;
+}
+.kaarttabel th button:focus-visible,
+.kaarttabel td button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.kaarttabel tr[aria-current='true'] td,
+.kaarttabel tr[aria-current='true'] th {
+  background: var(--kaartvlak-2);
+}
+.kaarttabel td button {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--blauw);
+  text-decoration: underline;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.bronblok dl {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 6px 14px;
+  margin: 0;
+  font-size: 13.5px;
+}
+.bronblok dt {
+  font-weight: 600;
+  color: var(--tekst-2);
+}
+.bronblok dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 520px) {
+  .bronblok dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bronblok dd {
+    margin-bottom: 6px;
+  }
+}
+ul.vergelijking {
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  margin-top: 12px;
+}

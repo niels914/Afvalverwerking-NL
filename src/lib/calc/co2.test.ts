@@ -14,7 +14,7 @@ import {
   type Co2PaginaInvoer,
   type Co2Regels,
 } from './co2';
-import { co2StandaardInvoer, kentalEmissiefactor, procesemissiefactor, reductiefactor, tariefpaden } from '../../data/co2-tarieven';
+import { co2StandaardInvoer, kentalEmissiefactor, procesemissiefactor, reductiefactor, tariefpaden, tariefpadPrijspeil2026 } from '../../data/co2-tarieven';
 
 const regels = (id: 'geldend' | 'voorstel'): Co2Regels => ({ ...tariefpaden[id], reductiefactor, procesemissiefactor });
 
@@ -83,6 +83,15 @@ describe('CO2-heffingenscan: wettelijk tariefpad', () => {
     expect(tariefInJaar(tariefpaden.voorstel, 2027, 3)).toBeCloseTo(129.15, 2);
     expect(tariefInJaar(tariefpaden.voorstel, 2028)).toBeCloseTo(151.94, 2);
     expect(tariefInJaar(tariefpaden.voorstel, 2035)).toBeCloseTo(328.01, 2);
+  });
+
+  it('past bij de tabel in prijspeil 2026 uit de memorie van toelichting (geldend recht, zonder inflatie)', () => {
+    for (const r of tariefpadPrijspeil2026) {
+      expect(Math.abs(tariefInJaar(regels('geldend'), r.jaar, 0) - r.geldend)).toBeLessThan(1);
+    }
+    // Beide paden komen in prijspeil 2026 uit op € 304: geldend in 2030, voorstel in 2035.
+    expect(tariefpadPrijspeil2026.find((r) => r.jaar === 2030)!.geldend).toBe(304);
+    expect(tariefpadPrijspeil2026.find((r) => r.jaar === 2035)!.voorstel).toBe(304);
   });
 
   it('zoekt waarden per jaar op met terugval op het laatste eerdere jaar', () => {

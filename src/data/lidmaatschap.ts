@@ -87,6 +87,12 @@ export const organisatietypen: OrganisatietypeOptie[] = [
   { waarde: 'verwerker', label: 'Afvalverwerker of sorteerder', overheid: false },
 ];
 
+/**
+ * Wat de aanvrager wil: direct lid worden, of eerst een offerte voor het eigen inkoopproces.
+ * Beide gaan via hetzelfde formulier en hetzelfde Netlify-formulier ("aanmelding", veld `soort`).
+ */
+export type Aanvraagsoort = 'aanmelding' | 'offerte';
+
 /** Vanaf dit aantal gemeenten geldt het tarief voor een groot samenwerkingsverband. */
 export const grensGrootSamenwerkingsverband = 4;
 
@@ -110,6 +116,8 @@ export const voorwaarden = {
   maxStartVooruitMaanden: 6,
   /** Proeftoegang op aanvraag, kosteloos, eindigt vanzelf. Concept. */
   proefDagen: 30,
+  /** Geldigheid van een offerte. Gelijk aan artikel 3 van de algemene voorwaarden. */
+  offerteGeldigDagen: 30,
 };
 
 export interface Onderdeel {
@@ -157,7 +165,7 @@ export const veelgesteldeVragen: Vraag[] = [
   {
     vraag: 'Wij werken met een offerte en een inkoopordernummer. Kan dat?',
     antwoord: [
-      'Ja. Vraag een offerte aan per e-mail; u krijgt die als pdf met dezelfde prijs en voorwaarden als op deze pagina. Het jaarbedrag ligt ver onder de Europese drempel voor leveringen en diensten van decentrale overheden. Welke procedure u volgt, bepaalt uw eigen inkoopbeleid.',
+      `Ja. Kies in het aanmeldformulier “Eerst een offerte ontvangen”. U vult dezelfde gegevens in en krijgt binnen ${voorwaarden.bevestigingWerkdagen} werkdagen een offerte als pdf, met dezelfde prijs en voorwaarden als op deze pagina. De offerte is ${voorwaarden.offerteGeldigDagen} dagen geldig. Een offerteaanvraag verplicht u tot niets. Het jaarbedrag ligt ver onder de Europese drempel voor leveringen en diensten van decentrale overheden. Welke procedure u volgt, bepaalt uw eigen inkoopbeleid.`,
       'Heeft u een inkoopordernummer, vul het in bij de aanmelding. Het komt op de factuur. Krijgt u het nummer pas later, mail het dan voor de startdatum, dan wachten we met factureren.',
     ],
   },
@@ -264,7 +272,7 @@ export const AANMELD_FORMULIER = 'aanmelding';
 export const AANMELD_LOKALE_OPSLAG = 'afvalplatform-aanmelding';
 
 export const aanmeldVelden = [
-  'ordernummer', 'organisatie', 'type', 'aantal_gemeenten', 'staffel', 'kvk', 'btw_nummer', 'oin',
+  'soort', 'ordernummer', 'organisatie', 'type', 'aantal_gemeenten', 'staffel', 'kvk', 'btw_nummer', 'oin',
   'factuur_adres', 'factuur_postcode', 'factuur_plaats', 'factuur_ter_attentie', 'crediteuren_email',
   'factuurvorm', 'peppol_id', 'inkoopordernummer', 'contact_naam', 'contact_functie', 'contact_email',
   'contact_telefoon', 'toegang', 'startdatum', 'einddatum', 'prijs_excl_btw', 'btw', 'prijs_incl_btw',

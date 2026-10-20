@@ -75,7 +75,7 @@ const secties: Sectie[] = [
         {[
           <>
             Een organisatie meldt zich aan via het <Link to="/lidmaatschap/aanmelden">aanmeldformulier</Link> of vraagt per
-            e-mail een offerte aan. Een offerte is 30 dagen geldig, tenzij er een andere termijn in staat.
+            e-mail een offerte aan. Een offerte is {v.offerteGeldigDagen} dagen geldig, tenzij er een andere termijn in staat.
           </>,
           'Wie zich aanmeldt, verklaart dat hij bevoegd is om de organisatie te vertegenwoordigen of daarvoor toestemming heeft van iemand die dat wel is.',
           `KplusV controleert de aanmelding en stuurt binnen ${v.bevestigingWerkdagen} werkdagen een orderbevestiging per e-mail. Het lidmaatschap komt tot stand op het moment dat KplusV de orderbevestiging verstuurt.`,

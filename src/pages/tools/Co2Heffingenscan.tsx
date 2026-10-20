@@ -7,7 +7,7 @@ import { ExportKnoppen } from '../../components/rekenen/Export';
 import { OpDezePagina } from '../../components/rekenen/OpDezePagina';
 import type { CsvCel } from '../../components/rekenen/export';
 import { RapportKnop, RapportKop, RapportVoet, Uitkomst } from '../../components/rekenen/Uitkomst';
-import { Badge, GetalVeld, Kaart, KeuzeVeld, PaginaKop, Tegel, ToegangBadge } from '../../components/ui';
+import { Badge, GetalVeld, Kaart, KeuzeVeld, PaginaKop, Tegel } from '../../components/ui';
 import {
   bronnen,
   co2StandaardInvoer,
@@ -19,6 +19,7 @@ import {
   reductiefactor,
   scanJaren,
   tariefpaden,
+  tariefpadPrijspeil2026,
   vastgesteldeTarieven,
   type PadId,
 } from '../../data/co2-tarieven';
@@ -207,7 +208,7 @@ export function Co2Heffingenscan() {
   return (
     <>
       <RapportKop titel="CO2-heffingenscan" ondertitel={`Tarieven en regels volgens wet en NEa, peildatum ${datum(PEILDATUM)}`} />
-      <PaginaKop titel="CO2-heffingenscan" badges={<ToegangBadge toegang="gratis+pro" />}>
+      <PaginaKop titel="CO2-heffingenscan" badges={<Badge soort="pro">Gratis deel + Pro voor leden</Badge>}>
         Schat wat de CO2-heffing industrie voor afvalverbrandingsinstallaties betekent voor uw tonnage restafval. Tarieven,
         vrijstelling en wetsvoorstel komen uit de wet en van de Nederlandse Emissieautoriteit, peildatum {datum(PEILDATUM)}.
         Hoeveel uw verwerker doorberekent, hangt af van uw contract.
@@ -393,6 +394,46 @@ export function Co2Heffingenscan() {
                     <td className="num">{getal(r.geldend.correctiefactor, 2)}</td>
                     <td className="num">{euro(r.voorstel.tarief, 2)}</td>
                     <td className="num">{getal(r.voorstel.correctiefactor, 2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {invoer.inflatiePct === 0 && (
+            <p className="notitie" role="note">
+              Let op bij vergelijken: de verhogingen in het wetsvoorstel houden al rekening met inflatie, die in het geldend
+              recht niet. Zonder inflatieaanname lijkt het voorstel daardoor in 2035 duurder. Vul hierboven een
+              inflatiecorrectie in, of kijk naar de vergelijking in prijspeil 2026 hieronder.
+            </p>
+          )}
+          <div className="tabel-container" tabIndex={0} role="region" aria-label="Tabel tariefpad in prijspeil 2026">
+            <table>
+              <caption>
+                Tariefpad in prijspeil 2026, afgerond op hele euro’s per ton CO2. Bron:{' '}
+                <a href={bronnen.bp2027.url} target="_blank" rel="noopener noreferrer">
+                  memorie van toelichting Belastingplan 2027, tabel 12
+                </a>
+                , peildatum {datum(PEILDATUM)}.
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Jaar</th>
+                  <th scope="col" className="num">
+                    Geldend recht
+                  </th>
+                  <th scope="col" className="num">
+                    Voorstel BP 2027
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {tariefpadPrijspeil2026.map((r) => (
+                  <tr key={r.jaar}>
+                    <th scope="row" style={{ fontWeight: 500 }}>
+                      {r.jaar}
+                    </th>
+                    <td className="num">{euro(r.geldend, 0)}</td>
+                    <td className="num">{euro(r.voorstel, 0)}</td>
                   </tr>
                 ))}
               </tbody>

@@ -1,6 +1,6 @@
 # Toegang: inloggen, account en betaalmuur
 
-Stand: 15 oktober 2026 (ronde 1). Supabase-project `afvalverwerking-nl`, ref `mnwynrioozcqqvhelqku`.
+Stand: 19 oktober 2026 (ronde 1, gecontroleerd en aangevuld). Supabase-project `afvalverwerking-nl`, ref `mnwynrioozcqqvhelqku`.
 
 ## Wat er gebouwd is
 
@@ -11,7 +11,7 @@ Stand: 15 oktober 2026 (ronde 1). Supabase-project `afvalverwerking-nl`, ref `mn
 | Foutmeldingen | `src/lib/authFouten.ts` | Supabase-foutcodes naar gewoon Nederlands; de Engelse tekst komt nooit in beeld. Ook: controle op e-mailadres, veilig terugpad na inloggen (alleen paden binnen de site), controle nieuw wachtwoord (minimaal 10 tekens). |
 | Status in woorden | `src/lib/authStatus.ts` | Zet de lidmaatschapsrij om in label, uitleg en "geldig tot" (actief, loopt binnen 30 dagen af, verlopen, aangevraagd, opgezegd, geen organisatie). |
 | `/inloggen` | `src/pages/Inloggen.tsx` | E-mail + wachtwoord, inloglink per e-mail (magic link, ook voor de eerste keer), wachtwoord vergeten, nieuw wachtwoord instellen na de herstellink, melding bij verlopen links, "opnieuw versturen" pas na 60 seconden. Na inloggen terug naar de pagina waar de gebruiker vandaan kwam (`?terug=`). |
-| `/account` | `src/pages/Account.tsx` | Organisatie, soort organisatie, status, geldig tot, e-maildomein, uitleg per status, wachtwoord instellen of wijzigen, uitloggen. Zonder sessie door naar `/inloggen?terug=/account`. |
+| `/account` | `src/pages/Account.tsx` | Organisatie, soort organisatie, status, geldig tot, e-maildomein, uitleg per status, wachtwoord instellen of wijzigen, uitloggen, verwijzing naar privacyverklaring en hoe u verwijdering of inzage aanvraagt. Zonder sessie door naar `/inloggen?terug=/account`. |
 | Accountknop | `src/components/betaalmuur/AccountKnop.tsx` | Rechts in de navbar: "Inloggen" of "Mijn account" met de status als tekst ("Lid" / "Geen lid"). |
 | Betaalmuur | `src/components/betaalmuur/Vergrendeld.tsx` | Leden zien de inhoud. Bezoekers: uitleg, wat leden krijgen, knoppen **Inloggen** en **Lid worden**. Ingelogde niet-leden: met welk adres ze zijn ingelogd, waarom ze geen toegang hebben (geen organisatie, verlopen, aangevraagd, opgezegd) en knoppen **Lid worden** en **Inloggen met ander adres**. Tijdens het controleren: "Ledentoegang controleren…" (geen knipperende slotkaart). |
 | Stijl | `src/components/betaalmuur/toegang.css` | Alleen tokens uit `tokens.css`. Status heeft altijd tekst en een teken (✓, !, –), nooit alleen kleur. |
@@ -59,7 +59,7 @@ Domeinen altijd in kleine letters en zonder `@`. Controleer na activering met ee
 
 ## Instellingen in het Supabase-dashboard
 
-Gecontroleerd via `GET /auth/v1/settings` op 15 oktober 2026: aanmelden staat aan (`disable_signup: false`) en e-mailbevestiging staat aan (`mailer_autoconfirm: false`). **Dat laatste moet zo blijven**: met automatische bevestiging kan iedereen een account maken op een domein van een lid-organisatie zonder toegang tot die mailbox.
+Gecontroleerd via `GET /auth/v1/settings` op 15 en opnieuw op 19 oktober 2026: aanmelden staat aan (`disable_signup: false`) en e-mailbevestiging staat aan (`mailer_autoconfirm: false`). **Dat laatste moet zo blijven**: met automatische bevestiging kan iedereen een account maken op een domein van een lid-organisatie zonder toegang tot die mailbox.
 
 Nog in te stellen door Niels (Authentication in het dashboard):
 
@@ -79,10 +79,18 @@ Nog in te stellen door Niels (Authentication in het dashboard):
 
 ## Beveiliging en advisors
 
-`get_advisors` (security), 15 oktober 2026:
+`get_advisors` (security), 15 oktober 2026 en opnieuw 19 oktober 2026 (zelfde uitkomst):
 
 - `authenticated_security_definer_function_executable` voor `is_lid()` en `mijn_domein()`: **bewust zo**. Ingelogde gebruikers moeten deze functies kunnen aanroepen; ze geven alleen informatie over de gebruiker zelf (eigen domein, eigen lidmaatschap). `mijn_domein()` moet SECURITY DEFINER zijn omdat het `auth.users` leest. Bezoekers zonder sessie (`anon`) kunnen ze niet aanroepen.
 - `auth_leaked_password_protection`: zie punt 7 hierboven.
+
+Gecontroleerd op 19 oktober 2026:
+
+- Zonder sessie (alleen de publishable key) geven `rpc/is_lid`, `rpc/mijn_lidmaatschap` en `rpc/mijn_domein` "permission denied" (42501) en geeft `organisaties` een lege lijst (RLS).
+- In een transactie die is teruggedraaid: `geldig_tot` van de testorganisatie op gisteren gezet; voor het testaccount gaf `is_lid()` daarna `false` en `mijn_lidmaatschap()` de effectieve status `verlopen`. De echte rij is niet gewijzigd.
+- RLS staat aan op alle tabellen in `public` (nu alleen `organisaties`).
+
+Let op voor de lead: het bestand `20261014_kern_organisaties_en_lidmaatschap.sql` heeft een andere versie in de naam dan de migratie in de database (`20261014203636`). Wie later `supabase db push` gebruikt, moet dat bestand hernoemen naar `20261014203636_kern_organisaties_en_lidmaatschap.sql`, anders probeert de CLI het opnieuw toe te passen.
 
 Let op: de betaalmuur in de browser bepaalt wat er in beeld komt. De inhoud achter de muur zit nu nog in de JavaScript-bundel (het is voorbeelddata). Zodra er echte ledendata komt (aanbestedingsarchief, rapporten), moet die in Supabase staan met RLS `using (public.is_lid())`, zodat niet-leden de data ook via de API niet kunnen ophalen.
 

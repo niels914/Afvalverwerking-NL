@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom';
 import { Kaart, PaginaKop, ToegangBadge } from '../components/ui';
-import { tools } from '../data/tools';
+import { toolBronnen, tools } from '../data/tools';
 
 export function Tools() {
   return (
     <>
       <PaginaKop titel="Rekentools">
-        Rekenhulpen voor contractmanagers en beleidsmedewerkers. Alle tools in dit prototype zijn dummyberekeningen met
-        fictieve waarden: ze laten zien hoe de tool werkt, niet wat de uitkomst voor uw organisatie is.
+        Rekenhulpen voor contractmanagers en beleidsmedewerkers van gemeenten, samenwerkingsverbanden en afvalverwerkers.
+        Elke tool laat zien met welke cijfers hij rekent, waar die vandaan komen en welke waarden u zelf invult.
       </PaginaKop>
       <div className="raster raster-3">
         {tools.map((t) => (
@@ -17,22 +17,26 @@ export function Tools() {
             </div>
             {t.extraLabel && <p className="klein" style={{ color: 'var(--donkerviolet)', fontWeight: 600 }}>{t.extraLabel}</p>}
             <p>{t.omschrijving}</p>
-            {(t.gratisDeel || t.proDeel) && (
-              <dl className="invoerlijst" style={{ gridTemplateColumns: 'auto minmax(0,1fr)' }}>
-                {t.gratisDeel && (
-                  <>
-                    <dt>Gratis</dt>
-                    <dd style={{ textAlign: 'left' }}>{t.gratisDeel}</dd>
-                  </>
-                )}
-                {t.proDeel && (
-                  <>
-                    <dt>Pro</dt>
-                    <dd style={{ textAlign: 'left' }}>{t.proDeel}</dd>
-                  </>
-                )}
-              </dl>
-            )}
+            <dl className="invoerlijst" style={{ gridTemplateColumns: 'auto minmax(0,1fr)' }}>
+              {t.gratisDeel && (
+                <>
+                  <dt>Gratis</dt>
+                  <dd style={{ textAlign: 'left' }}>{t.gratisDeel}</dd>
+                </>
+              )}
+              {t.proDeel && (
+                <>
+                  <dt>Pro</dt>
+                  <dd style={{ textAlign: 'left' }}>{t.proDeel}</dd>
+                </>
+              )}
+              {toolBronnen[t.id] && (
+                <>
+                  <dt>Bronnen</dt>
+                  <dd style={{ textAlign: 'left' }}>{toolBronnen[t.id]}</dd>
+                </>
+              )}
+            </dl>
             <div className="knoppen">
               <Link className="knop primair" to={t.pad}>
                 Open {t.titel.toLowerCase().startsWith('rekenmodel') ? 'rekenmodel' : 'tool'}

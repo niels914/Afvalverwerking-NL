@@ -282,6 +282,11 @@ export function Account() {
             </button>
           </div>
           <p className="klein muted">Uitloggen geldt voor deze browser. Op een gedeelde computer logt u altijd uit.</p>
+          <p className="klein muted">
+            Wilt u uw account laten verwijderen of uw gegevens inzien? Mail{' '}
+            <a href={`mailto:${contact.email}?subject=${encodeURIComponent('Verzoek over mijn account')}`}>{contact.email}</a>. Zie ook de{' '}
+            <Link to="/privacy">privacyverklaring</Link>.
+          </p>
         </Kaart>
       </div>
     </>

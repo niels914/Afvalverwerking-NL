@@ -30,9 +30,9 @@ test.describe('Indexcalculator', () => {
 
     // Standaard: CPI, jaarcijfers 2021 → laatste jaar.
     const peil = String(cpi.laatsteJaar);
-    await expect(page.getByLabel('Indexreeks')).toHaveValue('cpi');
-    await page.getByLabel('Basisperiode').selectOption('2021');
-    await page.getByLabel('Peilperiode').selectOption(peil);
+    await expect(page.getByLabel('Indexreeks', { exact: true })).toHaveValue('cpi');
+    await page.getByLabel('Basisperiode', { exact: true }).selectOption('2021');
+    await page.getByLabel('Peilperiode', { exact: true }).selectOption(peil);
     const factor = cpi.jaren[peil] / cpi.jaren['2021'];
     await expect(page.locator('.tegel.hero .tegel-waarde').first()).toContainText(nl(100 * factor));
     await expect(page.getByText(nl(factor, 4), { exact: true })).toBeVisible();
@@ -43,7 +43,7 @@ test.describe('Indexcalculator', () => {
     await expect(page.getByRole('heading', { name: 'Bronnen en peildatum' })).toBeVisible();
 
     // Eigen basistarief.
-    const tarief = page.getByLabel('Basistarief');
+    const tarief = page.getByLabel('Basistarief', { exact: true });
     await tarief.fill('250,50');
     await expect(page.locator('.tegel.hero .tegel-waarde').first()).toContainText(nl(250.5 * factor));
     await tarief.fill('abc');
@@ -54,9 +54,9 @@ test.describe('Indexcalculator', () => {
   test('wisselt naar maandcijfers en meldt voorlopige cijfers', async ({ page }) => {
     await page.goto('/tools/indexcalculator');
     await page.getByLabel('Maandcijfers').check();
-    await page.getByLabel('Basisperiode').selectOption('2024-09');
+    await page.getByLabel('Basisperiode', { exact: true }).selectOption('2024-09');
     const laatste = cpi.laatsteMaand;
-    await page.getByLabel('Peilperiode').selectOption(laatste);
+    await page.getByLabel('Peilperiode', { exact: true }).selectOption(laatste);
     const factor = cpi.maanden[laatste] / cpi.maanden['2024-09'];
     await expect(page.locator('.tegel.hero .tegel-waarde').first()).toContainText(nl(100 * factor));
     if (cpi.voorlopig.includes(laatste)) await expect(page.getByText(/CBS noemt een van deze cijfers voorlopig/)).toBeVisible();
@@ -66,8 +66,8 @@ test.describe('Indexcalculator', () => {
 
   test('exporteert CSV en deelt de invoer via de link', async ({ page }) => {
     await page.goto('/tools/indexcalculator');
-    await page.getByLabel('Indexreeks').selectOption('cao-afval');
-    await page.getByLabel('Basistarief').fill('87,5');
+    await page.getByLabel('Indexreeks', { exact: true }).selectOption('cao-afval');
+    await page.getByLabel('Basistarief', { exact: true }).fill('87,5');
 
     const { naam, tekst } = await leesDownload(page, 'CSV downloaden');
     expect(naam).toMatch(/^indexcalculator-\d{4}-\d{2}-\d{2}\.csv$/);
@@ -82,8 +82,8 @@ test.describe('Indexcalculator', () => {
     // Link openen in een nieuwe pagina geeft dezelfde invoer.
     const tweede = await page.context().newPage();
     await tweede.goto(link.replace(/^https?:\/\/[^/]+/, ''));
-    await expect(tweede.getByLabel('Indexreeks')).toHaveValue('cao-afval');
-    await expect(tweede.getByLabel('Basistarief')).toHaveValue('87,5');
+    await expect(tweede.getByLabel('Indexreeks', { exact: true })).toHaveValue('cao-afval');
+    await expect(tweede.getByLabel('Basistarief', { exact: true })).toHaveValue('87,5');
     await tweede.close();
   });
 
@@ -95,6 +95,17 @@ test.describe('Indexcalculator', () => {
     await expect(slot.getByRole('link', { name: 'Inloggen' })).toHaveAttribute('href', /\/inloggen\?terug=%2Ftools%2Findexcalculator/);
     await expect(page.locator('.vergrendeld-preview')).toHaveAttribute('inert', '');
   });
+
+  test('Pro-preview rekent contractjaren met de voorbeeldweging', async ({ page }) => {
+    await page.goto('/tools/indexcalculator');
+    const r = (id: string) => cbs.reeksen.find((x: { id: string }) => x.id === id);
+    const [cao, ppi] = [r('cao-afval'), r('ppi-energie')];
+    const j = String(cpi.laatsteJaar); // contractjaar laatsteJaar + 1 gebruikt het jaarcijfer van laatsteJaar
+    const f = 0.5 * (cao.jaren[j] / cao.jaren['2021']) + 0.3 * (cpi.jaren[j] / cpi.jaren['2021']) + 0.2 * (ppi.jaren[j] / ppi.jaren['2021']);
+    const tabel = page.locator('.vergrendeld-preview table').first();
+    await expect(tabel).toContainText(String(cpi.laatsteJaar + 1));
+    await expect(tabel).toContainText(nl(100 * f));
+  });
 });
 
 test.describe('CO2-heffingenscan', () => {
@@ -103,7 +114,7 @@ test.describe('CO2-heffingenscan', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'CO2-heffingenscan' })).toBeVisible();
     await geenHorizontaleScroll(page);
 
-    await page.getByLabel('Restafval').fill('10000');
+    await page.getByLabel('Restafval', { exact: true }).fill('10000');
     await page.getByLabel('Fossiele emissiefactor').fill('0,4');
     await page.getByLabel('Heffingsjaar').selectOption('2027');
     // Geldend recht 2027: € 153,32; vrijgesteld 0,97 × 1,023 × 0,70
@@ -113,7 +124,7 @@ test.describe('CO2-heffingenscan', () => {
     await expect(page.getByText('€ 153,32').first()).toBeVisible();
 
     // Wetsvoorstel: 2027 € 129,15 en een zichtbaar label.
-    await page.getByLabel(/Voorstel BP 2027/).check();
+    await page.getByRole('radio', { name: /Voorstel BP 2027/ }).check();
     await expect(page.locator('.tegel').nth(2)).toContainText('€ 129,15');
     await expect(page.getByText(/nog niet aangenomen/)).toBeVisible();
 
@@ -132,14 +143,22 @@ test.describe('CO2-heffingenscan', () => {
     await expect(page.getByText('Aanname, vul eigen waarde in').first()).toBeVisible();
     await expect(page.getByText('Kental, afgeleid uit bron').first()).toBeVisible();
     await expect(page.getByRole('heading', { name: 'Wat kan er veranderen' })).toBeVisible();
+    // Eerlijke vergelijking: tabel in prijspeil 2026 en een waarschuwing bij 0 % inflatie.
+    const pp = page.getByRole('region', { name: 'Tabel tariefpad in prijspeil 2026' });
+    await expect(pp.getByRole('row', { name: /2030/ })).toContainText('€ 304');
+    await expect(pp.getByRole('row', { name: /2030/ })).toContainText('€ 193');
+    await expect(page.getByText(/Zonder inflatieaanname lijkt het voorstel/)).toBeVisible();
+    await page.getByLabel('Inflatiecorrectie per jaar').fill('2');
+    await expect(page.getByText(/Zonder inflatieaanname lijkt het voorstel/)).toBeHidden();
+    await expect(tabel.getByRole('row', { name: /2027/ })).toContainText(nl((103.66 + 49.66) * 1.02));
     await geenHorizontaleScroll(page);
   });
 
   test('exporteert CSV en herstelt invoer uit de deellink', async ({ page }) => {
     await page.goto('/tools/co2-heffingenscan');
-    await page.getByLabel('Restafval').fill('12345');
+    await page.getByLabel('Restafval', { exact: true }).fill('12345');
     await page.getByLabel('Heffingsjaar').selectOption('2031');
-    await page.getByLabel(/Voorstel BP 2027/).check();
+    await page.getByRole('radio', { name: /Voorstel BP 2027/ }).check();
 
     const { tekst } = await leesDownload(page, 'CSV downloaden');
     expect(tekst).toContain('Restafval (ton per jaar);12345;aanname gebruiker');
@@ -149,9 +168,9 @@ test.describe('CO2-heffingenscan', () => {
     const link = await page.getByLabel('Deellink met uw invoer').first().inputValue();
     const tweede = await page.context().newPage();
     await tweede.goto(link.replace(/^https?:\/\/[^/]+/, ''));
-    await expect(tweede.getByLabel('Restafval')).toHaveValue('12345');
+    await expect(tweede.getByLabel('Restafval', { exact: true })).toHaveValue('12345');
     await expect(tweede.getByLabel('Heffingsjaar')).toHaveValue('2031');
-    await expect(tweede.getByLabel(/Voorstel BP 2027/)).toBeChecked();
+    await expect(tweede.getByRole('radio', { name: /Voorstel BP 2027/ })).toBeChecked();
     await tweede.close();
   });
 

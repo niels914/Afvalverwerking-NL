@@ -169,6 +169,10 @@ export interface ContractjarenInvoer {
   verschuiving: 0 | 1;
   /** Peilmaand (1–12), alleen bij maandcijfers. */
   peilmaand: number;
+  /** Maximale stijging per indexatiestap in procent (plafond uit het contract); null of undefined = geen plafond. */
+  plafondPct?: number | null;
+  /** Geen daling: een negatieve indexatie wordt niet toegepast. */
+  geenDaling?: boolean;
 }
 
 export interface Contractjaar {
@@ -178,6 +182,10 @@ export interface Contractjaar {
   tarief: number;
   /** Stijging ten opzichte van het vorige contractjaar in procent; null voor de eerste regel. */
   stijgingPct: number | null;
+  /** Tarief zonder plafond of bodem: basistarief × factor. */
+  tariefZonderGrens: number;
+  /** Heeft het plafond of de bodem deze stap begrensd? */
+  begrensd: boolean;
 }
 
 /** Peilperiode voor een contractjaar: het jaar zelf of het jaar ervoor, bij maandcijfers met peilmaand. */
@@ -187,18 +195,49 @@ export function peilperiode(jaar: number, soort: Periodesoort, verschuiving: 0 |
 }
 
 /**
+ * Begrenst één indexatiestap (verhouding nieuwe factor / vorige factor) met plafond en bodem.
+ * Plafond 3 % → stap hooguit 1,03. Geen daling → stap minstens 1.
+ */
+export function begrensStap(stap: number, plafondPct?: number | null, geenDaling?: boolean): number {
+  let s = stap;
+  if (plafondPct !== null && plafondPct !== undefined && Number.isFinite(plafondPct)) s = Math.min(s, 1 + plafondPct / 100);
+  if (geenDaling) s = Math.max(s, 1);
+  return s;
+}
+
+/**
  * Tarief per contractjaar: steeds basistarief × factor(peilperiode van dat jaar ten opzichte van de basisperiode).
  * Contractjaren waarvoor CBS (nog) geen cijfer heeft, worden overgeslagen.
+ *
+ * Met een plafond of bodem wordt per stap geïndexeerd (zoals een contract dat jaarlijks doet):
+ *   tarief_J = tarief_vorige × begrensd(factor_J / factor_vorige), met factor = 1 en tarief = basistarief vóór de eerste stap.
+ * Zonder plafond en bodem is dat precies basistarief × factor_J.
  */
 export function tariefPerContractjaar(inv: ContractjarenInvoer): Contractjaar[] {
   const uit: Contractjaar[] = [];
+  const grenzen = (inv.plafondPct !== null && inv.plafondPct !== undefined) || !!inv.geenDaling;
+  let vorigeFactor = 1;
+  let vorigTarief = inv.basistarief;
   for (let jaar = inv.eersteJaar; jaar <= inv.laatsteJaar; jaar++) {
     const peil = peilperiode(jaar, inv.soort, inv.verschuiving, inv.peilmaand);
     const factor = factorTussen(inv.reeksen, inv.soort, inv.basisperiode, peil, inv.vastDeel);
     if (factor === undefined) continue;
-    const tarief = inv.basistarief * factor;
+    const tariefZonderGrens = inv.basistarief * factor;
+    const stap = factor / vorigeFactor;
+    const begrensdeStap = grenzen ? begrensStap(stap, inv.plafondPct, inv.geenDaling) : stap;
+    const tarief = grenzen ? vorigTarief * begrensdeStap : tariefZonderGrens;
     const vorige = uit[uit.length - 1];
-    uit.push({ jaar, peilperiode: peil, factor, tarief, stijgingPct: vorige ? (tarief / vorige.tarief - 1) * 100 : null });
+    uit.push({
+      jaar,
+      peilperiode: peil,
+      factor,
+      tarief,
+      stijgingPct: vorige ? (tarief / vorige.tarief - 1) * 100 : null,
+      tariefZonderGrens,
+      begrensd: Math.abs(begrensdeStap - stap) > 1e-12,
+    });
+    vorigeFactor = factor;
+    vorigTarief = tarief;
   }
   return uit;
 }
@@ -261,6 +300,10 @@ export interface IndexInvoer {
   laatsteJaar: number;
   verschuiving: 0 | 1;
   peilmaand: number;
+  /** Plafond per indexatiestap in procent (Pro); null = geen plafond. */
+  plafondPct: number | null;
+  /** Geen negatieve indexatie (Pro). */
+  geenDaling: boolean;
 }
 
 const getal = (s: string | null): number | undefined => {
@@ -283,6 +326,8 @@ export function indexInvoerNaarParams(inv: IndexInvoer): URLSearchParams {
   p.set('tot', String(inv.laatsteJaar));
   p.set('verschuiving', String(inv.verschuiving));
   p.set('maand', String(inv.peilmaand));
+  if (inv.plafondPct !== null) p.set('max', String(inv.plafondPct));
+  if (inv.geenDaling) p.set('bodem', '1');
   return p;
 }
 
@@ -311,6 +356,8 @@ export function indexInvoerUitParams(p: URLSearchParams, standaard: IndexInvoer,
   const tot = getal(p.get('tot'));
   const maand = getal(p.get('maand'));
   const verschuiving = p.get('verschuiving');
+  const plafond = getal(p.get('max'));
+  const bodem = p.get('bodem');
   const jaarOk = (n: number | undefined) => n !== undefined && Number.isInteger(n) && n >= 2000 && n <= 2100;
   return {
     soort,
@@ -324,5 +371,8 @@ export function indexInvoerUitParams(p: URLSearchParams, standaard: IndexInvoer,
     laatsteJaar: jaarOk(tot) ? tot! : standaard.laatsteJaar,
     verschuiving: verschuiving === '0' ? 0 : verschuiving === '1' ? 1 : standaard.verschuiving,
     peilmaand: maand !== undefined && Number.isInteger(maand) && maand >= 1 && maand <= 12 ? maand : standaard.peilmaand,
+    // Ontbreekt de sleutel in een gedeelde link, dan is er geen plafond of bodem afgesproken.
+    plafondPct: plafond !== undefined && plafond >= 0 && plafond <= 100 ? plafond : p.has('max') || p.toString() === '' ? standaard.plafondPct : null,
+    geenDaling: bodem === null ? (p.toString() === '' ? standaard.geenDaling : false) : bodem === '1',
   };
 }

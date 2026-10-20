@@ -1,0 +1,43 @@
+{
+  "peiljaar": 2024,
+  "opgehaald": "2026-10-19",
+  "status": {
+    "tekst": "De cijfers over 2022, 2023 en 2024 zijn nader voorlopig; alle overige cijfers zijn definitief.",
+    "label": "nader voorlopig"
+  },
+  "bron": {
+    "tabelId": "83452NED",
+    "titel": "Huishoudelijk afval per gemeente per inwoner",
+    "gewijzigd": "2026-07-16",
+    "url": "https://opendata.cbs.nl/statline/#/CBS/nl/dataset/83452NED/table",
+    "api": "https://opendata.cbs.nl/ODataApi/odata/83452NED",
+    "uitgever": "CBS"
+  },
+  "bevolking": {
+    "tabelId": "03759ned",
+    "titel": "Bevolking op 1 januari en gemiddeld; geslacht, leeftijd en regio",
+    "gewijzigd": "2026-06-23",
+    "url": "https://opendata.cbs.nl/statline/#/CBS/nl/dataset/03759ned/table",
+    "onderwerp": "Gemiddelde bevolking 2024"
+  },
+  "provincies": {
+    "tabelId": "85755NED",
+    "url": "https://opendata.cbs.nl/statline/#/CBS/nl/dataset/85755NED/table"
+  },
+  "controle": {
+    "tabelId": "83558NED",
+    "landelijkTotaalKgPerInw": 455,
+    "landelijkRestafvalKgPerInw": 176,
+    "landelijkScheidingsPctCbs": 61,
+    "landelijkScheidingsPctBerekend": 60.4
+  },
+  "definities": {
+    "restafval": "Fijn huishoudelijk restafval + grof huishoudelijk restafval, kg per inwoner (CBS 83452NED).",
+    "scheidingsPct": "Gescheiden ingezameld deel van al het huishoudelijk afval: (totaal − fijn restafval − grof restafval − verbouwingsrestafval) / totaal. Nascheiding telt niet mee.",
+    "pmd": "Kunststof verpakkingen + drankenkartons + metalen verpakkingen + gemengde PMD-fractie (gescheiden ingezameld)."
+  },
+  "samenvatting": {
+    "aantalGemeenten": 342,
+    "restafvalOnder100": 84
+  }
+}

@@ -11,6 +11,7 @@ import {
   nieuwTarief,
   periodeLabel,
   peilperiode,
+  begrensStap,
   tariefPerContractjaar,
   tariefPerJaar,
   vergelijkJaren,
@@ -176,6 +177,58 @@ describe('indexering: contractjaren', () => {
   });
 });
 
+describe('indexering: plafond en bodem', () => {
+  // Contractjaar J gebruikt het jaarcijfer van J − 1; basis 2023 (98), 2024 (102), 2025 (108). Voor een daling een eigen reeks.
+  const basisInvoer = {
+    basistarief: 100,
+    reeksen: [{ naam: 'A', weging: 1, reeks: A }],
+    vastDeel: 0,
+    soort: 'jaar' as const,
+    basisperiode: '2023',
+    eersteJaar: 2025,
+    laatsteJaar: 2027,
+    verschuiving: 1 as const,
+    peilmaand: 1,
+  };
+
+  it('begrenst een stap met plafond en bodem', () => {
+    expect(begrensStap(1.08, 3)).toBeCloseTo(1.03, 12);
+    expect(begrensStap(1.02, 3)).toBeCloseTo(1.02, 12);
+    expect(begrensStap(0.97, null, true)).toBe(1);
+    expect(begrensStap(0.97, 3, false)).toBeCloseTo(0.97, 12);
+    expect(begrensStap(1.05, 0, true)).toBe(1);
+  });
+
+  it('is zonder begrenzing gelijk aan basistarief × factor', () => {
+    const zonder = tariefPerContractjaar(basisInvoer);
+    const metNull = tariefPerContractjaar({ ...basisInvoer, plafondPct: null, geenDaling: false });
+    expect(metNull.map((r) => r.tarief)).toEqual(zonder.map((r) => r.tarief));
+    expect(zonder.every((r) => !r.begrensd && r.tarief === r.tariefZonderGrens)).toBe(true);
+  });
+
+  it('indexeert met plafond jaar op jaar', () => {
+    const rijen = tariefPerContractjaar({ ...basisInvoer, plafondPct: 3 });
+    // 2025: 102/98 = +4,08 % → +3 %; 2026: 108/102 = +5,88 % → +3 %; 2027 ontbreekt.
+    expect(rijen.map((r) => r.jaar)).toEqual([2025, 2026]);
+    expect(rijen[0].tarief).toBeCloseTo(103, 10);
+    expect(rijen[0].begrensd).toBe(true);
+    expect(rijen[0].tariefZonderGrens).toBeCloseTo((100 * 102) / 98, 10);
+    expect(rijen[1].tarief).toBeCloseTo(103 * 1.03, 10);
+    expect(rijen[1].stijgingPct).toBeCloseTo(3, 10);
+  });
+
+  it('past een daling niet toe als dat zo is afgesproken', () => {
+    const D = { jaren: { '2023': 100, '2024': 104, '2025': 101, '2026': 103 }, maanden: {} };
+    const inv = { ...basisInvoer, verschuiving: 0 as const, reeksen: [{ naam: 'D', weging: 1, reeks: D }], eersteJaar: 2024, laatsteJaar: 2026 };
+    const rijen = tariefPerContractjaar({ ...inv, geenDaling: true });
+    expect(rijen[0].tarief).toBeCloseTo(104, 10);
+    expect(rijen[1].tarief).toBeCloseTo(104, 10); // 101/104 < 1 → blijft gelijk
+    expect(rijen[1].begrensd).toBe(true);
+    expect(rijen[2].tarief).toBeCloseTo(104 * (103 / 101), 10); // volgende stap rekent vanaf het vorige indexcijfer
+    expect(tariefPerContractjaar(inv)[1].tarief).toBeCloseTo(101, 10);
+  });
+});
+
 describe('indexering: CBS-data', () => {
   it('bevat echte reeksen met bron, tabel-id en peildatum', () => {
     expect(indexreeksen.length).toBeGreaterThanOrEqual(5);
@@ -211,8 +264,14 @@ describe('indexering: deellink', () => {
       laatsteJaar: 2027,
       verschuiving: 0,
       peilmaand: 6,
+      plafondPct: 2.5,
+      geenDaling: true,
     };
     expect(indexInvoerUitParams(indexInvoerNaarParams(inv), indexStandaardInvoer, ids)).toEqual(inv);
+    const zonder: IndexInvoer = { ...inv, plafondPct: null, geenDaling: false };
+    const p = indexInvoerNaarParams(zonder);
+    expect(p.has('max')).toBe(false);
+    expect(indexInvoerUitParams(p, indexStandaardInvoer, ids)).toEqual(zonder);
   });
 
   it('negeert onbekende reeksen en ongeldige waarden', () => {
@@ -227,5 +286,7 @@ describe('indexering: deellink', () => {
     expect('nep' in uit.wegingPct).toBe(false);
     expect(uit.peilmaand).toBe(indexStandaardInvoer.peilmaand);
     expect(uit.verschuiving).toBe(indexStandaardInvoer.verschuiving);
+    expect(uit.plafondPct).toBeNull();
+    expect(new URLSearchParams('max=150').has('max') && indexInvoerUitParams(new URLSearchParams('max=150'), indexStandaardInvoer, ids).plafondPct).toBeNull();
   });
 });

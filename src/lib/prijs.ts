@@ -178,10 +178,15 @@ export function berekenAanmelding(invoer: {
 }
 
 /**
- * Ordernummer voor de bevestiging, bijvoorbeeld "LID-20261015-7K3QX".
+ * Ordernummer voor de bevestiging, bijvoorbeeld "LID-20261015-7K3QX" (aanmelding) of "OFF-20261015-7K3QX" (offerte).
  * `willekeurig` levert de laatste tekens; geef in tests een vaste waarde mee.
  */
-export function maakOrdernummer(vandaag: string, willekeurig: string): string {
+export function maakOrdernummer(vandaag: string, willekeurig: string, soort: 'aanmelding' | 'offerte' = 'aanmelding'): string {
   const code = willekeurig.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 5).padEnd(5, '0');
-  return `LID-${vandaag.replace(/-/g, '')}-${code}`;
+  return `${soort === 'offerte' ? 'OFF' : 'LID'}-${vandaag.replace(/-/g, '')}-${code}`;
+}
+
+/** Laatste dag waarop een offerte van vandaag geldig is. */
+export function offerteGeldigTot(vandaag: string, v: Voorwaarden = standaardVoorwaarden): string {
+  return plusDagen(vandaag, v.offerteGeldigDagen);
 }

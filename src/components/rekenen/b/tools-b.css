@@ -1,0 +1,251 @@
+/* Stijlen voor Bodemassencalculator, Rekenmodel PMD en Aanbestedingstool (onderdeel tools-b).
+   Alleen tokens uit src/styles/tokens.css. */
+
+/* ---------- Veld met herkomst ---------- */
+.bronveld-herkomst {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: baseline;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.bronveld-herkomst .badge {
+  white-space: normal;
+}
+.bronveld-leeg {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--waarschuwing-tekst);
+}
+.bronveld-leeg::before {
+  content: '! ';
+}
+.bronveld[data-leeg='true'] .invoer {
+  border-style: dashed;
+  border-color: var(--waarschuwing-rand);
+}
+button.bronveld-terug {
+  justify-self: start;
+  font-size: 12.5px;
+  padding: 3px 10px;
+}
+
+/* ---------- Ontbrekende invoer ---------- */
+.ontbreekt {
+  display: grid;
+  gap: 6px;
+}
+.ontbreekt ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+/* ---------- Tegel zonder waarde ---------- */
+.tegel-leeg .tegel-waarde {
+  color: var(--tekst-secundair);
+  font-size: 15px;
+}
+
+/* ---------- Aanbestedingstool ---------- */
+.ab-teller {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--donkerviolet);
+  background: var(--kaartvlak);
+  border: 1px solid var(--rand);
+  border-radius: 999px;
+  padding: 4px 12px;
+}
+.ab-stromen {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.ab-stroom {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 4px 10px;
+  align-items: start;
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  background: var(--wit);
+  padding: 12px 14px;
+  cursor: pointer;
+}
+.ab-stroom:hover {
+  background: var(--achtergrond);
+}
+.ab-stroom:has(input:checked) {
+  border-color: var(--paars);
+  box-shadow: inset 4px 0 0 var(--paars);
+}
+.ab-stroom input {
+  width: 18px;
+  height: 18px;
+  margin: 3px 0 0;
+  accent-color: var(--paars);
+}
+.ab-stroom strong {
+  font-weight: 600;
+}
+.ab-stroom .klein {
+  grid-column: 2;
+}
+.ab-groep {
+  display: grid;
+  gap: 10px;
+}
+.ab-groep > h3 {
+  margin: 8px 0 0;
+}
+.ab-criteria {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.ab-criterium {
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  background: var(--wit);
+  padding: 12px 14px;
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.ab-criterium[data-gekozen='true'] {
+  border-color: var(--paars);
+  box-shadow: inset 4px 0 0 var(--paars);
+}
+.ab-criterium-kop {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+.ab-criterium-kop input {
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  accent-color: var(--paars);
+}
+.ab-criterium-kop label {
+  font-weight: 600;
+  cursor: pointer;
+}
+.ab-criterium p {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--tekst-2);
+}
+.ab-criterium .badges {
+  padding-left: 30px;
+}
+.ab-criterium .ab-meer {
+  padding-left: 30px;
+  display: grid;
+  gap: 4px;
+}
+.ab-criterium .badge {
+  white-space: normal;
+}
+.ab-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  align-items: end;
+}
+.ab-weging {
+  display: grid;
+  gap: 12px;
+}
+.ab-weging-rij {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px 64px;
+  gap: 10px;
+  align-items: center;
+}
+.ab-weging-rij label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--tekst-2);
+}
+.ab-weging-rij output {
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--donkerviolet);
+}
+@media (max-width: 480px) {
+  .ab-weging-rij {
+    grid-template-columns: minmax(0, 1fr) 90px;
+  }
+  .ab-weging-rij output {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+}
+.ab-overzicht h3 {
+  margin: 14px 0 6px;
+}
+.ab-overzicht ol {
+  margin: 0;
+  padding-left: 22px;
+  display: grid;
+  gap: 8px;
+}
+.ab-overzicht li p {
+  margin: 2px 0 0;
+  font-size: 13.5px;
+}
+
+@media print {
+  .ab-criterium,
+  .ab-stroom {
+    break-inside: avoid;
+  }
+  .ab-criterium[data-gekozen='false'] {
+    display: none;
+  }
+}
+
+/* Overzicht: label boven waarde, werkt op elke breedte */
+.ab-opdracht {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+  margin: 0;
+  font-size: 13.5px;
+}
+.ab-opdracht dt {
+  color: var(--tekst-secundair);
+  font-weight: 500;
+}
+.ab-opdracht dd {
+  margin: 0 0 8px;
+  font-weight: 600;
+  color: var(--tekst);
+}
+@media (min-width: 700px) {
+  .ab-opdracht {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    gap: 6px 14px;
+  }
+  .ab-opdracht dd {
+    margin: 0;
+  }
+}
+.ab-balken .num {
+  white-space: nowrap;
+}
+.ab-balken .schuif-kop {
+  gap: 10px;
+}

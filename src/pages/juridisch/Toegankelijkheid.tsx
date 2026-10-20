@@ -1,8 +1,9 @@
 import { platform } from '../../data/site';
 import { datum, getal } from '../../lib/format';
+import { Link } from 'react-router-dom';
 import { aanbieder, bronnen } from './gegevens';
 import { BronRegel, ContactBlok, JuridischDocument, Toetspunt, type Sectie } from './JuridischDocument';
-import { bekendeProblemen, meting, status } from './toegankelijkheid';
+import { bekendeProblemen, meting, status, statusSchaal } from './toegankelijkheid';
 
 // Toegankelijkheidsverklaring volgens de opbouw van het model van de Rijksoverheid: status, onderzoek,
 // bekende problemen, maatregelen en contact. De meetgegevens staan in toegankelijkheid.ts.
@@ -38,6 +39,20 @@ const secties: Sectie[] = [
           </span>
           Status {status.letter}: {status.label}
         </p>
+        <ol className="jd-schaal" aria-label="Statussen A tot en met E">
+          {statusSchaal.map((s) => (
+            <li key={s.letter} aria-current={s.letter === status.letter ? 'true' : undefined}>
+              <span className="jd-schaal-letter" aria-hidden="true">
+                {s.letter}
+              </span>
+              <span>
+                <span className="visueel-verborgen">Status {s.letter}: </span>
+                {s.betekenis}
+                {s.letter === status.letter && <strong> (status van dit platform)</strong>}
+              </span>
+            </li>
+          ))}
+        </ol>
         <p>{status.toelichting}</p>
         <p>
           De status volgt de indeling A tot en met E van de Rijksoverheid. Het platform staat niet in het register van Logius;
@@ -71,7 +86,7 @@ const secties: Sectie[] = [
           <>
             <h3>Lighthouse</h3>
             <p>
-              Met Lighthouse {meting.lighthouse.versie} ({meting.lighthouse.instelling}). Een score loopt van 0 tot 100.
+              Met Lighthouse {meting.lighthouse.versie} ({meting.lighthouse.instelling}) op tien veelgebruikte pagina’s. Een score loopt van 0 tot 100. Prestaties gaat over laadsnelheid, niet over toegankelijkheid; de kaart laadt veel kaarttegels en is daardoor trager.
             </p>
             <div className="tabel-container" role="region" aria-label="Lighthouse-scores per pagina" tabIndex={0}>
               <table>
@@ -90,7 +105,9 @@ const secties: Sectie[] = [
                 <tbody>
                   {meting.lighthouse.uitkomsten.map((u) => (
                     <tr key={u.pagina}>
-                      <th scope="row">{u.pagina}</th>
+                      <th scope="row">
+                        <Link to={u.pad}>{u.pagina}</Link>
+                      </th>
                       <td className="num">{getal(u.toegankelijkheid)}</td>
                       <td className="num">{getal(u.prestaties)}</td>
                     </tr>
@@ -106,9 +123,15 @@ const secties: Sectie[] = [
             <li key={h}>{h}</li>
           ))}
         </ul>
+        <h3>Niet gemeten</h3>
+        <ul>
+          {meting.nietGemeten.map((h) => (
+            <li key={h}>{h}</li>
+          ))}
+        </ul>
         <p>
           Automatische hulpmiddelen vinden maar een deel van de problemen. Een volledig onderzoek door een deskundige is nog niet
-          gedaan; zie Status.
+          gedaan; zie <a href="#status">Status</a>.
         </p>
       </>
     ),
@@ -121,12 +144,17 @@ const secties: Sectie[] = [
         <p>Bij de laatste meting zijn geen problemen gevonden. Merkt u toch iets, meld het ons dan.</p>
       ) : (
         <>
-          <p>Deze onderdelen voldoen nog niet. Per probleem staat wat het voor u betekent en wat wij eraan doen.</p>
+          <p>
+            Bij de meting van {datum(meting.datum)} voldeden deze onderdelen nog niet. Per probleem staat waar het zit, wat het
+            voor u betekent en wat wij eraan doen. De juridische pagina’s zelf hadden geen bevindingen.
+          </p>
           <div className="jd-blokken">
-            {bekendeProblemen.map((p, i) => (
-              <section key={i} className="jd-blok" aria-labelledby={`probleem-${i}`}>
-                <h3 id={`probleem-${i}`}>{p.onderdeel}</h3>
+            {bekendeProblemen.map((p) => (
+              <section key={p.id} className="jd-blok" id={`probleem-${p.id}`} aria-labelledby={`probleem-${p.id}-kop`}>
+                <h3 id={`probleem-${p.id}-kop`}>{p.onderdeel}</h3>
                 <dl className="jd-gegevens">
+                  <dt>Waar</dt>
+                  <dd>{p.paginas.join(', ')}</dd>
                   <dt>Probleem</dt>
                   <dd>{p.probleem}</dd>
                   <dt>WCAG</dt>
@@ -159,7 +187,7 @@ const secties: Sectie[] = [
     inhoud: (
       <ul>
         <li>Toegankelijkheid is een eis bij het ontwerpen en bouwen van elke pagina en elke rekentool.</li>
-        <li>Een automatische test controleert bij elke nieuwe versie onder meer de 400 pixels brede weergave en de opbouw van de juridische pagina’s.</li>
+        <li>Automatische tests controleren onder meer de weergave op 400 pixels breed en de opbouw van de juridische pagina’s. Wij draaien die voor elke nieuwe versie.</li>
         <li>Na grotere wijzigingen meten wij opnieuw met axe en Lighthouse en werken wij deze verklaring bij.</li>
         <li>Kleuren komen uit één set huisstijlkleuren, zodat een contrastprobleem op één plek op te lossen is.</li>
         <li>Betekenis hangt nooit alleen van kleur af: er staat altijd tekst of een teken bij.</li>
