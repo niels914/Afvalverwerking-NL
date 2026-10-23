@@ -141,6 +141,10 @@ test.describe('Aanbestedingstool', () => {
     await page.getByLabel('Prijs', { exact: true }).fill('0');
     await expect(page.getByText(/Prijs weegt 0 %/).first()).toBeVisible();
     await page.getByLabel('Prijs', { exact: true }).fill('60');
+    // Het puntenveld is breed genoeg voor drie cijfers.
+    await page.getByLabel('Prijs', { exact: true }).fill('100');
+    expect(await page.getByLabel('Prijs', { exact: true }).evaluate((el) => (el as HTMLInputElement).scrollWidth <= (el as HTMLInputElement).clientWidth)).toBe(true);
+    await page.getByLabel('Prijs', { exact: true }).fill('60');
     await page.getByRole('button', { name: 'Volgende: overzicht' }).click();
 
     // Stap 4: overzicht, checklist, downloads.
@@ -181,4 +185,74 @@ test('Overzicht rekentools noemt per tool de bronnen', async ({ page }) => {
   await expect(page.getByText(/Akkoord Verpact, VNG en NVRD/)).toBeVisible();
   await expect(page.getByText('Gratis deel + Pro voor leden').first()).toBeVisible();
   await geenHorizontaleScroll(page);
+});
+
+// Ledendeel met een echte inlog. Draai met E2E_EMAIL en E2E_WACHTWOORD van een account bij een actieve lidorganisatie.
+const EMAIL = process.env.E2E_EMAIL;
+const WACHTWOORD = process.env.E2E_WACHTWOORD;
+
+test.describe('Als lid ingelogd', () => {
+  test.skip(!EMAIL || !WACHTWOORD, 'Zet E2E_EMAIL en E2E_WACHTWOORD voor de ledentests.');
+
+  async function logInNaar(page: Page, pad: string) {
+    await page.goto(`/inloggen?terug=${encodeURIComponent(pad)}`);
+    await page.getByLabel('E-mailadres').fill(EMAIL!);
+    await page.getByLabel('Wachtwoord', { exact: true }).fill(WACHTWOORD!);
+    await page.getByRole('button', { name: 'Inloggen', exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`${pad.replace(/\//g, '\\/')}`));
+    await expect(page.locator('.slotkaart')).toHaveCount(0);
+  }
+
+  test('Bodemassencalculator Pro: meerdere installaties, totaal, gevoeligheid en CSV', async ({ page }) => {
+    await logInNaar(page, '/tools/bodemassencalculator');
+    const vul = (label: string, w: string) => page.getByLabel(label, { exact: true }).fill(w);
+    await vul('Tarief in €/t, Installatie 1', '30');
+    await vul('Ferro in €/t, Installatie 1', '150');
+    await vul('Non-ferro in €/t, Installatie 1', '900');
+    await page.getByRole('button', { name: '+ Installatie toevoegen' }).click();
+    // Installatie 2 begint met de invoer van het gratis deel: zonder tarief is het totaal onvolledig.
+    const totaalTegel = page.locator('.tegel.hero').filter({ hasText: /totaal/ });
+    await expect(totaalTegel).toContainText('–');
+    await vul('Verbrand in ton, Installatie 2', '50000');
+    await vul('Tarief in €/t, Installatie 2', '30');
+    await vul('Ferro in €/t, Installatie 2', '150');
+    await vul('Non-ferro in €/t, Installatie 2', '900');
+    // 47.580 + 23.790 = 71.370 netto opbrengst
+    await expect(totaalTegel).toContainText('Netto opbrengst totaal');
+    await expect(totaalTegel).toContainText('71.370');
+    await expect(page.getByRole('region', { name: 'Tabel gevoeligheidsanalyse' })).toContainText('Verwerkingstarief');
+    await geenHorizontaleScroll(page);
+
+    const knop = page.getByRole('button', { name: 'CSV downloaden' }).nth(1);
+    const [download] = await Promise.all([page.waitForEvent('download'), knop.click()]);
+    const tekst = readFileSync((await download.path())!, 'utf8');
+    expect(download.suggestedFilename()).toMatch(/^bodemassencalculator-pro-\d{4}-\d{2}-\d{2}\.csv$/);
+    expect(tekst).toContain('Installatie 2;50000;24,4');
+    expect(tekst).toMatch(/Totaal;150000;.*;-71370/);
+    await expect(page.getByRole('button', { name: /Rapport maken/ }).first()).toBeVisible();
+  });
+
+  test('Rekenmodel PMD: beide routes, omslag en CSV met herkomst', async ({ page }) => {
+    await logInNaar(page, '/tools/pmd-rekenmodel');
+    await expect(page.getByLabel('Inwoners', { exact: true })).toHaveValue('100000');
+    await page.getByLabel('Teruggewonnen PMD', { exact: true }).fill('15');
+    // bron: 2.100 t × (325 − 228 − 103,35) = −13.335 ; na: 16.800 × (119,85 − 17,26) − 1.500 × 103,35 = 1.568.487
+    await expect(page.getByText(/bronscheiding €\s1\.581\.822 per jaar goedkoper/)).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Opbouw per route' })).toContainText('1.568.487');
+    await expect(page.getByText('Opbrengst per inwoner')).toBeVisible();
+
+    const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'CSV downloaden' }).click()]);
+    const tekst = readFileSync((await download.path())!, 'utf8');
+    expect(tekst).toContain('Teruggewonnen PMD bij nascheiding (kg per inwoner);15;aanname gebruiker');
+    expect(tekst).toContain('Netto per jaar (euro, negatief = opbrengst);-13335;1568487');
+    expect(tekst).toContain('Inzamelvergoeding (euro per ton PMD);228;https://www.nvrd.nl/');
+
+    // Gemeente kiezen vult CBS-cijfers in.
+    const g = cbs.gemeenten.find((x: { code: string }) => x.code === 'GM0363');
+    await page.getByLabel('Gemeente', { exact: true }).selectOption('GM0363');
+    await expect(page.getByLabel('Inwoners', { exact: true })).toHaveValue(String(g.inwoners));
+    await expect(page).toHaveURL(/gm=GM0363/);
+    await geenHorizontaleScroll(page);
+    await expect(page.getByRole('button', { name: /Rapport maken/ })).toBeVisible();
+  });
 });

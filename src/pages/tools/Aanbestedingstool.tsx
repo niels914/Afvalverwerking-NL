@@ -265,7 +265,7 @@ export function Aanbestedingstool() {
                 onChange={(d) => setI((x) => ({ ...x, drempel: d }))}
                 hint="Bepaalt het drempelbedrag voor Europees aanbesteden."
               />
-              <div className="velden-2">
+              <div className="velden-2 ab-velden">
                 <GetalVeld label="Volume" eenheid={stroom.volumeEenheid} waarde={i.volume} onChange={(n) => setI((x) => ({ ...x, volume: n }))} hint="Raming per jaar." />
                 <BronVeld
                   label="Geraamd tarief"
@@ -328,8 +328,8 @@ export function Aanbestedingstool() {
           </Kaart>
           <Kaart titel="Verdeling" kopNiveau={3}>
             <div className="ab-balken">
-                  <PercentageBalken items={[{ label: 'Prijs', pct: wegingAfgerond.prijs }, ...gunning.map((c) => ({ label: c.titel, pct: wegingAfgerond[c.id] }))]} />
-                </div>
+              <PercentageBalken items={[{ label: 'Prijs', pct: wegingAfgerond.prijs }, ...gunning.map((c) => ({ label: c.titel, pct: wegingAfgerond[c.id] }))]} />
+            </div>
             <PrijsSignaal signaal={signaal} />
             <p className="klein muted">
               Meer over het kiezen en wegen van gunningscriteria:{' '}
@@ -430,8 +430,10 @@ export function Aanbestedingstool() {
               <PrintKnop />
             </div>
           </Kaart>
-          {navigatie(stappen[2])}
           <div className="knoppen geen-print">
+            <button type="button" onClick={() => setStap(2)}>
+              Vorige: {stappen[2].toLowerCase()}
+            </button>
             <button
               type="button"
               onClick={() => {

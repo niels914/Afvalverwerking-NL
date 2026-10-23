@@ -628,11 +628,17 @@ function RouteTegels({ r, goedkoopst }: { r: PmdRoute; goedkoopst: boolean }) {
         toelichting={r.netto === null ? 'vul teruggewonnen PMD in' : 'ten opzichte van alles verbranden'}
         hero={goedkoopst}
       />
-      <Tegel label="Per inwoner" waarde={r.perInwoner === null ? '–' : euro(r.perInwoner, 2)} />
+      <Tegel
+        label={r.perInwoner !== null && r.perInwoner < 0 ? 'Opbrengst per inwoner' : 'Kosten per inwoner'}
+        waarde={r.perInwoner === null ? '–' : euro(Math.abs(r.perInwoner), 2)}
+        toelichting="per jaar"
+      />
       <Tegel
         label={r.naam === 'Bronscheiding' ? 'PMD ingezameld' : 'PMD teruggewonnen'}
         waarde={r.pmdTon === null ? '–' : metEenheid(r.pmdTon, 'ton')}
-        toelichting={r.perTonPmd === null ? undefined : `netto ${euro(r.perTonPmd)} per ton PMD`}
+        toelichting={
+          r.perTonPmd === null ? undefined : r.perTonPmd < 0 ? `netto opbrengst ${euro(-r.perTonPmd, 2)} per ton PMD` : `netto kosten ${euro(r.perTonPmd, 2)} per ton PMD`
+        }
       />
     </div>
   );
