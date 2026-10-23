@@ -304,6 +304,8 @@ export interface IndexInvoer {
   plafondPct: number | null;
   /** Geen negatieve indexatie (Pro). */
   geenDaling: boolean;
+  /** Twee contractjaren om te vergelijken (Pro); null = eerste en laatste contractjaar. */
+  vergelijk: [number, number] | null;
 }
 
 const getal = (s: string | null): number | undefined => {
@@ -328,6 +330,7 @@ export function indexInvoerNaarParams(inv: IndexInvoer): URLSearchParams {
   p.set('maand', String(inv.peilmaand));
   if (inv.plafondPct !== null) p.set('max', String(inv.plafondPct));
   if (inv.geenDaling) p.set('bodem', '1');
+  if (inv.vergelijk) p.set('vgl', `${inv.vergelijk[0]}-${inv.vergelijk[1]}`);
   return p;
 }
 
@@ -358,6 +361,7 @@ export function indexInvoerUitParams(p: URLSearchParams, standaard: IndexInvoer,
   const verschuiving = p.get('verschuiving');
   const plafond = getal(p.get('max'));
   const bodem = p.get('bodem');
+  const vgl = /^(\d{4})-(\d{4})$/.exec(p.get('vgl') ?? '');
   const jaarOk = (n: number | undefined) => n !== undefined && Number.isInteger(n) && n >= 2000 && n <= 2100;
   return {
     soort,
@@ -374,5 +378,6 @@ export function indexInvoerUitParams(p: URLSearchParams, standaard: IndexInvoer,
     // Ontbreekt de sleutel in een gedeelde link, dan is er geen plafond of bodem afgesproken.
     plafondPct: plafond !== undefined && plafond >= 0 && plafond <= 100 ? plafond : p.has('max') || p.toString() === '' ? standaard.plafondPct : null,
     geenDaling: bodem === null ? (p.toString() === '' ? standaard.geenDaling : false) : bodem === '1',
+    vergelijk: vgl && jaarOk(Number(vgl[1])) && jaarOk(Number(vgl[2])) ? [Number(vgl[1]), Number(vgl[2])] : p.toString() === '' ? standaard.vergelijk : null,
   };
 }

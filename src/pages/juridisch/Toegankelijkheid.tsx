@@ -86,7 +86,7 @@ const secties: Sectie[] = [
           <>
             <h3>Lighthouse</h3>
             <p>
-              Met Lighthouse {meting.lighthouse.versie} ({meting.lighthouse.instelling}) op tien veelgebruikte pagina’s. Een score loopt van 0 tot 100. Prestaties gaat over laadsnelheid, niet over toegankelijkheid; de kaart laadt veel kaarttegels en is daardoor trager.
+              Met Lighthouse {meting.lighthouse.versie} ({meting.lighthouse.instelling}) op tien veelgebruikte pagina’s. Een score loopt van 0 tot 100. Prestaties gaat over laadsnelheid, niet over toegankelijkheid; de Restafvalkaart laadt de grenzen van alle gemeenten en is daardoor trager.
             </p>
             <div className="tabel-container" role="region" aria-label="Lighthouse-scores per pagina" tabIndex={0}>
               <table>
@@ -176,8 +176,8 @@ const secties: Sectie[] = [
     inhoud: (
       <p>
         Het platform linkt naar documenten en websites van anderen, zoals onderzoeken, nieuwsberichten en aankondigingen op
-        TenderNed. KplusV kan die niet aanpassen en kan niet garanderen dat ze toegankelijk zijn. De kaartondergrond komt van
-        OpenStreetMap; de gegevens op de kaart staan ook in tekst en tabellen op dezelfde pagina.
+        TenderNed. KplusV kan die niet aanpassen en kan niet garanderen dat ze toegankelijk zijn. De gegevens op de kaart
+        staan ook in tekst en in een tabel op dezelfde pagina.
       </p>
     ),
   },

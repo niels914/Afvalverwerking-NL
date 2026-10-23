@@ -266,11 +266,14 @@ describe('indexering: deellink', () => {
       peilmaand: 6,
       plafondPct: 2.5,
       geenDaling: true,
+      vergelijk: [2024, 2027],
     };
     expect(indexInvoerUitParams(indexInvoerNaarParams(inv), indexStandaardInvoer, ids)).toEqual(inv);
-    const zonder: IndexInvoer = { ...inv, plafondPct: null, geenDaling: false };
+    expect(indexInvoerNaarParams(inv).get('vgl')).toBe('2024-2027');
+    const zonder: IndexInvoer = { ...inv, plafondPct: null, geenDaling: false, vergelijk: null };
     const p = indexInvoerNaarParams(zonder);
     expect(p.has('max')).toBe(false);
+    expect(p.has('vgl')).toBe(false);
     expect(indexInvoerUitParams(p, indexStandaardInvoer, ids)).toEqual(zonder);
   });
 
@@ -287,6 +290,9 @@ describe('indexering: deellink', () => {
     expect(uit.peilmaand).toBe(indexStandaardInvoer.peilmaand);
     expect(uit.verschuiving).toBe(indexStandaardInvoer.verschuiving);
     expect(uit.plafondPct).toBeNull();
+    expect(uit.vergelijk).toBeNull();
+    expect(indexInvoerUitParams(new URLSearchParams('vgl=2024-1999'), indexStandaardInvoer, ids).vergelijk).toBeNull();
+    expect(indexInvoerUitParams(new URLSearchParams('vgl=24-26'), indexStandaardInvoer, ids).vergelijk).toBeNull();
     expect(new URLSearchParams('max=150').has('max') && indexInvoerUitParams(new URLSearchParams('max=150'), indexStandaardInvoer, ids).plafondPct).toBeNull();
   });
 });

@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { aanbieder, documenten, opslag } from '../src/pages/juridisch/gegevens';
+import { aanbieder, documenten, externeVerbindingen, opslag } from '../src/pages/juridisch/gegevens';
 import { bekendeProblemen, status } from '../src/pages/juridisch/toegankelijkheid';
 
 // Juridische pagina's, bètamelding, voettekst, lettertype en browseropslag.
@@ -108,8 +108,15 @@ test('Poppins komt van de eigen server, niet van Google', async ({ page }) => {
   expect(html).not.toContain('fonts.googleapis.com');
 });
 
-test('geen cookies en alleen beschreven browseropslag', async ({ page, context }) => {
+test('geen cookies, alleen beschreven browseropslag en geen onbeschreven verbindingen', async ({ page, context, baseURL }) => {
   test.setTimeout(120_000);
+  const eigenHost = new URL(baseURL ?? 'http://localhost').hostname;
+  const toegestaan = externeVerbindingen.map((v) => v.host);
+  const vreemd = new Set<string>();
+  page.on('request', (r) => {
+    const host = new URL(r.url()).hostname;
+    if (host !== eigenHost && !toegestaan.includes(host)) vreemd.add(`${host} (op ${page.url()})`);
+  });
   const routes = [
     '/', '/restafvalkaart', '/nieuws', '/kennisbank', '/tools', '/tools/aanbestedingstool', '/tools/indexcalculator',
     '/tools/co2-heffingenscan', '/tools/bodemassencalculator', '/tools/pmd-rekenmodel', '/aanbestedingsarchief',
@@ -120,9 +127,9 @@ test('geen cookies en alleen beschreven browseropslag', async ({ page, context }
     await page.goto(r);
     await page.waitForLoadState('load');
   }
-  // De kaart laadt tegels van OpenStreetMap; geef die even de tijd.
+  // De kaart laadt de gemeentegrenzen; geef die even de tijd.
   await page.goto('/restafvalkaart');
-  await page.waitForTimeout(1500);
+  await page.waitForLoadState('networkidle');
 
   // Vul één veld van het aanmeldformulier in: dat mag alleen de beschreven sessieopslag maken.
   await page.goto('/lidmaatschap/aanmelden');
@@ -133,6 +140,7 @@ test('geen cookies en alleen beschreven browseropslag', async ({ page, context }
   const sleutels = await page.evaluate(() => [...Object.keys(localStorage), ...Object.keys(sessionStorage)]);
   const beschreven = opslag.map((o) => o.sleutel);
   expect(sleutels.filter((s) => !beschreven.includes(s)), 'onbeschreven sleutel in browseropslag').toEqual([]);
+  expect([...vreemd], 'verbinding met een server die niet in de cookie- en privacyverklaring staat').toEqual([]);
 });
 
 test('toegankelijkheidsverklaring toont status, meting en bekende problemen uit de meetgegevens', async ({ page }) => {
@@ -147,13 +155,14 @@ test('toegankelijkheidsverklaring toont status, meting en bekende problemen uit 
   }
 });
 
-test('kaartpagina zet geen cookies van OpenStreetMap en stuurt geen volledig pagina-adres mee', async ({ page, context }) => {
-  const referers: string[] = [];
+test('kaart haalt geen kaarttegels of andere bestanden bij derden op', async ({ page, baseURL }) => {
+  const eigenHost = new URL(baseURL ?? 'http://localhost').hostname;
+  const extern: string[] = [];
   page.on('request', (r) => {
-    if (r.url().includes('tile.openstreetmap.org')) referers.push(r.headers()['referer'] ?? '');
+    if (new URL(r.url()).hostname !== eigenHost) extern.push(r.url());
   });
   await page.goto('/restafvalkaart');
-  await page.waitForTimeout(1500);
-  expect(await context.cookies()).toEqual([]);
-  for (const r of referers) expect(new URL(r).pathname).toBe('/');
+  await expect(page.locator('.leaflet-container')).toBeVisible();
+  await page.waitForLoadState('networkidle');
+  expect(extern).toEqual([]);
 });

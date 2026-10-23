@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { datum } from '../../lib/format';
-import { opslag, opslagGemetenOp } from './gegevens';
+import { externeVerbindingen, opslag, opslagGemetenOp } from './gegevens';
 import { BronRegel, ContactBlok, JuridischDocument, Toetspunt, type Sectie } from './JuridischDocument';
 
 // Cookieverklaring. De lijst met opslag komt uit gegevens.ts. opslag.test.ts controleert dat elke sleutel in de code
@@ -51,7 +51,7 @@ const secties: Sectie[] = [
       <>
         <p>
           Dit is de volledige lijst, vastgesteld op {datum(opslagGemetenOp)}. Daarvoor is de code nagelopen op elke plek waar de
-          site iets in de browser opslaat, en heeft een browser alle pagina’s geopend, inclusief de kaart en de formulieren.
+          site iets in de browser opslaat, en heeft een browser alle pagina’s geopend, inclusief de kaart en de formulieren. Inloggen met een echt account is daarbij niet getest; de sessiesleutel van Supabase komt uit de code en de instellingen van de inlogfunctie.
         </p>
         <div className="jd-blokken">
           {opslag.map((o) => (
@@ -89,17 +89,27 @@ const secties: Sectie[] = [
     inhoud: (
       <>
         <p>
-          <strong>OpenStreetMap.</strong> Op de homepage en de pagina Restafvalkaart haalt uw browser kaarttegels op bij de
-          servers van OpenStreetMap. Daarbij gaan uw IP-adres en het adres van deze website mee, zoals bij elk bezoek aan een
-          website. Bij
-          onze meting zette OpenStreetMap geen cookies. Meer hierover in de <Link to="/privacy#doorgifte">privacyverklaring</Link>.
+          Uw browser maakt alleen verbinding met de server van het platform zelf (bij Netlify) en, als u inlogt, met de
+          database bij Supabase:
+        </p>
+        <ul>
+          {externeVerbindingen.map((v) => (
+            <li key={v.host}>
+              <strong>{v.partij}</strong> (<code>{v.host}</code>): {v.wanneer.charAt(0).toLowerCase() + v.wanneer.slice(1)}
+            </li>
+          ))}
+        </ul>
+        <p>
+          Supabase bewaart de inlogsessie in de browseropslag die hierboven staat, niet in een cookie. De kaart haalt geen
+          kaarttegels op bij een andere partij; de gemeentegrenzen staan als bestand op de eigen server. Meer over Netlify en
+          Supabase staat in de <Link to="/privacy#ontvangers">privacyverklaring</Link>.
         </p>
         <p>
           <strong>Netlify.</strong> Netlify host de site en ontvangt de formulieren. Het platform gebruikt geen diensten
           van Netlify die cookies zetten, zoals Netlify Identity of split testing.
         </p>
         <p>
-          <strong>Hoe gemeten.</strong> De meting is gedaan op een kopie van de site op een testserver. Na de eerste publicatie
+          <strong>Hoe gemeten.</strong> De meting is gedaan op een kopie van de site op een testserver, zonder in te loggen. Na de eerste publicatie
           op Netlify herhalen wij de meting op de echte site en passen wij deze verklaring aan als dat nodig is.
         </p>
         <p>
@@ -121,7 +131,7 @@ const secties: Sectie[] = [
         <p>Alle opslag hierboven valt onder die uitzondering:</p>
         <ul>
           <li>de inlogsessie is nodig om u na het inloggen toegang te geven;</li>
-          <li>de sessieopslag van het aanmeldformulier bewaart wat u net hebt ingevuld, zolang u het formulier invult;</li>
+          <li>de sessieopslag van het aanmeldformulier bewaart wat u invult, zodat het niet verloren gaat als u tussendoor een andere pagina opent;</li>
           <li>
             de reservekopieën van aanmelding en feedback ontstaan alleen als het versturen van een formulier dat u zelf verstuurt
             mislukt.
@@ -161,7 +171,8 @@ const secties: Sectie[] = [
     inhoud: (
       <p>
         Een automatische test controleert of elke sleutel die de code in de browser opslaat, op deze pagina staat. Een tweede
-        test opent de site in een echte browser en controleert dat er geen cookies worden gezet. Wij draaien beide tests voor
+        test opent de site in een echte browser en controleert dat er geen cookies worden gezet, dat alleen de beschreven
+        sleutels in de browseropslag staan en dat de browser geen verbinding maakt met andere servers dan hierboven genoemd. Wij draaien beide tests voor
         elke nieuwe versie van de site.
         Verandert er iets, dan passen wij deze verklaring aan en verhogen wij het versienummer.
       </p>

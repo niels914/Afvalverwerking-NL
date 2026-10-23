@@ -41,9 +41,7 @@ export function Staffelkaarten() {
         const p = prijsVoorStaffel(s.id);
         return (
           <section key={s.id} className="kaart lm-staffel" aria-labelledby={`staffel-${s.id}`}>
-            <h3 id={`staffel-${s.id}`} style={{ borderLeft: '4px solid var(--paars)', paddingLeft: 12 }}>
-              {s.naam}
-            </h3>
+            <h3 id={`staffel-${s.id}`}>{s.naam}</h3>
             <p className="voor-wie">{s.voorWie}</p>
             <p className="bedrag">{euro(p.exclBtw)}</p>
             <p className="klein muted">
@@ -65,7 +63,7 @@ export function Staffelkaarten() {
 export function PrijzenTabel() {
   return (
     <div className="tabel-container">
-      <table className="lm-tabel">
+      <table className="lm-tabel lm-tabel-stapel">
         <caption>
           Jaarprijs per organisatie, ongeacht het aantal gebruikers.{!prijzenVastgesteld && ' Concept: nog niet vastgesteld.'}
         </caption>
@@ -87,9 +85,9 @@ export function PrijzenTabel() {
                   <br />
                   <span className="klein muted">{s.voorWie}</span>
                 </th>
-                <td className="num">{euro(p.exclBtw, 2)}</td>
-                <td className="num">{euro(p.btw, 2)}</td>
-                <td className="num">{euro(p.inclBtw, 2)}</td>
+                <td className="num" data-label="Excl. btw">{euro(p.exclBtw, 2)}</td>
+                <td className="num" data-label={`Btw ${btwPercentage} %`}>{euro(p.btw, 2)}</td>
+                <td className="num" data-label="Incl. btw">{euro(p.inclBtw, 2)}</td>
               </tr>
             );
           })}
@@ -140,7 +138,7 @@ export function Vergelijkingstabel() {
   const cel = (t: string) => <span className={t === 'Nee' ? 'lm-nee' : t === 'Ja' ? 'lm-ja' : undefined}>{t}</span>;
   return (
     <div className="tabel-container">
-      <table className="lm-tabel">
+      <table className="lm-tabel lm-tabel-stapel">
         <caption>Wat u gratis kunt gebruiken en wat leden extra krijgen.</caption>
         <thead>
           <tr>
@@ -153,8 +151,8 @@ export function Vergelijkingstabel() {
           {vergelijking.map((o) => (
             <tr key={o.onderdeel}>
               <th scope="row">{o.onderdeel}</th>
-              <td>{cel(o.gratis)}</td>
-              <td>{cel(o.lid)}</td>
+              <td data-label="Gratis">{cel(o.gratis)}</td>
+              <td data-label="Lid">{cel(o.lid)}</td>
             </tr>
           ))}
         </tbody>

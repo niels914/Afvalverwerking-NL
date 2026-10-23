@@ -15,8 +15,8 @@ export function Banner() {
       <div className="wrap banner-beta">
         <span className="banner-label">Bèta</span>
         <span>
-          Het platform is in opbouw. Onderdelen met het label &lsquo;Voorbeeld&rsquo; bevatten verzonnen gegevens; uitkomsten van
-          rekentools zijn indicatief. <Link to="/disclaimer#voorbeelddata">Wat betekent dit?</Link>
+          Het platform is in opbouw. Onderdelen met het label &lsquo;Voorbeeld&rsquo; bevatten verzonnen gegevens of
+          voorbeeldwaarden; uitkomsten van rekentools zijn indicatief. <Link to="/disclaimer#voorbeelddata">Wat betekent dit?</Link>
         </span>
       </div>
     </div>

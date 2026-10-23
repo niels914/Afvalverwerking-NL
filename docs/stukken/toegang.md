@@ -1,6 +1,6 @@
 # Toegang: inloggen, account en betaalmuur
 
-Stand: 19 oktober 2026 (ronde 1, gecontroleerd en aangevuld). Supabase-project `afvalverwerking-nl`, ref `mnwynrioozcqqvhelqku`.
+Stand: 20 oktober 2026 (ronde 1, opnieuw gecontroleerd: typecheck, unittests, build, end-to-end op 400 px en 1280 px, advisors). Supabase-project `afvalverwerking-nl`, ref `mnwynrioozcqqvhelqku`.
 
 ## Wat er gebouwd is
 
@@ -59,7 +59,7 @@ Domeinen altijd in kleine letters en zonder `@`. Controleer na activering met ee
 
 ## Instellingen in het Supabase-dashboard
 
-Gecontroleerd via `GET /auth/v1/settings` op 15 en opnieuw op 19 oktober 2026: aanmelden staat aan (`disable_signup: false`) en e-mailbevestiging staat aan (`mailer_autoconfirm: false`). **Dat laatste moet zo blijven**: met automatische bevestiging kan iedereen een account maken op een domein van een lid-organisatie zonder toegang tot die mailbox.
+Gecontroleerd via `GET /auth/v1/settings` op 15, 19 en 20 oktober 2026: aanmelden staat aan (`disable_signup: false`) en e-mailbevestiging staat aan (`mailer_autoconfirm: false`). **Dat laatste moet zo blijven**: met automatische bevestiging kan iedereen een account maken op een domein van een lid-organisatie zonder toegang tot die mailbox.
 
 Nog in te stellen door Niels (Authentication in het dashboard):
 
@@ -79,7 +79,7 @@ Nog in te stellen door Niels (Authentication in het dashboard):
 
 ## Beveiliging en advisors
 
-`get_advisors` (security), 15 oktober 2026 en opnieuw 19 oktober 2026 (zelfde uitkomst):
+`get_advisors` (security), 15, 19 en 20 oktober 2026 (zelfde uitkomst; `get_advisors` performance op 20 oktober: geen meldingen):
 
 - `authenticated_security_definer_function_executable` voor `is_lid()` en `mijn_domein()`: **bewust zo**. Ingelogde gebruikers moeten deze functies kunnen aanroepen; ze geven alleen informatie over de gebruiker zelf (eigen domein, eigen lidmaatschap). `mijn_domein()` moet SECURITY DEFINER zijn omdat het `auth.users` leest. Bezoekers zonder sessie (`anon`) kunnen ze niet aanroepen.
 - `auth_leaked_password_protection`: zie punt 7 hierboven.
@@ -89,6 +89,16 @@ Gecontroleerd op 19 oktober 2026:
 - Zonder sessie (alleen de publishable key) geven `rpc/is_lid`, `rpc/mijn_lidmaatschap` en `rpc/mijn_domein` "permission denied" (42501) en geeft `organisaties` een lege lijst (RLS).
 - In een transactie die is teruggedraaid: `geldig_tot` van de testorganisatie op gisteren gezet; voor het testaccount gaf `is_lid()` daarna `false` en `mijn_lidmaatschap()` de effectieve status `verlopen`. De echte rij is niet gewijzigd.
 - RLS staat aan op alle tabellen in `public` (nu alleen `organisaties`).
+
+Gecontroleerd op 20 oktober 2026, met een tijdelijke gebruiker in een transactie die is teruggedraaid (er is niets blijvend aangemaakt):
+
+| Situatie | `is_lid()` |
+|---|---|
+| Adres op `kplusv.nl`, e-mail nog niet bevestigd | onwaar (ziet ook geen organisatie via RLS) |
+| Zelfde adres, e-mail bevestigd | waar |
+| Adres op een lijkend domein (`kplusv.nl.evil.com`) | onwaar |
+
+Subdomeinen tellen niet automatisch mee: `naam@mail.voorbeeld.nl` is geen lid via `voorbeeld.nl`. Voeg zo'n subdomein zo nodig apart toe aan `emaildomeinen`.
 
 Let op voor de lead: het bestand `20261014_kern_organisaties_en_lidmaatschap.sql` heeft een andere versie in de naam dan de migratie in de database (`20261014203636`). Wie later `supabase db push` gebruikt, moet dat bestand hernoemen naar `20261014203636_kern_organisaties_en_lidmaatschap.sql`, anders probeert de CLI het opnieuw toe te passen.
 
@@ -108,4 +118,5 @@ Let op: de betaalmuur in de browser bepaalt wat er in beeld komt. De inhoud acht
 3. Koppeling met de aanmeldflow: na een aanmelding een rij in `organisaties` met status `aangevraagd`, zodat medewerkers op `/account` "Aangevraagd, nog niet actief" zien. Dat hoort bij het onderdeel lidmaatschap/aanmelden.
 4. Beheerscherm voor Niels (organisaties activeren zonder SQL) is nog niet gebouwd; nu via SQL of Table Editor.
 5. Misbruik van "Stuur mij een inloglink" (veel mails naar willekeurige adressen) wordt alleen begrensd door de rate limits van Supabase. Overweeg CAPTCHA (Authentication → Attack Protection) bij livegang.
-6. Organisaties met medewerkers op een gedeeld of publiek maildomein kunnen niet via het domein worden herkend. Daarvoor is later een lijst met losse e-mailadressen per organisatie nodig.
+6. Niet van dit onderdeel, wel nodig: `README.md` beschrijft nog de demo-schakelaar "Bekijk als" (sectie Betaalmuur, en open punt 2 "Login en betaling"), en `src/styles/components.css` bevat nog de ongebruikte stijl van die schakelaar (`/* Rolschakelaar … */`). Beide kunnen weg of worden bijgewerkt door de eigenaar van die bestanden.
+7. Organisaties met medewerkers op een gedeeld of publiek maildomein kunnen niet via het domein worden herkend. Daarvoor is later een lijst met losse e-mailadressen per organisatie nodig.

@@ -3,7 +3,7 @@ import { FeedbackFormulier } from '../components/FeedbackFormulier';
 import { GratisBetaald } from '../components/GratisBetaald';
 import { Badge, PaginaKop } from '../components/ui';
 import { Link } from 'react-router-dom';
-import { staffels } from '../data/lidmaatschap';
+import { btwPercentage, prijzenVastgesteld, staffels } from '../data/lidmaatschap';
 import { contact } from '../data/site';
 import { euro } from '../lib/format';
 
@@ -62,10 +62,10 @@ export function Over() {
         <GratisBetaald kopNiveau={3} />
       </Sectie>
 
-      <Sectie nr={5} titel="Verdienmodel" badge={<Badge soort="voorbeeld">Concept</Badge>}>
+      <Sectie nr={5} titel="Verdienmodel" badge={prijzenVastgesteld ? undefined : <Badge soort="voorbeeld">Concept</Badge>}>
         <p>
           Een jaarabonnement per organisatie, niet per gebruiker, met een staffel naar soort en omvang. Betaling op factuur.
-          De conceptprijzen per jaar, exclusief btw:
+          {prijzenVastgesteld ? ' De prijzen' : ' De conceptprijzen'} per jaar, exclusief {btwPercentage} % btw:
         </p>
         <ul className="opsomming">
           {staffels.map((s) => (
@@ -81,7 +81,7 @@ export function Over() {
         <p className="klein muted">
           Rekenvoorbeeld met een aanname, geen prognose: bij {voorbeeldAantal} leden met gemiddeld {euro(voorbeeldGemiddeld)}{' '}
           per jaar is de omzet {euro(voorbeeldAantal * voorbeeldGemiddeld)} per jaar. Het aantal leden is niet bekend; het
-          gemiddelde is het ongewogen gemiddelde van de vier conceptprijzen.
+          gemiddelde is het ongewogen gemiddelde van de {staffels.length} {prijzenVastgesteld ? 'staffelprijzen' : 'conceptprijzen'}.
         </p>
       </Sectie>
 

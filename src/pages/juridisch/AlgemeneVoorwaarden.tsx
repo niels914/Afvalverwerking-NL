@@ -229,7 +229,7 @@ const secties: Sectie[] = [
       <Leden artikel={10}>
         {[
           'KplusV spant zich in om het platform goed bereikbaar te houden, maar garandeert geen ononderbroken beschikbaarheid. Gepland onderhoud kondigt KplusV zo mogelijk vooraf aan op het platform.',
-          'Het platform gebruikt diensten van anderen, zoals hosting, een database en kaarttegels van OpenStreetMap. Een storing bij die diensten kan het platform tijdelijk beperken.',
+          'Het platform gebruikt diensten van anderen, zoals hosting en een database, en gegevens van open bronnen. Een storing bij die diensten of bronnen kan het platform tijdelijk beperken.',
           'KplusV mag het platform verbeteren en onderdelen veranderen. Vervalt een ledenonderdeel waardoor het lidmaatschap wezenlijk minder waard wordt, dan kan de organisatie tussentijds opzeggen. KplusV betaalt dan het deel van de jaarprijs terug dat hoort bij de resterende maanden.',
         ]}
       </Leden>
@@ -270,7 +270,7 @@ const secties: Sectie[] = [
               KplusV verwerkt persoonsgegevens van gebruikers en contactpersonen als verwerkingsverantwoordelijke, zoals
               beschreven in de <Link to="/privacy">privacyverklaring</Link>.
             </>,
-            'Wat een gebruiker invult in de rekentools, blijft in zijn browser. Die invoer gaat niet naar KplusV.',
+            'Wat een gebruiker invult in de rekentools, blijft in zijn browser en gaat niet naar KplusV. Dat is anders als de gebruiker zelf een deellink maakt: die link bevat de invoer, en wie de link opent, stuurt het webadres met die invoer naar de server van het platform.',
             'Het platform is niet bedoeld om persoonsgegevens van burgers in te voeren. De organisatie zorgt dat haar medewerkers dat niet doen.',
           ]}
         </Leden>

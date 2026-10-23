@@ -82,4 +82,5 @@ export const indexStandaardInvoer: IndexInvoer = {
   peilmaand: 9,
   plafondPct: null,
   geenDaling: false,
+  vergelijk: null,
 };

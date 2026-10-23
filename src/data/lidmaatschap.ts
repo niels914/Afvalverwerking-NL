@@ -6,6 +6,8 @@
 //
 // Bronnen voor de echte (externe) gegevens staan in `bronnen` onderaan, met peildatum.
 
+import { tools } from './tools';
+
 /** Zelfde waarden als de kolom `type` in de Supabase-tabel public.organisaties. */
 export type StaffelId = 'samenwerkingsverband-klein' | 'samenwerkingsverband-groot' | 'gemeente' | 'verwerker';
 
@@ -124,33 +126,44 @@ export interface Onderdeel {
   onderdeel: string;
   gratis: string;
   lid: string;
+  /** false: niet opnemen in de korte lijsten gratis/leden (bijv. de rij over het aantal gebruikers). */
+  inLijsten?: boolean;
 }
+
+/**
+ * Rij per rekentool, rechtstreeks uit src/data/tools.ts (toegang, gratisDeel, proDeel). Zo blijft de vergelijking gelijk
+ * aan wat de tools zelf vrij en betaald maken; pas de tekst daar aan, niet hier.
+ */
+const toolRijen: Onderdeel[] = tools.map((t) => ({
+  onderdeel: t.titel,
+  gratis: t.toegang === 'leden' ? 'Nee' : t.toegang === 'gratis' ? 'Ja' : (t.gratisDeel ?? 'Beperkt'),
+  lid: t.toegang === 'gratis+pro' ? (t.proDeel ?? 'Volledig') : 'Ja',
+}));
 
 /** Vergelijkingstabel gratis versus lid. Teksten in de cellen, zodat de betekenis niet alleen van een icoon afhangt. */
 export const vergelijking: Onderdeel[] = [
-  { onderdeel: 'Restafvalkaart met kerncijfers per samenwerkingsverband', gratis: 'Ja', lid: 'Ja' },
+  { onderdeel: 'Restafvalkaart: afvalcijfers per gemeente en samenwerkingsverband', gratis: 'Ja', lid: 'Ja' },
   { onderdeel: 'Nieuwsoverzicht afvalverwerking', gratis: 'Ja', lid: 'Ja' },
   { onderdeel: 'Kennisbank: onderzoeken, factsheets, handreikingen', gratis: 'Ja', lid: 'Ja' },
-  { onderdeel: 'Aanbestedingstool (met CE Delft, in ontwikkeling)', gratis: 'Ja', lid: 'Ja' },
-  { onderdeel: 'Indexcalculator', gratis: 'Eén voorbeeld met vaste weging', lid: 'Eigen weging, meerdere contractjaren' },
-  { onderdeel: 'CO2-heffingenscan', gratis: 'Eén jaar', lid: 'Meerjarig, met scenario’s' },
-  { onderdeel: 'Bodemassencalculator', gratis: 'Eén installatie', lid: 'Meerdere installaties, gevoeligheid' },
-  { onderdeel: 'Rekenmodel bron- en nascheiding PMD', gratis: 'Nee', lid: 'Ja' },
-  { onderdeel: 'Rapport maken (printbaar, met formule en invoer)', gratis: 'Nee', lid: 'Ja' },
-  { onderdeel: 'Aanbestedingen per samenwerkingsverband op de kaart', gratis: 'Nee', lid: 'Ja' },
+  ...toolRijen,
   { onderdeel: 'Aanbestedingsarchief met filters', gratis: 'Nee', lid: 'Ja' },
-  { onderdeel: 'Aantal gebruikers', gratis: 'Iedereen, zonder account', lid: 'Alle collega’s met een e-mailadres van uw organisatie' },
+  {
+    onderdeel: 'Aantal gebruikers',
+    gratis: 'Iedereen, zonder account',
+    lid: 'Alle collega’s met een e-mailadres van uw organisatie',
+    inLijsten: false,
+  },
 ];
 
-/** Korte lijsten, onder meer gebruikt op de homepage en Over het platform. */
-export const gratisOnderdelen = vergelijking.filter((o) => o.gratis !== 'Nee').map((o) => o.onderdeel);
-export const ledenOnderdelen = vergelijking.filter((o) => o.gratis !== 'Ja').map((o) => o.onderdeel);
+/** Korte lijsten, onder meer gebruikt op Over het platform (GratisBetaald). */
+export const gratisOnderdelen = vergelijking.filter((o) => o.inLijsten !== false && o.gratis !== 'Nee').map((o) => o.onderdeel);
+export const ledenOnderdelen = vergelijking.filter((o) => o.inLijsten !== false && o.gratis !== 'Ja').map((o) => o.onderdeel);
 
 /** Wat bij elk lidmaatschap inbegrepen is, ongeacht de staffel. */
 export const inbegrepen = [
   'Toegang voor alle medewerkers met een e-mailadres op het domein van uw organisatie',
-  'Volledige versies van alle rekentools, met rapport',
-  'Aanbestedingen per samenwerkingsverband en het aanbestedingsarchief',
+  'Volledige versies van alle rekentools, met rapport en CSV-export waar de tool die biedt',
+  'Het aanbestedingsarchief met filters op afvalstroom, status en regio',
   'Jaarlijkse actualisatie van de standaardwaarden en reeksen in de rekentools',
   'Vragen over de rekentools per e-mail aan KplusV',
   'Eén factuur per jaar, op naam van uw organisatie, met uw inkoopordernummer',

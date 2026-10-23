@@ -73,7 +73,7 @@ const verwerkingen: Verwerking[] = [
   {
     id: 'bezoek',
     titel: 'Bezoek aan de website',
-    gegevens: 'IP-adres, opgevraagde pagina, tijdstip, browsertype en de pagina waar u vandaan kwam, in de serverlogboeken van Netlify.',
+    gegevens: 'IP-adres, opgevraagd webadres (bij een deellink van een rekentool inclusief de invoer in die link), tijdstip, browsertype en de pagina waar u vandaan kwam, in de serverlogboeken van Netlify.',
     doel: 'De website leveren, storingen oplossen en misbruik tegengaan.',
     grondslag: 'Gerechtvaardigd belang om een veilige en werkende website aan te bieden.',
     bewaartermijn: 'Volgens de termijnen van Netlify. KplusV gebruikt deze logboeken niet voor statistieken.',
@@ -90,7 +90,7 @@ const secties: Sectie[] = [
         <li>KplusV is verantwoordelijk voor de persoonsgegevens op dit platform.</li>
         <li>Wij verwerken alleen wat nodig is voor inloggen, het lidmaatschap, facturen en uw vragen.</li>
         <li>Er zijn geen trackers, geen advertenties en geen bezoekersstatistieken.</li>
-        <li>Wat u invult in de rekentools, blijft in uw browser. Het gaat niet naar KplusV.</li>
+        <li>Wat u invult in de rekentools, blijft in uw browser. Het gaat niet naar KplusV, behalve als u zelf een deellink maakt en opent.</li>
         <li>De database staat in de Europese Unie. Hosting en formulieren lopen via Netlify, een Amerikaans bedrijf.</li>
         <li>U kunt uw gegevens inzien, laten verbeteren of laten verwijderen. Mail daarvoor naar {aanbieder.contact.email}.</li>
       </ul>
@@ -165,7 +165,11 @@ const secties: Sectie[] = [
           Geen besluiten over u die alleen door een computer worden genomen en die rechtsgevolgen hebben. Het platform bepaalt
           wel automatisch of uw e-maildomein toegang geeft. Klopt dat niet, neem dan contact op; dan kijkt een medewerker ernaar.
         </li>
-        <li>Geen opslag van wat u invult in de rekentools. Die invoer verdwijnt als u de pagina sluit of vernieuwt.</li>
+        <li>
+          Geen opslag van wat u invult in de rekentools. Die invoer verdwijnt als u de pagina sluit, tenzij u een deellink
+          maakt. Een deellink bevat uw invoer in het webadres. Wie de link opent, stuurt dat adres naar de server van Netlify,
+          die het in het serverlogboek kan vastleggen. Zet daarom geen persoonsgegevens in een rekentool waarvan u de link deelt.
+        </li>
       </ul>
     ),
   },
@@ -241,7 +245,7 @@ const secties: Sectie[] = [
     titel: 'Gegevens buiten de Europese Unie',
     inhoud: (
       <>
-        <p>Op drie punten kunnen gegevens buiten de Europese Unie komen:</p>
+        <p>Op twee punten kunnen gegevens buiten de Europese Unie komen:</p>
         <ul>
           <li>
             <strong>Netlify</strong> (hosting en formulieren) is gevestigd in de Verenigde Staten en bewaart formulierinzendingen
@@ -253,11 +257,11 @@ const secties: Sectie[] = [
             Verenigde Staten, bijvoorbeeld bij beheer en support, gebruikt Supabase de standaardcontractbepalingen van de
             Europese Commissie.
           </li>
-          <li>
-            <strong>OpenStreetMap</strong> levert de kaarttegels via een wereldwijd netwerk. Uw IP-adres gaat naar de server die
-            de tegel levert. Dat gebeurt alleen op pagina’s met een kaart: de homepage en de pagina Restafvalkaart.
-          </li>
         </ul>
+        <p>
+          De kaart op de homepage en op de pagina Restafvalkaart haalt geen kaarttegels of andere gegevens op bij andere
+          partijen. De gemeentegrenzen staan als bestand op de server van het platform. Ook het lettertype staat daar.
+        </p>
         <BronRegel sleutel="adequaatheid" />
         <BronRegel sleutel="netlifyPrivacy" />
         <BronRegel sleutel="supabasePrivacy" />

@@ -1,6 +1,6 @@
 # Lidmaatschap en prijzen (ronde 1)
 
-Stand: 19 oktober 2026 (ronde 1, vervolg). Prijzen en voorwaarden zijn **concept** tot Niels ze vaststelt.
+Stand: 20 oktober 2026 (ronde 1, vervolg). Prijzen en voorwaarden zijn **concept** tot Niels ze vaststelt.
 
 ## Wat er gebouwd is
 
@@ -9,7 +9,8 @@ Stand: 19 oktober 2026 (ronde 1, vervolg). Prijzen en voorwaarden zijn **concept
 - Vier staffels **per organisatie, niet per gebruiker**: samenwerkingsverband klein (2–3 gemeenten), samenwerkingsverband groot (4 of meer), gemeente, verwerker. Elke kaart toont de jaarprijs excl. btw, de prijs incl. 21 % btw en een knop die het aanmeldformulier opent met het type al gekozen (`?staffel=…`).
 - Prijstabel met excl. btw, btw-bedrag en incl. btw, met bronregel (Belastingdienst, peildatum).
 - Wat is inbegrepen, looptijd/verlenging/opzegging/betaling/prijswijziging/proeftoegang in het kort (met bron voor de betaaltermijn), link naar de algemene voorwaarden.
-- Vergelijkingstabel gratis versus lid; de betekenis staat in tekst (“Ja”, “Nee”, of een omschrijving), het vinkje is alleen versiering.
+- Vergelijkingstabel gratis versus lid; de betekenis staat in tekst (“Ja”, “Nee”, of een omschrijving), het vinkje is alleen versiering. De rijen per rekentool komen rechtstreeks uit `src/data/tools.ts` (`toegang`, `gratisDeel`, `proDeel`), zodat de tabel niet uit de pas loopt met wat de tools zelf vrij en betaald maken.
+- Prijstabel en vergelijkingstabel worden tot 600 px breed per rij gestapeld (kolomnaam vóór elke waarde). Zo valt op 400 px de kolom “Incl. btw” of “Lid” niet meer weg achter een horizontale scrollbalk.
 - Stappenplan aanmelden → orderbevestiging → toegang → factuur, met knoppen naar het formulier en “Eerst een offerte aanvragen” (opent hetzelfde formulier met `?soort=offerte`).
 - Veelgestelde vragen (offerte en inkoopordernummer, e-factuur, aantal gebruikers, proefperiode, looptijd en opzeggen, factuurmoment, prijswijziging, maatwerk) als uitklapblokken.
 - Bronnenlijst met alle externe gegevens, URL en peildatum.
@@ -44,19 +45,21 @@ Een concept van het formulier blijft bewaard in `sessionStorage` (`afvalplatform
 | `src/data/lidmaatschap.ts` | Staffels en prijzen (met onderbouwing per staffel), voorwaarden, organisatietypen, inbegrepen, vergelijking, FAQ, bronnen, veldnamen formulier |
 | `src/lib/prijs.ts` (+ `prijs.test.ts`) | Pure functies: staffel bepalen, btw, looptijd en datums, startdatum controleren, ordernummer |
 | `src/components/lidmaatschap/aanmelding.ts` (+ test) | Formuliergegevens, controles, opschonen, Netlify-codering |
+| `src/components/lidmaatschap/vergelijking.test.ts` | Controleert dat de vergelijking gratis/lid voor elke rekentool gelijk is aan `src/data/tools.ts` |
 | `src/components/lidmaatschap/Velden.tsx` | Toegankelijke formuliervelden |
 | `src/components/lidmaatschap/onderdelen.tsx` | Staffelkaarten, prijstabel, voorwaarden, vergelijking, FAQ, bronnen, prijsregels |
 | `src/components/lidmaatschap/lidmaatschap.css` | Opmaak, alleen tokens |
 | `src/pages/Lidmaatschap.tsx`, `src/pages/Aanmelden.tsx` | De twee pagina’s |
 | `src/pages/Over.tsx` | Verdienmodel toont nu de conceptstaffels; rekenvoorbeeld als aanname gelabeld |
 | `index.html` | Verborgen kopie formulier `aanmelding` |
-| `e2e/lidmaatschap.spec.ts` | End-to-end: prijzenpagina, kruimelpad, foutmeldingen, volledige aanmelding met controle van de verzonden velden, offerteaanvraag en doorstap naar aanmelden, terugval bij mislukt verzenden; op 400 px en 1280 px (16 tests) |
+| `e2e/lidmaatschap.spec.ts` | End-to-end: prijzenpagina, kruimelpad, foutmeldingen, volledige aanmelding met controle van de verzonden velden, offerteaanvraag en doorstap naar aanmelden, terugval bij mislukt verzenden, tabellen zonder horizontaal scrollen; op 400 px en 1280 px (18 tests) |
 
 ## Onderhoud
 
 - **Prijs wijzigen:** alleen `prijsExclBtw` in `staffels` (`src/data/lidmaatschap.ts`). Pas `onderbouwing` en het commentaarblok “Keuze per staffel” aan.
 - **Prijzen vaststellen:** zet `prijzenVastgesteld` op `true`. Het conceptlabel en de conceptzinnen verdwijnen dan overal.
 - **Voorwaarden** (looptijd, opzegtermijn, betaaltermijn, proefdagen, geldigheid offerte, maximale startdatum): object `voorwaarden`. Pagina’s, berekening en bevestiging volgen vanzelf. Houd de algemene voorwaarden gelijk.
+- **Vergelijking gratis/lid:** de rijen voor rekentools pas je aan in `src/data/tools.ts` (`gratisDeel`, `proDeel`, `toegang`); de overige rijen in `vergelijking` in `src/data/lidmaatschap.ts`. Een rij met `inLijsten: false` staat wel in de tabel maar niet in de korte lijsten op Over het platform.
 - **Btw-tarief:** `btwPercentage`; werk dan ook `bronnen.btw.peildatum` bij.
 - **Bronnen:** controleer de links in `bronnen` jaarlijks en zet de nieuwe peildatum. De Europese drempelbedragen wijzigen per 1 januari 2028.
 - **Formulierveld toevoegen:** in `AanmeldGegevens` en `formulierVelden` (`aanmelding.ts`), in `aanmeldVelden` (`lidmaatschap.ts`) én in de verborgen kopie in `index.html`. De test faalt als die drie uit de pas lopen.
@@ -84,9 +87,10 @@ Correctie ten opzichte van de vorige ronde: de betaaltermijn verwees naar “art
 2. **Proeftoegang van 30 dagen** en **bevestiging binnen 2 werkdagen** zijn interne afspraken in concept.
 3. **E-factuur via Peppol** is nog niet ingericht bij KplusV; het formulier zegt dat KplusV bevestigt of het kan.
 4. **Algemene voorwaarden en privacyverklaring** (andere bouwer) moeten dezelfde looptijd, verlenging, opzegtermijn, betaaltermijn en prijswijzigingsregel bevatten als `voorwaarden`, en de verwerking van aanmeldgegevens (Netlify Forms, bewaartermijn) noemen.
-5. **Vergelijkingstabel**: de teksten per tool (“Eén jaar”, “Meerdere installaties” enz.) moeten kloppen met wat de toolbouwers uiteindelijk vrij en betaald maken.
+5. **Vergelijkingstabel**: opgelost voor de rekentools (rijen volgen nu `src/data/tools.ts`). De rij “Aanbestedingsarchief” en de regel in “Wat is inbegrepen” beloven een archief dat nu nog alleen verzonnen aanbestedingen bevat. Vóór de eerste echte factuur moet het archief echte data hebben, of moet deze belofte uit de prijspagina.
 6. **Automatisch lidmaatschap activeren** gebeurt nog handmatig in Supabase. Een volgende stap is een Netlify-functie of Supabase-edge-functie die de inzending als `status = 'aangevraagd'` in `organisaties` zet.
 7. Netlify Forms vangt inzendingen alleen op na een deploy met form detection aan; testen kan pas na de eerste deploy. Netlify stuurt de aanvrager zelf geen e-mail; de bevestiging op het scherm (afdrukbaar) en de mail van KplusV zijn de bevestiging.
 8. **Kleurtoken voor fouten** ontbreekt in `src/styles/tokens.css`; `components.css` en deze module gebruiken `#b91c1c`. Deze module gebruikt nu `var(--fout, #b91c1c)`, zodat een token `--fout` vanzelf doorwerkt.
 9. **Algemene voorwaarden, artikel 3** noemt de offertegeldigheid (30 dagen) als vaste tekst. Beter: `voorwaarden.offerteGeldigDagen` uit `src/data/lidmaatschap.ts`, zodat beide gelijk blijven.
 10. **Kruimelpad** staat nu alleen op de aanmeldpagina. Een kruimelpad voor de hele site hoort in de layout (andere bouwer).
+11. **Algemene voorwaarden, artikel 3** zegt “of vraagt per e-mail een offerte aan”. Het aanmeldformulier heeft nu ook de keuze “Eerst een offerte ontvangen”; voeg die toe aan de tekst (bestand van de juridische bouwer).

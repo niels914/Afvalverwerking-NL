@@ -108,6 +108,18 @@ test.describe('Indexcalculator', () => {
   });
 });
 
+test.describe('Indexcalculator: vergelijking in de deellink', () => {
+  test('een gedeelde link bewaart de vergeleken contractjaren', async ({ page }) => {
+    await page.goto('/tools/indexcalculator?soort=jaar&tarief=100&reeks=cpi&basis=2021&peil=2025&weging=cpi:100&vast=0&van=2022&tot=2026&verschuiving=1&maand=9&vgl=2023-2025');
+    const preview = page.locator('.vergrendeld-preview');
+    await expect(preview.getByText('Verschil 2023 → 2025')).toBeVisible();
+    // Contractjaar J gebruikt het jaarcijfer van J − 1.
+    const f = cpi.jaren['2024'] / cpi.jaren['2022'];
+    await expect(preview.locator('.tegel').filter({ hasText: 'Verschil 2023 → 2025' })).toContainText(nl((f - 1) * 100, 1));
+    await expect(page).toHaveURL(/vgl=2023-2025/);
+  });
+});
+
 test.describe('CO2-heffingenscan', () => {
   test('rekent met het wettelijke tarief en de correctiefactor', async ({ page }) => {
     await page.goto('/tools/co2-heffingenscan');

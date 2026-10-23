@@ -698,7 +698,7 @@ function Samenvatting({ g, onWijzig }: { g: AanmeldGegevens; onWijzig?: () => vo
   const leeg = <span className="muted">niet ingevuld</span>;
   return (
     <Kaart titel="Uw gegevens" actie={wijzig}>
-      <h3 className="klein" style={{ color: 'var(--donkerviolet)' }}>Organisatie</h3>
+      <h3 className="lm-subkop">Organisatie</h3>
       <dl className="lm-gegevens">
         <Rij label="Aanvraag">{g.soort === 'offerte' ? 'Offerte, nog geen aanmelding' : 'Aanmelding als lid'}</Rij>
         <Rij label="Naam">{g.organisatie}</Rij>
@@ -708,7 +708,7 @@ function Samenvatting({ g, onWijzig }: { g: AanmeldGegevens; onWijzig?: () => vo
         <Rij label="Btw-id">{g.btw_nummer || leeg}</Rij>
         <Rij label="OIN">{g.oin || leeg}</Rij>
       </dl>
-      <h3 className="klein" style={{ color: 'var(--donkerviolet)' }}>Facturering</h3>
+      <h3 className="lm-subkop">Facturering</h3>
       <dl className="lm-gegevens">
         <Rij label="Factuuradres">
           {g.factuur_ter_attentie && (
@@ -726,7 +726,7 @@ function Samenvatting({ g, onWijzig }: { g: AanmeldGegevens; onWijzig?: () => vo
         <Rij label="Peppol-ID">{g.factuurvorm === 'peppol' ? g.peppol_id || 'via OIN' : ''}</Rij>
         <Rij label="Inkoopordernummer">{g.inkoopordernummer || leeg}</Rij>
       </dl>
-      <h3 className="klein" style={{ color: 'var(--donkerviolet)' }}>Contact en toegang</h3>
+      <h3 className="lm-subkop">Contact en toegang</h3>
       <dl className="lm-gegevens">
         <Rij label="Contactpersoon">
           {g.contact_naam}

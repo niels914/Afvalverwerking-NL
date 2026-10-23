@@ -360,10 +360,11 @@ function IndexPro({ invoer, zet, deelParams }: ProProps) {
   const cpiPerJaar = new Map(alleenCpi.map((r) => [r.jaar, r.tarief]));
   const grafiekRijen = rijen.filter((r) => cpiPerJaar.has(r.jaar));
 
-  const [jaarA, setJaarA] = useState<number | null>(null);
-  const [jaarB, setJaarB] = useState<number | null>(null);
+  // De vergelijking staat in de invoer, zodat de deellink hem bewaart.
+  const [jaarA, jaarB] = invoer.vergelijk ?? [null, null];
   const a = jaarA !== null && rijen.some((r) => r.jaar === jaarA) ? jaarA : rijen[0]?.jaar;
   const b = jaarB !== null && rijen.some((r) => r.jaar === jaarB) ? jaarB : rijen[rijen.length - 1]?.jaar;
+  const zetVergelijk = (na: number, nb: number) => zet('vergelijk', [na, nb]);
   const vergelijking = a !== undefined && b !== undefined ? vergelijkJaren(rijen, a, b) : undefined;
   const ontbrekend = laatsteJaar - eersteJaar + 1 - rijen.length;
   const voorlopigGebruikt = rijen.some((r) => gebruikt.some((g) => isVoorlopig(g, r.peilperiode))) || (peil !== undefined && gebruikt.some((g) => isVoorlopig(g, peil)));
@@ -410,6 +411,14 @@ function IndexPro({ invoer, zet, deelParams }: ProProps) {
       cpiPerJaar.get(r.jaar) ?? null,
     ]),
     [],
+    ...(vergelijking && a !== undefined && b !== undefined
+      ? ([
+          ['Vergelijking contractjaren', `${a} met ${b}`],
+          ['Verschil tarief (euro per ton)', vergelijking.verschil],
+          ['Verschil tarief (%)', vergelijking.verschilPct],
+          [],
+        ] as CsvCel[][])
+      : []),
     ['Formule', FORMULE_PRO],
     ...(grenzen ? [['Begrenzing', FORMULE_GRENS] as CsvCel[]] : []),
   ];
@@ -623,8 +632,8 @@ function IndexPro({ invoer, zet, deelParams }: ProProps) {
           </div>
           {jaarOpties.length > 1 && (
             <div className="velden-2 invoerkaart">
-              <KeuzeVeld label="Vergelijk contractjaar" waarde={a!} opties={jaarOpties} onChange={setJaarA} />
-              <KeuzeVeld label="met contractjaar" waarde={b!} opties={jaarOpties} onChange={setJaarB} />
+              <KeuzeVeld label="Vergelijk contractjaar" waarde={a!} opties={jaarOpties} onChange={(j) => zetVergelijk(j, b!)} />
+              <KeuzeVeld label="met contractjaar" waarde={b!} opties={jaarOpties} onChange={(j) => zetVergelijk(a!, j)} />
             </div>
           )}
           <ExportKnoppen naam="Indexcalculator Pro" csvRijen={csvPro} params={deelParams} pad={PAD} />

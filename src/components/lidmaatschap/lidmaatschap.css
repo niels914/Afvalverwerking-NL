@@ -64,6 +64,10 @@
 .lm-staffel > * + * {
   margin-top: 0;
 }
+.lm-staffel h3 {
+  border-left: 4px solid var(--paars);
+  padding-left: 12px;
+}
 .lm-staffel .bedrag {
   font-size: 26px;
   font-weight: 700;
@@ -96,6 +100,20 @@
   margin: 0;
   overflow-wrap: anywhere;
 }
+* + .lm-gegevens {
+  margin-top: 12px;
+}
+.lm-subkop {
+  font-size: 13.5px;
+  color: var(--donkerviolet);
+  margin: 0 0 6px;
+}
+.lm-gegevens + .lm-subkop {
+  margin-top: 20px;
+}
+.lm-subkop + .lm-gegevens {
+  margin-top: 0;
+}
 @media (max-width: 600px) {
   .lm-gegevens {
     grid-template-columns: minmax(0, 1fr);
@@ -103,6 +121,11 @@
   }
   .lm-gegevens dd {
     margin-bottom: 8px;
+  }
+  /* Gestapeld: één lijn boven het totaal, niet boven label én bedrag. */
+  .lm-gegevens dd.lm-totaal {
+    border-top: 0;
+    padding-top: 0;
   }
 }
 
@@ -130,6 +153,54 @@
 }
 .lm-nee::before {
   content: '– ';
+}
+
+/* Op smalle schermen: elke rij als blok met de kolomnaam ervoor, zodat er niets buiten beeld valt
+   (anders verdwijnt op 400 px juist de kolom "Incl. btw" of "Lid" achter een horizontale scrollbalk). */
+@media (max-width: 600px) {
+  .lm-tabel-stapel,
+  .lm-tabel-stapel tbody,
+  .lm-tabel-stapel tr,
+  .lm-tabel-stapel th,
+  .lm-tabel-stapel td,
+  .lm-tabel-stapel caption {
+    display: block;
+  }
+  .lm-tabel-stapel thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .lm-tabel-stapel tr {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--rij);
+  }
+  .lm-tabel-stapel th[scope='row'] {
+    min-width: 0;
+    padding: 0 0 6px;
+    border: 0;
+  }
+  .lm-tabel-stapel td,
+  .lm-tabel-stapel td.num {
+    display: grid;
+    grid-template-columns: minmax(0, 7.5em) minmax(0, 1fr);
+    gap: 12px;
+    padding: 3px 0;
+    border: 0;
+    text-align: left;
+    white-space: normal;
+  }
+  .lm-tabel-stapel td::before {
+    content: attr(data-label);
+    color: var(--tekst-secundair);
+    font-weight: 500;
+  }
+  .lm-tabel-stapel caption {
+    border-bottom: 1px solid var(--rij);
+  }
 }
 
 /* Stappenplan */

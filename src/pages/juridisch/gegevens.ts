@@ -21,11 +21,11 @@ export interface DocumentMeta {
 }
 
 export const documenten: Record<DocumentId, DocumentMeta> = {
-  'algemene-voorwaarden': { titel: 'Algemene voorwaarden', pad: '/algemene-voorwaarden', versie: '0.1', gewijzigd: '2026-10-19', concept: true },
-  privacy: { titel: 'Privacyverklaring', pad: '/privacy', versie: '0.1', gewijzigd: '2026-10-19', concept: true },
-  cookies: { titel: 'Cookieverklaring', pad: '/cookies', versie: '0.1', gewijzigd: '2026-10-19', concept: true },
-  toegankelijkheid: { titel: 'Toegankelijkheidsverklaring', pad: '/toegankelijkheid', versie: '0.1', gewijzigd: '2026-10-19', concept: true },
-  disclaimer: { titel: 'Disclaimer en colofon', pad: '/disclaimer', versie: '0.1', gewijzigd: '2026-10-19', concept: true },
+  'algemene-voorwaarden': { titel: 'Algemene voorwaarden', pad: '/algemene-voorwaarden', versie: '0.2', gewijzigd: '2026-10-20', concept: true },
+  privacy: { titel: 'Privacyverklaring', pad: '/privacy', versie: '0.2', gewijzigd: '2026-10-20', concept: true },
+  cookies: { titel: 'Cookieverklaring', pad: '/cookies', versie: '0.2', gewijzigd: '2026-10-20', concept: true },
+  toegankelijkheid: { titel: 'Toegankelijkheidsverklaring', pad: '/toegankelijkheid', versie: '0.2', gewijzigd: '2026-10-20', concept: true },
+  disclaimer: { titel: 'Disclaimer en colofon', pad: '/disclaimer', versie: '0.2', gewijzigd: '2026-10-20', concept: true },
 };
 
 export interface Bron {
@@ -119,29 +119,23 @@ export const bronnen = {
     url: 'https://supabase.com/docs/guides/platform/regions',
     peildatum: '2026-10-19',
   },
-  osmPrivacy: {
-    feit: 'De OpenStreetMap Foundation verwerkt IP-adressen en verzoeken bij het leveren van kaarttegels via een wereldwijd netwerk van cacheservers; overige persoonsgegevens staan in het Verenigd Koninkrijk en Nederland',
-    titel: 'OpenStreetMap Foundation – Privacy Policy',
-    url: 'https://osmfoundation.org/wiki/Privacy_Policy',
-    peildatum: '2026-10-19',
-  },
-  osmTegels: {
-    feit: 'Gebruik van tile.openstreetmap.org is gratis, zonder garantie op beschikbaarheid, met naamsvermelding en zonder massaal downloaden',
-    titel: 'OpenStreetMap Foundation – Tile Usage Policy',
-    url: 'https://operations.osmfoundation.org/policies/tiles/',
-    peildatum: '2026-10-19',
-  },
-  osmLicentie: {
-    feit: 'OpenStreetMap-gegevens: © OpenStreetMap-bijdragers, Open Database License (ODbL)',
-    titel: 'OpenStreetMap – Copyright and License',
-    url: 'https://www.openstreetmap.org/copyright',
-    peildatum: '2026-10-19',
-  },
   cbsLicentie: {
     feit: 'Inhoud van cbs.nl valt onder Creative Commons Naamsvermelding (CC BY 4.0): hergebruik mag met CBS als bron',
     titel: 'CBS – Copyright',
     url: 'https://www.cbs.nl/nl-nl/over-ons/website/copyright',
     peildatum: '2026-10-19',
+  },
+  pdokLicentie: {
+    feit: 'CBS Gebiedsindelingen (gemeentegrenzen) van CBS en Kadaster via PDOK, licentie CC BY 4.0',
+    titel: 'PDOK – OGC API CBS Gebiedsindelingen (metadata, link "license")',
+    url: 'https://api.pdok.nl/cbs/gebiedsindelingen/ogc/v1?f=json',
+    peildatum: '2026-10-20',
+  },
+  auteurswet: {
+    feit: 'Er bestaat geen auteursrecht op wetten, besluiten en verordeningen van de openbare macht, noch op rechterlijke uitspraken en administratieve beslissingen',
+    titel: 'Auteurswet, artikel 11 (wetten.overheid.nl)',
+    url: 'https://wetten.overheid.nl/BWBR0001886/',
+    peildatum: '2026-10-20',
   },
   tenderned: {
     feit: 'TenderNed publiceert datasets over aanbestedingen voor analyses',
@@ -240,7 +234,7 @@ export const opslag: OpslagItem[] = [
     partij: 'Dit platform',
     doel: 'Wat u in het aanmeldformulier invult niet kwijtraken als u tussendoor een andere pagina opent, bijvoorbeeld de voorwaarden.',
     inhoud: 'De ingevulde velden van het aanmeldformulier, zonder de vinkjes voor akkoord.',
-    wanneer: 'Zodra u het aanmeldformulier invult.',
+    wanneer: 'Zodra u het aanmeldformulier opent, en daarna bij elke wijziging.',
     bewaarduur: 'Tot u het tabblad sluit of de aanmelding verstuurt.',
     codebestanden: ['src/pages/Aanmelden.tsx'],
   },
@@ -267,7 +261,7 @@ export const opslag: OpslagItem[] = [
 ];
 
 /** Datum waarop de cookies en opslag zijn gemeten met een echte browser (e2e/juridisch.spec.ts). */
-export const opslagGemetenOp = '2026-10-19';
+export const opslagGemetenOp = '2026-10-20';
 
 // ---------- Supabase (privacyverklaring) ----------
 
@@ -318,14 +312,27 @@ export const externeDiensten: ExterneDienst[] = [
     doorgifte: 'Doorgifte naar de Verenigde Staten. Netlify neemt deel aan het EU-US Data Privacy Framework en gebruikt daarnaast standaardcontractbepalingen.',
     bron: ['netlifyPrivacy', 'adequaatheid'],
   },
+];
+
+// ---------- Verbindingen met andere servers (cookie- en privacyverklaring) ----------
+
+export interface ExterneVerbinding {
+  /** Hostnaam waarmee de browser verbinding maakt. */
+  host: string;
+  partij: string;
+  wanneer: string;
+}
+
+/**
+ * Alle servers buiten de eigen site waarmee de browser verbinding maakt. De site zelf (en de formulieren) staan op
+ * hetzelfde adres bij Netlify. e2e/juridisch.spec.ts opent alle pagina's en faalt bij een verbinding die hier niet staat.
+ * De kaart gebruikt geen kaarttegels van een andere partij: de gemeentegrenzen staan als bestand op de eigen server
+ * (public/data/gemeentegrenzen.geojson).
+ */
+export const externeVerbindingen: ExterneVerbinding[] = [
   {
-    naam: 'OpenStreetMap',
-    partij: 'OpenStreetMap Foundation (Verenigd Koninkrijk)',
-    rol: 'Zelfstandig verantwoordelijk',
-    waarvoor: 'Kaarttegels voor de kaart op de homepage en op de pagina Restafvalkaart.',
-    gegevens: 'Uw IP-adres, het opgevraagde kaartdeel, het adres van deze website (referrer) en uw browsertype. Alleen op pagina’s met een kaart.',
-    waar: 'Wereldwijd netwerk van cacheservers; overige gegevens in het Verenigd Koninkrijk en Nederland.',
-    doorgifte: 'Het Verenigd Koninkrijk heeft een adequaatheidsbesluit van de Europese Commissie. Via welke cacheserver een tegel komt, bepaalt het netwerk van OpenStreetMap.',
-    bron: ['osmPrivacy', 'adequaatheid'],
+    host: `${supabaseProject.ref}.supabase.co`,
+    partij: 'Supabase',
+    wanneer: 'Bij inloggen, op Mijn account en op ledenonderdelen als u bent ingelogd. Niet bij een bezoek zonder in te loggen.',
   },
 ];

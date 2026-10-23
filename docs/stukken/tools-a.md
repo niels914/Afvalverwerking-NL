@@ -1,6 +1,6 @@
 # Tools A: Indexcalculator en CO2-heffingenscan
 
-Stand: 19 oktober 2026 (ronde 1, afgemaakt na een eerdere poging die halverwege stopte).
+Stand: 20 oktober 2026 (ronde 1; afgemaakt na een eerdere poging die halverwege stopte, op 20 oktober gecontroleerd en aangevuld).
 Beide tools rekenen nu met officiële cijfers. Elk cijfer heeft een bron en een peildatum in de UI, in de CSV en in een
 databestand. Wat de tool niet uit een officiële bron kan halen, staat zichtbaar als aanname of kental.
 
@@ -8,7 +8,7 @@ databestand. Wat de tool niet uit een officiële bron kan halen, staat zichtbaar
 
 | Onderdeel | Bestand | Wat het doet |
 |---|---|---|
-| Indexcalculator | `src/pages/tools/Indexcalculator.tsx` | Gratis: één CBS-reeks, jaar- of maandcijfers, basis- en peilperiode, voorlopige cijfers gemarkeerd. Pro: eigen weging over zes reeksen plus een vast deel, tarief per contractjaar (peilmaand of jaargemiddelde, indexcijfer van hetzelfde of het voorgaande jaar), plafond per indexatie en "geen negatieve indexatie", vergelijking van twee contractjaren, grafiek met CPI ter vergelijking. |
+| Indexcalculator | `src/pages/tools/Indexcalculator.tsx` | Gratis: één CBS-reeks, jaar- of maandcijfers, basis- en peilperiode, voorlopige cijfers gemarkeerd. Pro: eigen weging over zes reeksen plus een vast deel, tarief per contractjaar (peilmaand of jaargemiddelde, indexcijfer van hetzelfde of het voorgaande jaar), plafond per indexatie en "geen negatieve indexatie", vergelijking van twee contractjaren (ook in de deellink, parameter `vgl`, en in de CSV), grafiek met CPI ter vergelijking. |
 | Rekenlogica index | `src/lib/calc/indexering.ts` (+ test) | Pure functies: gewogen factor, perioden, contractjaren, begrenzing (`begrensStap`), invoer naar en uit de URL. |
 | CBS-data | `src/data/indexreeksen.json`, `src/data/indexreeksen.ts` | Zes reeksen met tabel-id, tabeltitel, dimensies, onderwerp, basisjaar, laatste wijziging bij CBS, peildatum, bron-URL (StatLine) en API-URL. Maand- en jaarcijfers zoals CBS ze publiceert; jaargemiddelden worden niet zelf berekend. |
 | Ophaalscript | `scripts/cbs-indexreeksen.mjs` | Haalt de reeksen op via de CBS OData-API (v3) en schrijft de JSON. Meldt ontbrekende maanden. |
@@ -56,6 +56,11 @@ begint in januari 2018.
 - Het basisjaar van een CBS-reeks maakt voor de uitkomst niet uit, behalve kleine afrondingsverschillen als CBS een
   reeks herbaseert.
 
+### Peildatum
+
+De CBS-reeksen zijn op 20 oktober 2026 opnieuw opgehaald. De waarden zijn gelijk aan die van 19 oktober; alleen de
+peildatum is verschoven. Laatste cijfers: CPI, cao-lonen en dieselprijs t/m september 2026, PPI energie t/m augustus 2026.
+
 ### Onderhoud
 
 ```bash
@@ -95,6 +100,11 @@ de verwerker doorberekent, hangt af van het contract.
 
 ### Gebruikte cijfers en bronnen (peildatum 19 oktober 2026)
 
+Op 20 oktober 2026 opnieuw gecontroleerd en ongewijzigd: de NEa-pagina's over tarieven, AVI's, dispensatierechten en
+mogelijke afschaffing, en het wetsvoorstel Belastingplan 2027 (€ 129,15; verhogingen € 22,79 t/m € 26,77; 1,026).
+wetten.overheid.nl was die dag niet bereikbaar (lege respons). De peildatum in `co2-tarieven.ts` blijft daarom
+19 oktober, de laatste dag waarop alle bronnen zijn gecontroleerd.
+
 | Gegeven | Waarde | Bron |
 |---|---|---|
 | Tarief AVI 2026 | € 103,66 per ton CO2 | Wbm art. 71p lid 1 (stand 4 juni 2026, nog geldend op 19-10-2026), https://wetten.overheid.nl/BWBR0007168/2026-06-04#HoofdstukVIB; NEa, https://www.emissieautoriteit.nl/regelgeving/co2-heffing/tarieven-co2-heffing |
@@ -126,12 +136,14 @@ de verwerker doorberekent, hangt af van het contract.
 4. Draai `npx vitest run src/lib/calc/co2.test.ts`. De tests controleren de NEa-tabel, het voorstel tot 2035 en de
    tabel in prijspeil 2026; pas verwachte waarden alleen aan na een wetswijziging.
 
-## Controles (19 oktober 2026)
+## Controles (20 oktober 2026)
 
-- `npx tsc --noEmit -p .`: geen fouten.
-- `npx vitest run` voor `indexering`, `co2` en `rekenen/export`: 46 tests geslaagd.
+- `npx tsc --noEmit -p .`: geen fouten (hele project).
+- `npx vitest run` voor `indexering`, `co2` en `rekenen/export`: 46 tests geslaagd (deellinktest uitgebreid met de
+  vergeleken contractjaren en ongeldige `vgl`-waarden).
 - `npx vite build --outDir /tmp/claude-0/build-tools-a`: geslaagd (waarschuwing chunkgrootte, niet van dit onderdeel).
-- `PW_BASE=http://localhost:5103 npx playwright test e2e/tools-a.spec.ts`: 22 geslaagd, 4 overgeslagen (Pro met inlog).
+- `PW_BASE=http://localhost:5103 npx playwright test e2e/tools-a.spec.ts`: 24 geslaagd, 4 overgeslagen (Pro met inlog).
+  Nieuw: een gedeelde link met `vgl=2023-2025` toont dezelfde vergelijking.
 - Op 400 px geen horizontale pagina-scroll (brede tabellen scrollen binnen hun eigen, focusbare kader).
 
 ## Open punten
@@ -141,6 +153,8 @@ de verwerker doorberekent, hangt af van het contract.
   e2e-test op de juiste uitkomst gecontroleerd.
 - **Eerste publicatie versus herziene cijfers.** CBS herziet voorlopige cijfers. Contracten die het eerst gepubliceerde
   cijfer voorschrijven, hebben een archief van eerdere versies nodig. Het script bewaart alleen de actuele stand.
+- **wetten.overheid.nl** was op 20 oktober niet bereikbaar; controleer bij de volgende ronde of er een nieuwere
+  versie van de Wbm (na 4 juni 2026) of de Wm (na 1 augustus 2026) is en pas zo nodig de links in `bronnen` aan.
 - **Afronding per jaar** (bijvoorbeeld tarief afronden op hele centen voor de volgende indexatie) zit er nog niet in.
 - **Meer reeksen** op verzoek van leden, bijvoorbeeld CPI zonder energie, PPI voor specifieke diensten of de
   loonkostenindex. Toevoegen via `REEKSEN` in het script.
@@ -149,6 +163,8 @@ de verwerker doorberekent, hangt af van het contract.
 - **Doorberekening.** De scan geeft de heffing naar rato van tonnage, niet wat een verwerker contractueel doorberekent.
 - **EU ETS voor AVI's vanaf 2028** (besluit Europese Commissie in 2026) en **afschaffing van de heffing** (coalitieakkoord)
   kunnen de uitkomst sterk veranderen. Beide staan als ontwikkeling in de tool, niet als rekenpad.
-- `src/data/tools.ts` (niet van dit onderdeel) beschrijft beide tools nog als "voorbeeldberekening met vaste weging" en
-  "instelbare voorbeeldwaarden", en `toegangLabel['gratis+pro']` zegt "Gratis voorbeeld + Pro". De tools tonen daarom
-  zelf het label "Gratis deel + Pro voor leden".
+- `README.md` (niet van dit onderdeel) noemt de indexreeksen, de emissiefactor en de CO2-heffing nog fictief en geeft
+  bij Indexcalculator en CO2-heffingenscan de oude formules. Voorstel voor de beheerder van de README: tabelregel
+  `indexreeksen.ts/.json` wordt "zes CBS-reeksen, opgehaald met scripts/cbs-indexreeksen.mjs", nieuwe regel
+  `co2-tarieven.ts` ("tarieven en regels CO2-heffing AVI's met bron en peildatum"), formules volgens dit stuk, en de
+  regels over indexreeksen, emissiefactor en CO2-heffing uit "Wat is fictief" halen.

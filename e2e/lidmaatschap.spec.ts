@@ -54,6 +54,24 @@ test.describe('Lidmaatschap en prijzen', () => {
     await geenHorizontaleScroll(page);
   });
 
+  test('prijstabel en vergelijkingstabel passen zonder horizontaal scrollen; vergelijking volgt de tools', async ({ page }) => {
+    await page.goto('/lidmaatschap');
+    for (const id of ['#prijzen', '#vergelijking']) {
+      const pastErin = await page.locator(`${id} .tabel-container`).evaluate((el) => el.scrollWidth <= el.clientWidth + 1);
+      expect(pastErin, `tabel in ${id} scrolt horizontaal`).toBe(true);
+    }
+    // De kolom incl. btw en de kolom Lid staan in beeld, ook op 400 px.
+    const verwerker = page.locator('#prijzen tbody tr', { hasText: 'Verwerker' });
+    await verwerker.scrollIntoViewIfNeeded();
+    await expect(verwerker.locator('td').last()).toBeInViewport({ ratio: 1 });
+    await expect(verwerker.locator('td').last()).toContainText('6.655,00');
+    // Rijen per rekentool komen uit src/data/tools.ts.
+    const index = page.locator('#vergelijking tbody tr', { hasText: 'Indexcalculator' });
+    await expect(index).toContainText('Eén CBS-reeks');
+    await expect(index).toContainText('zes CBS-reeksen');
+    await expect(page.locator('#vergelijking tbody tr', { hasText: 'Aanbestedingstool' })).toContainText('Ja');
+  });
+
   test('aanmeldknop bij een staffel kiest het juiste type', async ({ page }) => {
     await page.goto('/lidmaatschap');
     await page.getByRole('link', { name: 'Aanmelden: Verwerker' }).click();

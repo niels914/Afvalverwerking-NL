@@ -28,15 +28,31 @@ const secties: Sectie[] = [
     inhoud: (
       <>
         <p>
-          Het platform is in opbouw. Sommige onderdelen bevatten nog voorbeelddata: verzonnen gegevens die laten zien hoe een
-          onderdeel werkt. Die onderdelen hebben het label <strong>Voorbeeld</strong>, <strong>Voorbeeldbericht</strong> of{' '}
-          <strong>Voorbeelddata</strong>.
+          Het platform is in opbouw. Een deel van de inhoud is echt en heeft een bron, een ander deel is nog voorbeeld. Wat
+          voorbeeld is, heeft het label <strong>Voorbeeld</strong> of staat zo omschreven in de tekst.
         </p>
+        <h3>Nu nog voorbeeld</h3>
         <ul>
-          <li>Gebruik voorbeelddata nooit als bron voor een besluit, een nota of een aanbesteding.</li>
-          <li>Echte cijfers staan altijd met bron en peildatum vermeld. Ontbreekt een bron, dan is het geen echt cijfer.</li>
-          <li>Zodra alle voorbeelddata is vervangen, verdwijnt de bètamelding bovenaan de pagina’s.</li>
+          <li>Het aanbestedingsarchief: alle aanbestedingen daarin zijn verzonnen.</li>
+          <li>
+            Invoervelden in de rekentools met het label &lsquo;Voorbeeld, vul eigen waarde in&rsquo;. Die waarden hebben geen
+            officiële bron; vul uw eigen gegevens in.
+          </li>
+          <li>
+            Criteria in de aanbestedingstool met het label &lsquo;Voorbeeld KplusV&rsquo;. Dat zijn voorbeelden uit de praktijk,
+            geen officiële MVI-criteria.
+          </li>
         </ul>
+        <h3>Echt, met bron</h3>
+        <ul>
+          <li>Cijfers op de Restafvalkaart, met bron en peildatum op de kaartpagina.</li>
+          <li>Standaardwaarden in de rekentools die een bron en een peildatum hebben.</li>
+          <li>Nieuwsberichten en publicaties in de kennisbank, met een link naar de uitgever.</li>
+        </ul>
+        <p>
+          Gebruik voorbeelddata nooit als bron voor een besluit, een nota of een aanbesteding. Staat er bij een cijfer geen bron,
+          dan is het geen officieel cijfer. Zodra er geen voorbeelddata meer is, verdwijnt de bètamelding bovenaan de pagina’s.
+        </p>
       </>
     ),
   },
@@ -63,21 +79,30 @@ const secties: Sectie[] = [
     titel: 'Open data en bronvermelding',
     inhoud: (
       <>
-        <p>Het platform gebruikt open data van overheden en anderen. Bij elk gegeven staan de bron en de peildatum.</p>
+        <p>
+          Het platform gebruikt open data van overheden. Bij elk gegeven staan de bron en de peildatum, bij de rekentools in het
+          onderdeel &lsquo;Bronnen en peildatum&rsquo;. De belangrijkste bronnen:
+        </p>
         <ul>
           <li>
-            <strong>CBS</strong>: waar het platform cijfers van het CBS gebruikt, zoals de prijsindexen in de
-            indexcalculator, staat CBS als bron vermeld, met de tabel en de datum van ophalen. De inhoud van CBS valt onder Creative Commons Naamsvermelding 4.0 (CC BY 4.0):
-            hergebruik mag, met CBS als bron.
+            <strong>CBS</strong>: afvalcijfers per gemeente, inwonertallen en prijsindexen. De inhoud van het CBS valt onder
+            Creative Commons Naamsvermelding 4.0 (CC BY 4.0): hergebruik mag, met het CBS als bron.
           </li>
           <li>
-            <strong>TenderNed</strong>: gegevens over aanbestedingen. De officiële en volledige tekst van een aankondiging
-            staat altijd op TenderNed; het platform geeft een samenvatting en verwijst daarnaar. Het aanbestedingsarchief
-            bevat nu nog voorbeelddata.
+            <strong>CBS en Kadaster via PDOK</strong>: de gemeentegrenzen op de kaart, onder CC BY 4.0. Het platform heeft de
+            grenzen vereenvoudigd om de kaart sneller te laden.
           </li>
           <li>
-            <strong>OpenStreetMap</strong>: de ondergrond van de kaart. © OpenStreetMap-bijdragers, beschikbaar onder de Open
-            Database License.
+            <strong>Wet- en regelgeving en Rijksoverheid</strong>: tarieven en regels uit wetten, besluiten en officiële
+            bekendmakingen. Op wetten en besluiten rust geen auteursrecht.
+          </li>
+          <li>
+            <strong>TenderNed</strong>: gegevens over aanbestedingen. De officiële tekst van een aankondiging staat altijd op
+            TenderNed. Het aanbestedingsarchief bevat nu nog voorbeelddata.
+          </li>
+          <li>
+            <strong>Andere bronnen</strong>, zoals Rijkswaterstaat, de Nederlandse Emissieautoriteit, PIANOo (MVI-criteria) en
+            branchepartijen: bij elk gegeven staat welke bron het is.
           </li>
         </ul>
         <p>
@@ -85,21 +110,27 @@ const secties: Sectie[] = [
           zo’n fout, meld die dan bij de bron en bij ons.
         </p>
         <BronRegel sleutel="cbsLicentie" />
+        <BronRegel sleutel="pdokLicentie" />
+        <BronRegel sleutel="auteurswet" />
         <BronRegel sleutel="tenderned" />
-        <BronRegel sleutel="osmLicentie" />
       </>
     ),
   },
   {
     id: 'links',
-    titel: 'Links naar andere websites',
+    titel: 'Links en nieuwsberichten',
     inhoud: (
-      <p>
-        Het platform linkt naar websites van anderen, zoals nieuwsbronnen, overheden en kennisinstellingen. Wij zijn niet
-        verantwoordelijk voor de inhoud daarvan. Echte nieuwsberichten op het platform worden korte samenvattingen die
-        verwijzen naar het oorspronkelijke artikel; de volledige tekst en de rechten liggen bij de uitgever. Zolang een bericht
-        het label Voorbeeldbericht heeft, is het verzonnen en komt het niet van de genoemde bron.
-      </p>
+      <>
+        <p>
+          Het platform linkt naar websites van anderen, zoals overheden, kennisinstellingen en brancheorganisaties. Wij zijn
+          niet verantwoordelijk voor de inhoud daarvan.
+        </p>
+        <p>
+          Het nieuwsoverzicht toont de titel, de datum en de korte inleiding uit openbare nieuwsfeeds (RSS) van de uitgevers,
+          met een link naar het oorspronkelijke bericht. De volledige tekst en de rechten liggen bij de uitgever. Wil een
+          uitgever niet in het overzicht staan, dan halen wij de feed weg.
+        </p>
+      </>
     ),
   },
   {
@@ -155,7 +186,8 @@ const secties: Sectie[] = [
           <dd>Supabase, database in Frankfurt (EU)</dd>
           <dt>Kaart</dt>
           <dd>
-            © <a href={bronnen.osmLicentie.url}>OpenStreetMap-bijdragers</a>
+            Gemeentegrenzen: CBS en Kadaster via <a href={bronnen.pdokLicentie.url}>PDOK</a> (CC BY 4.0). Cijfers: CBS. Geen
+            kaarttegels van andere partijen.
           </dd>
           <dt>Lettertype</dt>
           <dd>Poppins, SIL Open Font License 1.1, op de eigen server</dd>
