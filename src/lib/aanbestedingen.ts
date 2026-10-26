@@ -158,12 +158,14 @@ export interface Kerncijfers {
   perStatus: Partial<Record<Status, number>>;
   totaal: number;
   laatsteVerversing: string | null; // ISO-tijdstempel van de laatste gelukte verversing
+  oudste: string | null; // vroegste publicatiedatum in het archief
 }
 
 export async function haalKerncijfers(): Promise<Kerncijfers> {
-  const [telling, ververs] = await Promise.all([
+  const [telling, ververs, oudste] = await Promise.all([
     supabase.rpc('aanbestedingen_telling'),
     supabase.from('aanbestedingen_verversingen').select('klaar').eq('gelukt', true).order('klaar', { ascending: false }).limit(1),
+    supabase.rpc('zoek_aanbestedingen', { p_sortering: 'publicatie-oud' }).select('publicatiedatum').range(0, 0),
   ]);
   if (telling.error) throw telling.error;
   const perStatus: Partial<Record<Status, number>> = {};
@@ -173,7 +175,8 @@ export async function haalKerncijfers(): Promise<Kerncijfers> {
     totaal += Number(r.aantal);
   }
   const laatste = ververs.data?.[0]?.klaar ?? null;
-  return { perStatus, totaal, laatsteVerversing: laatste };
+  const eerste = (oudste.data as { publicatiedatum: string }[] | null)?.[0]?.publicatiedatum ?? null;
+  return { perStatus, totaal, laatsteVerversing: laatste, oudste: eerste };
 }
 
 /* ---------- Weergave ---------- */
@@ -188,11 +191,6 @@ const tijdstempelFormaat = new Intl.DateTimeFormat('nl-NL', {
   hour12: false,
   timeZone: 'Europe/Amsterdam',
 });
-
-/** "15-12-2026" uit "2026-12-15T12:00:00". */
-export function sluitingDatumDeel(sluiting: string): string {
-  return sluiting.slice(0, 10);
-}
 
 /** "12:00" uit een lokale tijd "2026-12-15T12:00:00". */
 export function sluitingTijd(sluiting: string): string {

@@ -1,31 +1,38 @@
-import type { Aanbesteding } from './types';
+// Bron en voorwaarden van het aanbestedingsarchief.
+//
+// De aanbestedingen zelf staan niet meer in dit bestand maar in de Supabase-tabel public.aanbestedingen
+// (alleen leesbaar voor leden). De Edge Function ververs-aanbestedingen vult die elke ochtend vanuit TenderNed.
+// Zie docs/stukken/aanbestedingen.md voor onderhoud en de gebruiksvoorwaarden van de bron.
 
-// FICTIEF: vijftien verzonnen aanbestedingen. Opdrachtgevers, data en titels zijn bedacht.
-// De links gaan naar de homepage van TenderNed of Mercell, niet naar een echte aankondiging.
+export interface BronVermelding {
+  naam: string;
+  url: string;
+  licentie: string;
+  licentieUrl: string;
+  /** Datum waarop de voorwaarden en licentie zijn gecontroleerd (jjjj-mm-dd). */
+  peildatum: string;
+}
 
-const TENDERNED = 'https://www.tenderned.nl';
-const MERCELL = 'https://www.mercell.com';
-
-export const aanbestedingen: Aanbesteding[] = [
-  { id: 'a01', titel: 'Verwerking huishoudelijk restafval 2027–2032', opdrachtgever: 'Afvalsamenwerking Regio Noord', samenwerkingsverbandId: 'regio-noord', stroom: 'Restafval', procedure: 'Europees openbaar', regio: 'Noord', publicatie: '2026-09-02', sluiting: '2026-11-18', status: 'lopend', platform: 'TenderNed', url: TENDERNED },
-  { id: 'a02', titel: 'Vergisting en compostering GFT', opdrachtgever: 'Reinigingsdienst Rivierenland', samenwerkingsverbandId: 'rivierenland', stroom: 'GFT', procedure: 'Europees openbaar', regio: 'Midden', publicatie: '2026-08-21', sluiting: '2026-10-30', status: 'lopend', platform: 'TenderNed', url: TENDERNED },
-  { id: 'a03', titel: 'Nascheiding PMD uit restafval', opdrachtgever: 'Grondstoffenbedrijf Kustzone', samenwerkingsverbandId: 'kustzone', stroom: 'PMD', procedure: 'Concurrentiegerichte dialoog', regio: 'West', publicatie: '2026-07-14', sluiting: '2026-10-20', status: 'lopend', platform: 'Mercell', url: MERCELL },
-  { id: 'a04', titel: 'Inzameling en vermarkting textiel', opdrachtgever: 'Milieusamenwerking Oostgrens', samenwerkingsverbandId: 'oostgrens', stroom: 'Textiel', procedure: 'Nationaal openbaar', regio: 'Oost', publicatie: '2026-09-15', sluiting: '2026-11-03', status: 'lopend', platform: 'TenderNed', url: TENDERNED },
-  { id: 'a05', titel: 'Verwerking grof huishoudelijk afval', opdrachtgever: 'Gemeente Duinwijk', samenwerkingsverbandId: 'kustzone', stroom: 'Grof huishoudelijk afval', procedure: 'Meervoudig onderhands', regio: 'West', publicatie: '2026-08-04', sluiting: '2026-09-12', status: 'gesloten', platform: 'Mercell', url: MERCELL },
-  { id: 'a06', titel: 'Verwerking restafval en bodemasverwerking', opdrachtgever: 'Afvalregio Zandgronden', samenwerkingsverbandId: 'zandgronden', stroom: 'Restafval', procedure: 'Niet-openbaar', regio: 'Zuid', publicatie: '2026-05-19', sluiting: '2026-08-28', status: 'gesloten', platform: 'TenderNed', url: TENDERNED },
-  { id: 'a07', titel: 'Opwerking bodemas tot bouwstof', opdrachtgever: 'Afvalsamenwerking Maasvallei', samenwerkingsverbandId: 'maasvallei', stroom: 'Bodemas', procedure: 'Europees openbaar', regio: 'Zuid', publicatie: '2026-03-10', sluiting: '2026-05-06', status: 'gegund', platform: 'TenderNed', url: TENDERNED },
-  { id: 'a08', titel: 'Overslag en transport papier en karton', opdrachtgever: 'Reinigingsbedrijf Merengebied', samenwerkingsverbandId: 'merengebied', stroom: 'Papier en karton', procedure: 'Nationaal openbaar', regio: 'Noord', publicatie: '2026-02-24', sluiting: '2026-04-09', status: 'gegund', platform: 'Mercell', url: MERCELL },
-  { id: 'a09', titel: 'Verwerking GFT 2027–2031', opdrachtgever: 'Inzamelcoöperatie Deltagemeenten', samenwerkingsverbandId: 'deltagemeenten', stroom: 'GFT', procedure: 'Europees openbaar', regio: 'Zuid', publicatie: '2026-04-02', sluiting: '2026-06-11', status: 'gegund', platform: 'TenderNed', url: TENDERNED },
-  { id: 'a10', titel: 'Sortering bronafgescheiden PMD', opdrachtgever: 'Afvalsamenwerking Veenstreek', samenwerkingsverbandId: 'veenstreek', stroom: 'PMD', procedure: 'Europees openbaar', regio: 'Noord', publicatie: '2026-06-23', sluiting: '2026-09-04', status: 'gesloten', platform: 'TenderNed', url: TENDERNED },
-  { id: 'a11', titel: 'Verwerking restafval (raamovereenkomst)', opdrachtgever: 'Grondstoffendienst Polderland', samenwerkingsverbandId: 'polderland', stroom: 'Restafval', procedure: 'Concurrentiegerichte dialoog', regio: 'Midden', publicatie: '2026-01-13', sluiting: '2026-03-27', status: 'gegund', platform: 'Mercell', url: MERCELL },
-  { id: 'a12', titel: 'Inzameling textiel via containers', opdrachtgever: 'Gemeente Plassenoord', samenwerkingsverbandId: 'groene-hart-west', stroom: 'Textiel', procedure: 'Meervoudig onderhands', regio: 'West', publicatie: '2026-09-29', sluiting: '2026-11-10', status: 'lopend', platform: 'Mercell', url: MERCELL },
-  { id: 'a13', titel: 'Verwerking GFT en snoeiafval', opdrachtgever: 'Afvalschap Heuvelland-Zuid', samenwerkingsverbandId: 'heuvelland-zuid', stroom: 'GFT', procedure: 'Nationaal openbaar', regio: 'Zuid', publicatie: '2026-07-07', sluiting: '2026-08-21', status: 'gesloten', platform: 'TenderNed', url: TENDERNED },
-  { id: 'a14', titel: 'Verwerking restafval 2027–2030', opdrachtgever: 'Milieudienst Groene Hart-West', samenwerkingsverbandId: 'groene-hart-west', stroom: 'Restafval', procedure: 'Europees openbaar', regio: 'West', publicatie: '2025-11-18', sluiting: '2026-02-05', status: 'gegund', platform: 'TenderNed', url: TENDERNED },
-  { id: 'a15', titel: 'Vermarkting papier en karton', opdrachtgever: 'Gemeente Nieuwkavel', samenwerkingsverbandId: 'polderland', stroom: 'Papier en karton', procedure: 'Meervoudig onderhands', regio: 'Midden', publicatie: '2026-09-08', sluiting: '2026-10-24', status: 'lopend', platform: 'Mercell', url: MERCELL },
-];
-
-export const statusLabel: Record<Aanbesteding['status'], string> = {
-  lopend: 'Lopend',
-  gesloten: 'Gesloten',
-  gegund: 'Gegund',
+/** Bron van de aanbestedingen. */
+export const aanbestedingenBron: BronVermelding = {
+  naam: 'TenderNed, aankondigingenplatform',
+  url: 'https://www.tenderned.nl/aankondigingen/overzicht',
+  licentie: 'open data (CC0) volgens data.overheid.nl',
+  licentieUrl: 'https://data.overheid.nl/dataset/26e6440b-1d39-4e28-8d18-57d987042622',
+  peildatum: '2026-10-26',
 };
+
+/** Technische bron: de openbare publicatie-webservice (TNS) die data.overheid.nl noemt. Kan zonder aankondiging wijzigen. */
+export const tendernedWebservice = 'https://www.tenderned.nl/papi/tenderned-rs-tns/v2/publicaties';
+
+/** Gebruiksvoorwaarden van TenderNed (gecontroleerd op de peildatum hierboven). */
+export const tendernedVoorwaarden = 'https://www.tenderned.nl/over-deze-site/gebruiksvoorwaarden';
+
+/** Indeling NUTS-codes naar provincie. */
+export const nutsBron = {
+  naam: 'Eurostat GISCO, NUTS 2021 en 2024',
+  url: 'https://gisco-services.ec.europa.eu/distribution/v2/nuts/',
+  peildatum: '2026-10-26',
+};
+
+export const cpvFilterUitleg = 'Opgenomen zijn publicaties met CPV-code 90500000 of een onderliggende code (afvalinzameling, -transport, -verwerking, recycling en stortplaatsen).';

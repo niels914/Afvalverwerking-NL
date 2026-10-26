@@ -110,7 +110,7 @@ export const STROOM_REGELS: StroomRegel[] = [
   { naam: 'GFT en etensresten', tekst: /\bgft|groente-?,? ?fruit|\bgf-?afval|swill|etensresten|keukenafval|voedselafval|voedselresten/ },
   { naam: 'Groenafval', tekst: /groen-?afval|snoei(afval|hout)|maaisel|blad-?afval|bermgras|groenresten/ },
   { naam: 'PMD en kunststof', tekst: /\bpmd\b|plastic( |-)?(afval|verpakking)|kunststof(afval|verpakking|fractie|fen)|drankkarton/ },
-  { naam: 'Papier en karton', cpv: ['90511400'], tekst: /papier|karton|\bopk\b/ },
+  { naam: 'Papier en karton', cpv: ['90511400'], tekst: /papier|(?<!drank)karton|\bopk\b/ },
   { naam: 'Glas', tekst: /\bglas\b|glasbak|glasafval|vlakglas|verpakkingsglas/ },
   { naam: 'Textiel', tekst: /textiel/ },
   { naam: 'Grof afval', tekst: /grof-?(huis)?(vuil|afval)|grof huishoudelijk/ },

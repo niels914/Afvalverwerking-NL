@@ -1,0 +1,290 @@
+/* Aanbestedingsarchief. Gebruikt de tokens uit src/styles/tokens.css. */
+
+.archief {
+  display: grid;
+  gap: 20px;
+  min-width: 0;
+}
+
+.archief-bron {
+  border-left: 4px solid var(--paars);
+  background: var(--wit);
+  border-radius: var(--radius-klein);
+  padding: 12px 16px;
+  font-size: 13.5px;
+  color: var(--tekst-2);
+}
+.archief-bron p {
+  margin: 0;
+}
+.archief-bron p + p {
+  margin-top: 6px;
+}
+
+.archief-zoek {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+.archief-zoek .veld {
+  flex: 1 1 260px;
+}
+.archief-zoek .invoer input {
+  padding: 10px 14px;
+  font-size: 14.5px;
+  background: transparent;
+  color: var(--tekst);
+}
+.archief-zoek button {
+  min-height: 44px;
+}
+.archief-filters {
+  margin-bottom: 8px;
+}
+.archief-filters .veld {
+  flex: 1 1 170px;
+}
+.archief-wissen {
+  min-height: 40px;
+}
+
+.archief-resultaten h2:focus {
+  outline: 3px solid var(--focus);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+.archief-aantal {
+  font-weight: 600;
+  color: var(--tekst-2);
+  margin: 4px 0 12px;
+}
+.archief-fout {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.archief-tabel {
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.archief-tabel.is-laden {
+  opacity: 0.6;
+}
+.archief-tabel td {
+  white-space: normal;
+}
+.archief-tabel td[data-label='Publicatie'],
+.archief-tabel td[data-label='Sluiting'],
+.archief-tabel td[data-label='Status'] {
+  white-space: nowrap;
+}
+.archief-opdracht {
+  min-width: 240px;
+  max-width: 420px;
+}
+.archief-opdrachtgever {
+  display: block;
+  font-weight: 600;
+  color: var(--tekst);
+}
+.archief-titel {
+  display: block;
+  color: var(--tekst-2);
+  overflow-wrap: anywhere;
+}
+.archief-stromen {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.archief-tijd {
+  color: var(--tekst-2);
+}
+.archief-nog {
+  display: block;
+  font-size: 12px;
+  color: var(--tekst-secundair);
+}
+
+.archief-meer {
+  margin-top: 6px;
+  font-size: 13px;
+}
+.archief-meer summary {
+  cursor: pointer;
+  color: var(--link);
+  font-weight: 600;
+  width: fit-content;
+  min-height: 24px;
+}
+.archief-meer summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.archief-omschrijving {
+  margin: 8px 0;
+  color: var(--tekst-2);
+  overflow-wrap: anywhere;
+}
+.archief-dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 12px;
+  margin: 8px 0;
+}
+.archief-dl dt {
+  font-weight: 600;
+  color: var(--tekst-2);
+}
+.archief-dl dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.archief-tijdlijn-kop {
+  font-weight: 600;
+  margin: 8px 0 4px;
+  color: var(--tekst-2);
+}
+.archief-tijdlijn {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 2px;
+}
+
+.archief-paginering {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+}
+.archief-paginering ul {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  align-items: center;
+}
+.archief-paginering li {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.archief-paginering button {
+  min-width: 44px;
+  min-height: 44px;
+}
+.archief-paginering button[aria-current='page'] {
+  background: var(--paars);
+  border-color: var(--paars);
+  color: var(--wit);
+}
+
+/* Telefoon: elke aanbesteding als blok, kolomnaam voor de waarde. */
+@media (max-width: 760px) {
+  .archief-tabel {
+    border: 0;
+    overflow: visible;
+  }
+  .archief-tabel table,
+  .archief-tabel tbody,
+  .archief-tabel tr,
+  .archief-tabel td {
+    display: block;
+    width: 100%;
+  }
+  .archief-tabel caption {
+    display: block;
+    padding: 8px 0;
+  }
+  .archief-tabel thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .archief-tabel tr {
+    border: 1px solid var(--rand);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    padding: 6px 0;
+    background: var(--wit);
+  }
+  .archief-tabel td {
+    border-bottom: 0;
+    padding: 4px 14px;
+    display: grid;
+    grid-template-columns: 7.5em 1fr;
+    gap: 8px;
+  }
+  .archief-tabel td::before {
+    content: attr(data-label);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--tekst-secundair);
+    padding-top: 1px;
+  }
+  .archief-tabel td.archief-opdracht {
+    display: block;
+    max-width: none;
+    min-width: 0;
+    padding-bottom: 8px;
+  }
+  .archief-tabel td.archief-opdracht::before {
+    content: none;
+  }
+  .archief-tabel td[data-label='Publicatie'],
+  .archief-tabel td[data-label='Sluiting'],
+  .archief-tabel td[data-label='Status'] {
+    white-space: normal;
+  }
+}
+
+/* Voorbeeldweergave voor bezoekers: grijze balken, geen echte data. */
+.archief-voorbeeld table {
+  width: 100%;
+}
+.archief-balk {
+  display: block;
+  height: 12px;
+  border-radius: 6px;
+  background: var(--rand);
+  margin: 4px 0;
+  width: 70%;
+}
+.archief-balk.breed {
+  width: 100%;
+  height: 40px;
+  border-radius: var(--radius);
+}
+.archief-balk.dun {
+  height: 9px;
+  background: var(--rij);
+}
+.archief-balk.kort {
+  width: 72px;
+}
+.archief-balk.pil {
+  width: 64px;
+  height: 18px;
+  border-radius: 999px;
+}
+@media (max-width: 760px) {
+  .archief-voorbeeld th:nth-child(n + 3),
+  .archief-voorbeeld td:nth-child(n + 3) {
+    display: none;
+  }
+}
