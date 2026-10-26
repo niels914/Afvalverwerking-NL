@@ -227,7 +227,7 @@ test.describe('Pro voor leden', () => {
   test('Indexcalculator Pro: weging, contractjaren en CSV', async ({ page }) => {
     await logIn(page, '/tools/indexcalculator');
     await expect(page.getByRole('heading', { name: 'Tarief per contractjaar' })).toBeVisible();
-    await expect(page.getByText(/Samen 100 %/)).toBeVisible();
+    await expect(page.getByText(/Samen 100\s%/)).toBeVisible();
     await expect(page.getByRole('region', { name: 'Tabel tarief per contractjaar' }).getByRole('row')).not.toHaveCount(1);
     const { tekst } = await leesDownload(page, 'CSV downloaden'); // eerste knop = gratis deel
     expect(tekst).toContain('Indexcalculator');

@@ -115,7 +115,8 @@ export function Over() {
 
       <Sectie nr={8} titel="Status en vervolg">
         <p>
-          Dit is een prototype. Alle content en berekeningen zijn fictief. De volgende stap is een aantal gesprekken met
+          Het platform is in bèta. Cijfers komen uit openbare bronnen (CBS, Rijkswaterstaat, TenderNed, wet- en regelgeving)
+          met bron en peildatum; prijzen en voorwaarden zijn nog concept. De volgende stap is een aantal gesprekken met
           samenwerkingsverbanden en verwerkers over gebruik en betaalbereidheid.
         </p>
       </Sectie>

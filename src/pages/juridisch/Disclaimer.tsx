@@ -33,7 +33,6 @@ const secties: Sectie[] = [
         </p>
         <h3>Nu nog voorbeeld</h3>
         <ul>
-          <li>Het aanbestedingsarchief: alle aanbestedingen daarin zijn verzonnen.</li>
           <li>
             Invoervelden in de rekentools met het label &lsquo;Voorbeeld, vul eigen waarde in&rsquo;. Die waarden hebben geen
             officiële bron; vul uw eigen gegevens in.
@@ -48,10 +47,11 @@ const secties: Sectie[] = [
           <li>Cijfers op de Restafvalkaart, met bron en peildatum op de kaartpagina.</li>
           <li>Standaardwaarden in de rekentools die een bron en een peildatum hebben.</li>
           <li>Nieuwsberichten en publicaties in de kennisbank, met een link naar de uitgever.</li>
+          <li>Aanbestedingen in het aanbestedingsarchief, dagelijks opgehaald uit TenderNed, met een link naar de aankondiging.</li>
         </ul>
         <p>
           Gebruik voorbeelddata nooit als bron voor een besluit, een nota of een aanbesteding. Staat er bij een cijfer geen bron,
-          dan is het geen officieel cijfer. Zodra er geen voorbeelddata meer is, verdwijnt de bètamelding bovenaan de pagina’s.
+          dan is het geen officieel cijfer. De bètamelding bovenaan de pagina’s verdwijnt zodra prijzen en voorwaarden zijn vastgesteld.
         </p>
       </>
     ),
@@ -98,7 +98,7 @@ const secties: Sectie[] = [
           </li>
           <li>
             <strong>TenderNed</strong>: gegevens over aanbestedingen. De officiële tekst van een aankondiging staat altijd op
-            TenderNed. Het aanbestedingsarchief bevat nu nog voorbeelddata.
+            TenderNed. Het aanbestedingsarchief haalt deze gegevens dagelijks op via de openbare webservice van TenderNed (open data, CC-0 via data.overheid.nl); stroom, provincie en status leiden wij daaruit af.
           </li>
           <li>
             <strong>Andere bronnen</strong>, zoals Rijkswaterstaat, de Nederlandse Emissieautoriteit, PIANOo (MVI-criteria) en
