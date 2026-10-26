@@ -111,7 +111,7 @@ export function FeedbackFormulier() {
       {status.soort === 'lokaal' && (
         <p className="notitie" role="alert">
           {status.opgeslagen
-            ? 'Versturen lukte niet (bijvoorbeeld omdat het prototype lokaal draait). Uw antwoorden zijn bewaard in deze browser. U kunt het later opnieuw proberen.'
+            ? 'Versturen lukte niet (bijvoorbeeld door een storing of omdat de site lokaal draait). Uw antwoorden zijn bewaard in deze browser. U kunt het later opnieuw proberen.'
             : 'Versturen lukte niet en bewaren in deze browser ook niet. Probeer het later opnieuw of mail uw reactie.'}
         </p>
       )}

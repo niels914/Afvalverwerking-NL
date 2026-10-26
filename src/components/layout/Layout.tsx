@@ -15,12 +15,28 @@ export function Layout() {
   // Menu sluiten en naar boven (of naar het anker) bij een andere pagina.
   useEffect(() => {
     setMenuOpen(false);
-    if (locatie.hash) {
-      const id = decodeURIComponent(locatie.hash.slice(1));
-      requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView());
-    } else {
+    if (!locatie.hash) {
       window.scrollTo(0, 0);
+      return;
     }
+    // Pagina's laden pas bij openen, dus het anker bestaat soms nog niet: wacht er maximaal 5 seconden op.
+    const id = decodeURIComponent(locatie.hash.slice(1));
+    const probeer = () => {
+      const doel = document.getElementById(id);
+      if (doel) doel.scrollIntoView();
+      return Boolean(doel);
+    };
+    if (probeer()) return;
+    const waarnemer = new MutationObserver(() => {
+      if (probeer()) stop();
+    });
+    const klok = window.setTimeout(() => stop(), 5000);
+    function stop() {
+      waarnemer.disconnect();
+      window.clearTimeout(klok);
+    }
+    waarnemer.observe(document.body, { childList: true, subtree: true });
+    return stop;
   }, [locatie.pathname, locatie.hash]);
 
   return (
