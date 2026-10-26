@@ -8,7 +8,8 @@
   --donkerviolet-2: #4a539a; /* donkere variant voor verloop en hover */
   --paars: #9462a6; /* accent, actieve tab, knoppen, belangrijkste KPI-tegel */
   --lichtviolet: #b8aed6; /* lijnen en subtiele accenten */
-  --blauw: #007db5; /* links, tweede grafiekreeks */
+  --blauw: #007db5; /* tweede grafiekreeks, accenten */
+  --link: #006a9a; /* donkerder blauw voor tekstlinks: haalt 4,5:1 ook op de lichte vlakken */
 
   /* Vlakken en tekst */
   --achtergrond: #f8f7fc;
@@ -19,7 +20,7 @@
   --rij: #f3f4f6;
   --tekst: #111827;
   --tekst-2: #374151;
-  --tekst-secundair: #6b7280;
+  --tekst-secundair: #5f6673; /* iets donkerder dan grijs-500, zodat kleine tekst 4,5:1 haalt op achtergrond en kaartvlak */
   --grijs-vergelijking: #9ca3af;
 
   /* Signaalkleuren (altijd met tekst of icoon erbij) */

@@ -1,31 +1,31 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, useEffect } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
 import { Home } from './pages/Home';
-import { Nieuws } from './pages/Nieuws';
-import { Kennisbank } from './pages/Kennisbank';
-import { Tools } from './pages/Tools';
-import { Aanbestedingstool } from './pages/tools/Aanbestedingstool';
-import { Indexcalculator } from './pages/tools/Indexcalculator';
-import { Co2Heffingenscan } from './pages/tools/Co2Heffingenscan';
-import { Bodemassencalculator } from './pages/tools/Bodemassencalculator';
-import { PmdRekenmodel } from './pages/tools/PmdRekenmodel';
-import { Aanbestedingsarchief } from './pages/Aanbestedingsarchief';
-import { Lidmaatschap } from './pages/Lidmaatschap';
-import { Over } from './pages/Over';
 import { NietGevonden } from './pages/NietGevonden';
-import { Aanmelden } from './pages/Aanmelden';
-import { Inloggen } from './pages/Inloggen';
-import { Account } from './pages/Account';
-import { AlgemeneVoorwaarden } from './pages/juridisch/AlgemeneVoorwaarden';
-import { Privacy } from './pages/juridisch/Privacy';
-import { Cookies } from './pages/juridisch/Cookies';
-import { Toegankelijkheid } from './pages/juridisch/Toegankelijkheid';
-import { Disclaimer } from './pages/juridisch/Disclaimer';
 import { navigatie, platform } from './data/site';
 
-// De kaartpagina laadt Leaflet pas als je hem opent.
+// Elke pagina behalve de homepage laadt pas als je hem opent; de kaartpagina laadt zo ook Leaflet pas dan.
 const Restafvalkaart = lazy(() => import('./pages/Restafvalkaart'));
+const Nieuws = lazy(() => import('./pages/Nieuws').then((m) => ({ default: m.Nieuws })));
+const Kennisbank = lazy(() => import('./pages/Kennisbank').then((m) => ({ default: m.Kennisbank })));
+const Tools = lazy(() => import('./pages/Tools').then((m) => ({ default: m.Tools })));
+const Aanbestedingstool = lazy(() => import('./pages/tools/Aanbestedingstool').then((m) => ({ default: m.Aanbestedingstool })));
+const Indexcalculator = lazy(() => import('./pages/tools/Indexcalculator').then((m) => ({ default: m.Indexcalculator })));
+const Co2Heffingenscan = lazy(() => import('./pages/tools/Co2Heffingenscan').then((m) => ({ default: m.Co2Heffingenscan })));
+const Bodemassencalculator = lazy(() => import('./pages/tools/Bodemassencalculator').then((m) => ({ default: m.Bodemassencalculator })));
+const PmdRekenmodel = lazy(() => import('./pages/tools/PmdRekenmodel').then((m) => ({ default: m.PmdRekenmodel })));
+const Aanbestedingsarchief = lazy(() => import('./pages/Aanbestedingsarchief').then((m) => ({ default: m.Aanbestedingsarchief })));
+const Lidmaatschap = lazy(() => import('./pages/Lidmaatschap').then((m) => ({ default: m.Lidmaatschap })));
+const Over = lazy(() => import('./pages/Over').then((m) => ({ default: m.Over })));
+const Aanmelden = lazy(() => import('./pages/Aanmelden').then((m) => ({ default: m.Aanmelden })));
+const Inloggen = lazy(() => import('./pages/Inloggen').then((m) => ({ default: m.Inloggen })));
+const Account = lazy(() => import('./pages/Account').then((m) => ({ default: m.Account })));
+const AlgemeneVoorwaarden = lazy(() => import('./pages/juridisch/AlgemeneVoorwaarden').then((m) => ({ default: m.AlgemeneVoorwaarden })));
+const Privacy = lazy(() => import('./pages/juridisch/Privacy').then((m) => ({ default: m.Privacy })));
+const Cookies = lazy(() => import('./pages/juridisch/Cookies').then((m) => ({ default: m.Cookies })));
+const Toegankelijkheid = lazy(() => import('./pages/juridisch/Toegankelijkheid').then((m) => ({ default: m.Toegankelijkheid })));
+const Disclaimer = lazy(() => import('./pages/juridisch/Disclaimer').then((m) => ({ default: m.Disclaimer })));
 
 /** Zet de paginatitel in het tabblad. */
 function Paginatitel() {
@@ -44,14 +44,7 @@ export function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Home />} />
-          <Route
-            path="restafvalkaart"
-            element={
-              <Suspense fallback={<p className="sectie muted">Kaart laden…</p>}>
-                <Restafvalkaart />
-              </Suspense>
-            }
-          />
+          <Route path="restafvalkaart" element={<Restafvalkaart />} />
           <Route path="nieuws" element={<Nieuws />} />
           <Route path="kennisbank" element={<Kennisbank />} />
           <Route path="tools" element={<Tools />} />

@@ -68,7 +68,17 @@ const opties = {
   stromen: stroomLijst.map((s) => s.id),
   drempels: Object.keys(drempels),
   geldig: (s: string) => (s in stromen ? criteriaVoorStroom(s as StroomId).map((c) => c.id) : []),
+  selectie: (s: string) => (s in stromen ? standaardSelectie(s as StroomId) : []),
+  tarief: (s: string) => (s in stromen ? (stromen[s as StroomId].tariefKental?.waarde ?? null) : null),
 };
+
+/** Zoekt op trefwoord in titel, omschrijving, toetsing en MVI-code. Alle woorden moeten voorkomen. */
+function pastBijZoek(c: Criterium, zoek: string): boolean {
+  const woorden = zoek.toLowerCase().split(/\s+/).filter(Boolean);
+  if (woorden.length === 0) return true;
+  const tekst = [c.titel, c.tekst, c.toetsing ?? '', c.mvi ? `mvi ${c.mvi.code}` : '', themaLabel[c.thema], soortLabel[c.soort]].join(' ').toLowerCase();
+  return woorden.every((w) => tekst.includes(w));
+}
 
 function herkomst(c: Criterium): string {
   return c.mvi ? `MVI ${c.mvi.code} (${ambitieLabel[c.mvi.ambitie]})` : 'Voorbeeld KplusV, geen MVI-criterium';
@@ -230,7 +240,9 @@ export function Aanbestedingstool() {
         <ol className="stappen" aria-label="Stappen" style={{ margin: 0 }}>
           {stappen.map((s, n) => (
             <li key={s} aria-current={n === stap ? 'step' : undefined} data-klaar={n < stap}>
-              {s}
+              <button type="button" className="ab-stapknop" onClick={() => setStap(n)} aria-label={`Stap ${n + 1}: ${s}${n === stap ? ' (huidige stap)' : ''}`}>
+                {s}
+              </button>
             </li>
           ))}
         </ol>
@@ -579,8 +591,12 @@ function CriteriaKiezen({
   const [soortFilter, setSoortFilter] = useState<'alle' | CriteriumSoort>('alle');
   const [themaFilter, setThemaFilter] = useState<'alle' | Thema>('alle');
   const [alleenMvi, setAlleenMvi] = useState(false);
+  const [zoek, setZoek] = useState('');
+  const zoekId = useId();
   const themas = [...new Set(lijst.map((c) => c.thema))];
-  const zichtbaar = lijst.filter((c) => (soortFilter === 'alle' || c.soort === soortFilter) && (themaFilter === 'alle' || c.thema === themaFilter) && (!alleenMvi || c.mvi));
+  const zichtbaar = lijst.filter(
+    (c) => (soortFilter === 'alle' || c.soort === soortFilter) && (themaFilter === 'alle' || c.thema === themaFilter) && (!alleenMvi || c.mvi) && pastBijZoek(c, zoek),
+  );
 
   return (
     <div className="stapel">
@@ -589,6 +605,22 @@ function CriteriaKiezen({
         tekst met invultabellen staat in de MVI-criteriatool. De selectie begint met de eisen en gunningscriteria op
         basisniveau en significant niveau.
       </p>
+      <div className="veld ab-zoek">
+        <label htmlFor={zoekId}>Zoeken in eisen en criteria</label>
+        <div className="invoer">
+          <input
+            id={zoekId}
+            type="search"
+            autoComplete="off"
+            value={zoek}
+            onChange={(e) => setZoek(e.target.value)}
+            aria-describedby={`${zoekId}-uitkomst`}
+          />
+        </div>
+        <span className="hint" id={`${zoekId}-uitkomst`} role="status" aria-live="polite">
+          {zichtbaar.length} van {lijst.length} getoond. Zoek op trefwoord, bijvoorbeeld CO2, social return of 049.003.
+        </span>
+      </div>
       <div className="ab-filters">
         <Chips
           label="Soort"

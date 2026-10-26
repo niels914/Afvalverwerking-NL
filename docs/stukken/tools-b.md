@@ -1,6 +1,6 @@
 # Tools B: Bodemassencalculator, Rekenmodel PMD en Aanbestedingstool
 
-Stand: 19 oktober 2026 (ronde 1). Alle drie de tools rekenen nu met cijfers uit openbare bronnen. Elk cijfer heeft een
+Stand: 26 oktober 2026 (ronde 1, afgerond na onderbreking op 23 oktober). Alle drie de tools rekenen nu met cijfers uit openbare bronnen. Elk cijfer heeft een
 bron en een peildatum in de UI, in de CSV en in een databestand. Een waarde die niet uit een openbare bron komt, staat
 zichtbaar als kental of aanname. Bedragen zonder bron (opwerkingstarief bodemas, metaalprijzen, teruggewonnen PMD bij
 nascheiding) staan leeg tot de gebruiker ze invult; de tool rekent dan alleen wat wel bekend is en zegt wat ontbreekt.
@@ -16,8 +16,8 @@ nascheiding) staan leeg tot de gebruiker ze invult; de tool rekent dan alleen wa
 | Rekenlogica PMD | `src/lib/calc/pmd.ts` (+ test) | Pure functies per route, omslagpunt, deellink. |
 | Gegevens PMD | `src/data/tools-b-pmd.ts`, `src/data/tools-b-cbs-pmd.json` | Staffel 2026–2028, kostenbasis, nascheidingsvergoeding en -kosten, kental verbrandingstarief, CBS per gemeente (342 gemeenten, 2024) en landelijk (2025). |
 | Ophaalscript CBS | `scripts/tools-b-cbs-pmd.mjs` | Haalt CBS 83452NED, 83558NED en 70072ned op en schrijft de JSON. |
-| Aanbestedingstool | `src/pages/tools/Aanbestedingstool.tsx` | Vier stappen naar het voorbeeld van de MVI-criteriatool: (1) afvalstroom, soort aanbestedende dienst, volume, tarief, looptijd → geraamde waarde en drempeltoets; (2) eisen, gunningscriteria, contractbepalingen en aandachtspunten kiezen met filters op soort, thema en "alleen MVI"; (3) weging in punten → procenten (samen precies 100), signalen bij prijs 0 % of ≥ 90 %; (4) overzicht met checklist, download als tekstbestand en CSV, deellink (inclusief stap), printweergave voor iedereen. |
-| Rekenlogica aanbesteding | `src/lib/calc/aanbesteding.ts` (+ test) | Weging, afronding op 100, geraamde waarde, drempeltoets, prijssignaal, checklist, CSV- en tekstexport, deellink. |
+| Aanbestedingstool | `src/pages/tools/Aanbestedingstool.tsx` | Vier stappen naar het voorbeeld van de MVI-criteriatool: (1) afvalstroom, soort aanbestedende dienst, volume, tarief, looptijd → geraamde waarde en drempeltoets; (2) eisen, gunningscriteria, contractbepalingen en aandachtspunten kiezen met zoeken op trefwoord (ook MVI-code) en filters op soort, thema en "alleen MVI"; (3) weging in punten → procenten (samen precies 100), signalen bij prijs 0 % of ≥ 90 %; (4) overzicht met checklist, download als tekstbestand en CSV, deellink (inclusief stap), printweergave voor iedereen. De stappenbalk bestaat uit knoppen: u springt direct naar elke stap. |
+| Rekenlogica aanbesteding | `src/lib/calc/aanbesteding.ts` (+ test) | Weging, afronding op 100, geraamde waarde, drempeltoets, prijssignaal, checklist, CSV- en tekstexport, deellink. Een leeg tarief gaat als `tarief=` mee in de link; een link met alleen een andere stroom krijgt de standaardselectie en het tariefkental (of leeg) van die stroom. |
 | Criteria per stroom | `src/data/tools-b-aanbesteding.ts` | 8 stromen, 45 criteria. Alle 15 MVI-criteria voor huishoudelijk afval (049.001–049.015) en 2 uit Zware voertuigen (042.002, 042.003) met code, ambitieniveau en link; overige criteria als "Voorbeeld KplusV". Drempelbedragen 2026–2027. |
 | Bronnen | `src/data/tools-b-bronnen.ts` | Alle bronnen met titel, uitgever, datum, URL en `PEILDATUM`. |
 | Componenten | `src/components/rekenen/b/` | `BronVeld` (getalveld met herkomstlabel, bronlink, "Terug naar bronwaarde", leeg toegestaan), `CelGetal` (tabelinvoer), `Knoppen` (print voor iedereen, tekstdownload, melding ontbrekende invoer), `tools-b.css`. |
@@ -110,15 +110,18 @@ de officiële tekst.
 6. **Drempelbedragen (elke twee jaar, volgende per 1 januari 2028):** `drempels` in `tools-b-aanbesteding.ts`.
 7. Zet daarna `PEILDATUM` in `tools-b-bronnen.ts` op de dag van controle.
 
-## Controles (19 oktober 2026)
+## Controles (26 oktober 2026)
 
-- `npx tsc --noEmit -p .`: geen fouten in bestanden van tools-b. Wel fouten in bestanden van anderen (kaartdata,
-  Kennisbank, Nieuws, Restafvalkaart, Home); die horen bij lopend werk van andere onderdelen.
-- `npx vitest run`: 13 bestanden, 177 tests geslaagd (waarvan bodemas 14, pmd 13, aanbesteding 16).
+- `npx tsc --noEmit -p .`: geen fouten (hele project).
+- `npx vitest run`: 14 bestanden, 183 tests geslaagd (waarvan bodemas 14, pmd 13, aanbesteding 19).
 - `npx vite build --outDir /tmp/claude-0/build-tools-b --emptyOutDir`: geslaagd (waarschuwing chunkgrootte, niet van dit onderdeel).
-- `PW_BASE=http://localhost:5104 npx playwright test e2e/tools-b.spec.ts`: 14 geslaagd (400 px en desktop).
-- `e2e/tools-a.spec.ts` tegen dezelfde build: 22 geslaagd, 4 overgeslagen (Pro met inlog).
+- `PW_BASE=http://localhost:5104 E2E_EMAIL=… E2E_WACHTWOORD=… npx playwright test e2e/tools-b.spec.ts`: 20 geslaagd
+  (400 px en desktop), inclusief de ledentests met echte inlog (Pro bodemas, PMD-model).
+- Lighthouse mobiel (preview): aanbestedingstool 92/97, PMD-rekenmodel 92/96, bodemassencalculator 95/97
+  (prestaties/toegankelijkheid). Resterende contrastfouten zitten in gedeelde stijlen (zie open punten).
 - Op 400 px geen horizontale scroll op alle drie de pagina's en alle stappen; brede tabellen scrollen binnen een focusbaar kader.
+- Bedragen van de staffel (325/277/228/195/0; 3b 179 en 163) en de nascheidingsvergoeding (17,26 = 14,44 × 1,1954;
+  93,47 + 6,79) opnieuw nagelezen in de aanbiedingsbrief van 28 mei 2025 (par. 6.2 en 7).
 
 ## Open punten
 
@@ -132,8 +135,15 @@ de officiële tekst.
   tool telt de belasting apart op en zegt dat. CO2-heffing zit niet in het verbrandingstarief; zie de CO2-heffingenscan.
 - **PMD-model vereenvoudigingen:** vervuiling in bronscheidings-PMD, residu na opschoning en extra inzamelkosten voor
   restafval bij nascheiding zitten niet in het model (wel een veld "overige kosten").
-- **Ledendeel PMD en Pro bodemas met echte inlog** is niet end-to-end getest (zoals bij tools-a). De e2e-test controleert
-  de berekening in de inerte preview; de rekenlogica is unit-getest.
+- **Ledentests in e2e** draaien alleen met `E2E_EMAIL` en `E2E_WACHTWOORD` (testaccount bij een actieve lidorganisatie);
+  zonder die variabelen worden ze overgeslagen.
 - **Juridische toets** van de voorbeeldcriteria (KplusV) en de checklist door een aanbestedingsjurist.
+- **Contrast in gedeelde stijlen** (niet van dit onderdeel, `src/styles/components.css`): `.invoer .eenheid`
+  (#6b7280 op #f3f1fa, 4,3:1), labels en toelichting in `.tegel.hero` (#efe7f2 op #9462a6, 3,8:1) en de kleine links in
+  `OpDezePagina` (#007db5 op #f8f7fc, 4,3:1) halen 4,5:1 niet. Dat houdt toegankelijkheid op 96–97.
+- **Prestaties 92**: één JavaScript-bundel van meer dan 500 kB. Code-splitting per route (`React.lazy` in de router)
+  hoort bij de lead.
+- Label "In ontwikkeling met CE Delft" bij de Aanbestedingstool (uit het oorspronkelijke prototype) is niet door dit
+  onderdeel te onderbouwen; laten staan, maar Niels moet bevestigen dat het klopt of het weghalen.
 - `README.md` (niet van dit onderdeel) noemt de standaardwaarden van bodemas, PMD en de checklist nog fictief en noemt
   de oude formules; graag bijwerken naar dit document.

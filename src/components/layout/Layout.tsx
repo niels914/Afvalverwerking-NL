@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { AccountKnop } from '../betaalmuur/AccountKnop';
 import { useRol } from '../betaalmuur/RolContext';
@@ -70,7 +70,10 @@ export function Layout() {
       </header>
       <Banner />
       <main id="inhoud" className="wrap" tabIndex={-1}>
-        <Outlet />
+        {/* Houdt tijdens het laden een schermhoogte vrij, zodat de voettekst niet verspringt. */}
+        <Suspense fallback={<p className="sectie muted" style={{ minHeight: '100vh' }}>Pagina laden…</p>}>
+          <Outlet />
+        </Suspense>
       </main>
       <Voettekst />
     </>

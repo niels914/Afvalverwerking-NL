@@ -194,4 +194,31 @@ describe('deellink', () => {
     expect(t.punten.prijs).toBe(50);
     expect(t.punten['rest-r1']).toBe(10);
   });
+
+  it('houdt een leeg tarief leeg, ook als de standaardstroom een kental heeft', () => {
+    const metKental: AanbestedingInvoer = { ...standaard, tarief: 103.35 };
+    const i: AanbestedingInvoer = { ...metKental, stroom: 'gft', tarief: null, gekozen: ['gft-co2-basis'], punten: { prijs: 60 } };
+    const p = aanbestedingNaarParams(i);
+    expect(p.get('tarief')).toBe('');
+    expect(aanbestedingUitParams(p, metKental, opties).tarief).toBeNull();
+  });
+
+  it('vult bij een andere stroom zonder selectie en tarief de standaard van die stroom in', () => {
+    const metKental: AanbestedingInvoer = { ...standaard, tarief: 103.35 };
+    const t = aanbestedingUitParams(new URLSearchParams('stroom=gft'), metKental, {
+      ...opties,
+      selectie: (s) => standaardSelectie(s as never),
+      tarief: () => null,
+    });
+    expect(t.stroom).toBe('gft');
+    expect(t.tarief).toBeNull();
+    expect(t.gekozen).toEqual(standaardSelectie('gft'));
+    expect(t.gekozen.length).toBeGreaterThan(3);
+  });
+
+  it('leest een oude link zonder tarief bij dezelfde stroom met het standaardtarief', () => {
+    const metKental: AanbestedingInvoer = { ...standaard, tarief: 103.35 };
+    expect(aanbestedingUitParams(new URLSearchParams('stroom=restafval&vol=1000'), metKental, opties).tarief).toBe(103.35);
+    expect(aanbestedingUitParams(new URLSearchParams('vol=&jr='), metKental, opties).volume).toBe(40000);
+  });
 });

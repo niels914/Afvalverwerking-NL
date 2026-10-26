@@ -210,7 +210,8 @@ export function aanbestedingNaarParams(i: AanbestedingInvoer): URLSearchParams {
   p.set('stroom', i.stroom);
   p.set('dienst', i.drempel);
   p.set('vol', String(i.volume));
-  if (i.tarief !== null && Number.isFinite(i.tarief)) p.set('tarief', String(i.tarief));
+  // Leeg tarief expliciet meegeven, anders vult de ontvanger het kental van de standaardstroom in.
+  p.set('tarief', i.tarief !== null && Number.isFinite(i.tarief) ? String(i.tarief) : '');
   p.set('jr', String(i.looptijd));
   p.set('verl', String(i.verlenging));
   p.set('sel', i.gekozen.join(','));
@@ -223,34 +224,45 @@ export function aanbestedingNaarParams(i: AanbestedingInvoer): URLSearchParams {
   return p;
 }
 
+export interface ParamOpties {
+  stromen: string[];
+  drempels: string[];
+  /** Criterium-id's die bij een stroom horen. */
+  geldig: (stroom: string) => string[];
+  /** Standaardselectie van een stroom; gebruikt als de link een andere stroom maar geen selectie heeft. */
+  selectie?: (stroom: string) => string[];
+  /** Tariefkental van een stroom (null zonder bron); gebruikt als de link een andere stroom maar geen tarief heeft. */
+  tarief?: (stroom: string) => number | null;
+}
+
 /**
  * Leest de invoer uit de URL. Onbekende stromen, criteria of soorten diensten worden genegeerd.
- * `geldig` geeft per stroom de criterium-id's die erbij horen.
+ * Een lege `tarief` betekent: geen tarief ingevuld.
  */
-export function aanbestedingUitParams(
-  p: URLSearchParams,
-  standaard: AanbestedingInvoer,
-  opties: { stromen: string[]; drempels: string[]; geldig: (stroom: string) => string[] },
-): AanbestedingInvoer {
+export function aanbestedingUitParams(p: URLSearchParams, standaard: AanbestedingInvoer, opties: ParamOpties): AanbestedingInvoer {
   const uit: AanbestedingInvoer = { ...standaard, punten: { ...standaard.punten }, gekozen: [...standaard.gekozen] };
   const stroom = p.get('stroom');
   if (stroom && opties.stromen.includes(stroom)) uit.stroom = stroom;
   const dienst = p.get('dienst');
   if (dienst && opties.drempels.includes(dienst)) uit.drempel = dienst;
   const getal = (s: string | null, min = 0, max = Infinity) => {
-    if (s === null) return null;
+    if (s === null || s.trim() === '') return null;
     const n = Number(s);
     return Number.isFinite(n) && n >= min && n <= max ? n : null;
   };
+  const andereStroom = uit.stroom !== standaard.stroom;
   uit.volume = getal(p.get('vol')) ?? uit.volume;
-  const t = getal(p.get('tarief'));
+  const tariefTekst = p.get('tarief');
+  const t = tariefTekst === null || tariefTekst.trim() === '' ? null : getal(tariefTekst);
   if (t !== null) uit.tarief = t;
+  else if (tariefTekst !== null && tariefTekst.trim() === '') uit.tarief = null;
+  else if (andereStroom) uit.tarief = opties.tarief ? opties.tarief(uit.stroom) : null;
   uit.looptijd = getal(p.get('jr'), 1, 20) ?? uit.looptijd;
   uit.verlenging = getal(p.get('verl'), 0, 10) ?? uit.verlenging;
   const geldig = new Set(opties.geldig(uit.stroom));
   const sel = p.get('sel');
   if (sel !== null) uit.gekozen = sel.split(',').filter((id) => geldig.has(id));
-  else if (stroom && stroom !== standaard.stroom) uit.gekozen = uit.gekozen.filter((id) => geldig.has(id));
+  else if (andereStroom) uit.gekozen = opties.selectie ? opties.selectie(uit.stroom).filter((id) => geldig.has(id)) : uit.gekozen.filter((id) => geldig.has(id));
   const w = p.get('w');
   if (w) {
     for (const deel of w.split(',')) {

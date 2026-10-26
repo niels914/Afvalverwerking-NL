@@ -222,7 +222,7 @@
   border: 0;
   background: none;
   padding: 0;
-  color: var(--blauw);
+  color: var(--link);
   text-decoration: underline;
   font: inherit;
   cursor: pointer;

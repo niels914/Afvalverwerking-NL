@@ -176,6 +176,42 @@ test.describe('Aanbestedingstool', () => {
     await expect(page.locator('.rapportkop')).toBeVisible();
     await expect(page.getByRole('button', { name: 'Printen of opslaan als PDF' })).toBeHidden();
   });
+
+  test('zoekt op trefwoord, springt via de stappen en houdt een leeg tarief leeg in de deellink', async ({ page }) => {
+    await page.goto('/tools/aanbestedingstool');
+    await page.getByRole('radio', { name: /^PMD/ }).check();
+    await expect(page.getByLabel('Geraamd tarief', { exact: true })).toHaveValue('');
+    await expect(page.getByText('Nog niet ingevuld').first()).toBeVisible();
+
+    // Direct naar stap 2 via de stappenbalk.
+    await page.getByRole('button', { name: 'Stap 2: Eisen en criteria' }).click();
+    await expect(page.getByRole('heading', { name: 'Stap 2 · Eisen en criteria' })).toBeFocused();
+    const zoek = page.getByLabel('Zoeken in eisen en criteria');
+    const alle = await page.locator('.ab-criterium').count();
+    await zoek.fill('social return');
+    const gevonden = await page.locator('.ab-criterium').count();
+    expect(gevonden).toBeGreaterThan(0);
+    expect(gevonden).toBeLessThan(alle);
+    await expect(page.getByText(new RegExp(`${gevonden} van ${alle} getoond`))).toBeVisible();
+    await zoek.fill('xyzonbekend');
+    await expect(page.getByText('Geen criteria bij deze filters.')).toBeVisible();
+    await zoek.fill('');
+    await expect(page.locator('.ab-criterium')).toHaveCount(alle);
+    await geenHorizontaleScroll(page);
+
+    // Deellink: PMD zonder tarief blijft zonder tarief, ook al heeft de standaardstroom een kental.
+    await page.getByRole('button', { name: 'Stap 4: Overzicht' }).click();
+    await expect(page.getByText('niet te bepalen zonder tarief')).toBeVisible();
+    const link = await page.getByLabel('Deellink met uw invoer').inputValue();
+    await page.goto(link.replace(/^https?:\/\/[^/]+/, ''));
+    await expect(page.getByRole('heading', { name: 'Stap 4 · Overzicht' })).toBeVisible();
+    await expect(page.getByText('niet te bepalen zonder tarief')).toBeVisible();
+
+    // Een link met alleen een andere stroom krijgt de standaardselectie van die stroom.
+    await page.goto('/tools/aanbestedingstool?stroom=gft&stap=2');
+    await expect(page.getByRole('checkbox', { name: 'CO2-score van de GFT-verwerking, basismethode' })).toBeChecked();
+    await expect(page.getByLabel('Geraamd tarief', { exact: true })).toHaveCount(0);
+  });
 });
 
 test('Overzicht rekentools noemt per tool de bronnen', async ({ page }) => {

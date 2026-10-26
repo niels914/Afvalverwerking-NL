@@ -258,3 +258,35 @@ button.bronveld-terug {
 .ab-balken .schuif-kop {
   gap: 10px;
 }
+
+/* Stappen zijn knoppen: direct naar een stap gaan. */
+.stappen li:has(.ab-stapknop) {
+  padding: 0;
+}
+.stappen li:has(.ab-stapknop)::before {
+  margin-left: 4px;
+}
+.ab-stapknop {
+  background: none;
+  border: 0;
+  margin: 0;
+  padding: 4px 14px 4px 0;
+  min-height: 32px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 999px;
+}
+.ab-stapknop:hover {
+  text-decoration: underline;
+}
+.stappen li:has(.ab-stapknop:focus-visible) {
+  outline: 3px solid var(--focus, var(--paars));
+  outline-offset: 2px;
+}
+.ab-stapknop:focus-visible {
+  outline: none;
+}
+.ab-zoek {
+  max-width: 560px;
+}
