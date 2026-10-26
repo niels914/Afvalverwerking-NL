@@ -75,7 +75,7 @@ Elk onderdeel heeft een eigen document met bouw, onderhoud, bronnen en open punt
 
 Geen trackers en geen analytics. Het lettertype Poppins staat op de site zelf. De site maakt verbinding met:
 - **Supabase** (EU, Frankfurt) voor inloggen, lidmaatschap en het aanbestedingsarchief.
-- **OpenStreetMap** voor de kaarttegels.
+- Geen kaarttegels van derden: de gemeentegrenzen staan als eigen GeoJSON op de site (bron PDOK/CBS).
 - **Netlify** voor hosting en het versturen van formulieren.
 
 ## Nog te doen door KplusV vóór livegang
