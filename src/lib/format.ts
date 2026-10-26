@@ -53,8 +53,10 @@ export function datumKortNl(iso: string): string {
 export function leesGetal(tekst: string): number {
   const schoon = tekst.trim().replace(/\s/g, '');
   if (schoon === '') return NaN;
-  // "1.234,5" → 1234.5 ; "1234.5" → 1234.5 ; "1234,5" → 1234.5
-  const genormaliseerd = schoon.includes(',') ? schoon.replace(/\./g, '').replace(',', '.') : schoon;
+  // "1.234,5" → 1234.5 ; "1234,5" → 1234.5 ; "40.000" → 40000 (punt als duizendtal, zoals in het Nederlands) ;
+  // "12.5" en "0.125" → decimaal, want dat zijn geen groepen van drie cijfers na een eerste groep van 1 tot 3 cijfers.
+  const duizendtallen = /^-?[1-9]\d{0,2}(\.\d{3})+$/.test(schoon);
+  const genormaliseerd = schoon.includes(',') || duizendtallen ? schoon.replace(/\./g, '').replace(',', '.') : schoon;
   return /^-?\d*\.?\d+$/.test(genormaliseerd) ? Number(genormaliseerd) : NaN;
 }
 

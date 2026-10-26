@@ -15,6 +15,11 @@ describe('Nederlandse notatie', () => {
     expect(leesGetal('1.234,5')).toBe(1234.5);
     expect(leesGetal('12,5')).toBe(12.5);
     expect(leesGetal('12.5')).toBe(12.5);
+    expect(leesGetal('40.000')).toBe(40000);
+    expect(leesGetal('1.250.000')).toBe(1250000);
+    expect(leesGetal('-2.500')).toBe(-2500);
+    expect(leesGetal('0.125')).toBe(0.125);
+    expect(leesGetal('1234.5')).toBe(1234.5);
     expect(Number.isNaN(leesGetal('abc'))).toBe(true);
   });
 });
