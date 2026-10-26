@@ -2,6 +2,7 @@
 
 .archief {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
   min-width: 0;
 }
@@ -44,7 +45,7 @@
   margin-bottom: 8px;
 }
 .archief-filters .veld {
-  flex: 1 1 170px;
+  flex: 1 1 140px;
 }
 .archief-wissen {
   min-height: 40px;
@@ -69,7 +70,11 @@
 .archief-tabel {
   border: 1px solid var(--rand);
   border-radius: var(--radius);
-  overflow: hidden;
+  overflow-x: auto;
+}
+.archief-tabel th,
+.archief-tabel td {
+  padding: 10px 10px;
 }
 .archief-tabel.is-laden {
   opacity: 0.6;
@@ -83,8 +88,8 @@
   white-space: nowrap;
 }
 .archief-opdracht {
-  min-width: 240px;
-  max-width: 420px;
+  min-width: 220px;
+  width: 36%;
 }
 .archief-opdrachtgever {
   display: block;
@@ -93,8 +98,18 @@
 }
 .archief-titel {
   display: block;
-  color: var(--tekst-2);
+  color: var(--link);
   overflow-wrap: anywhere;
+}
+.archief-provincie {
+  display: block;
+  font-size: 12.5px;
+  color: var(--tekst-secundair);
+  margin-top: 2px;
+}
+.archief-tabel td[data-label='Procedure'] {
+  min-width: 110px;
+  max-width: 180px;
 }
 .archief-stromen {
   list-style: none;
@@ -237,6 +252,10 @@
     color: var(--tekst-secundair);
     padding-top: 1px;
   }
+  .archief-tabel td[data-label='Procedure'] {
+    min-width: 0;
+    max-width: none;
+  }
   .archief-tabel td.archief-opdracht {
     display: block;
     max-width: none;
@@ -251,6 +270,18 @@
   .archief-tabel td[data-label='Status'] {
     white-space: normal;
   }
+}
+
+.archief-uitleg {
+  margin-bottom: 20px;
+  max-width: 72ch;
+}
+.archief-uitleg h2 {
+  font-size: 18px;
+  margin: 0 0 6px;
+}
+.archief-uitleg p {
+  margin: 0;
 }
 
 /* Voorbeeldweergave voor bezoekers: grijze balken, geen echte data. */

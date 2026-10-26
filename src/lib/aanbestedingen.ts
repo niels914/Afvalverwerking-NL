@@ -200,7 +200,8 @@ export function sluitingTijd(sluiting: string): string {
 
 /** "26 oktober 2026 om 07:17" in Nederlandse tijd. */
 export function tijdstempel(iso: string): string {
-  return tijdstempelFormaat.format(new Date(iso)).replace(/,? (\d{2}:\d{2})$/, ' om $1');
+  // nl-NL geeft "26 oktober 2026 om 20:47" (of met komma in oudere ICU-versies).
+  return tijdstempelFormaat.format(new Date(iso)).replace(/(\d{4}),? (?:om )?(\d{2}:\d{2})$/, '$1 om $2');
 }
 
 /** Aantal dagen van vandaag (Nederlandse datum) tot de sluitingsdatum; negatief als die voorbij is. */

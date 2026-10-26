@@ -90,7 +90,7 @@ export const PROVINCIES = [
   'Zuid-Holland',
 ] as const;
 
-export const ONBEKENDE_STROOM = 'Niet te bepalen';
+export const ONBEKENDE_STROOM = 'Niet gespecificeerd';
 
 interface StroomRegel {
   naam: string;
@@ -105,10 +105,10 @@ interface StroomRegel {
  * dan trefwoorden in titel, omschrijving en de trefwoorden die de opdrachtgever zelf invulde.
  */
 export const STROOM_REGELS: StroomRegel[] = [
-  { naam: 'Huishoudelijk afval (algemeen)', cpv: ['90511200', '90513100'], tekst: /huishoudelijk(e)? (rest)?afval|huisvuil|huishoudelijke afvalstoffen/ },
-  { naam: 'Restafval', tekst: /rest-?afval|restfractie|reststroom/ },
+  { naam: 'Huishoudelijk afval (algemeen)', cpv: ['90511200', '90513100'], tekst: /huishoudelijk(e)? (rest)?afval|huisvuil|huishoudelijke afvalstoffen|huis-aan-huis/ },
+  { naam: 'Restafval', tekst: /rest-?afval|restfractie|nascheiding/ },
   { naam: 'GFT en etensresten', tekst: /\bgft|groente-?,? ?fruit|\bgf-?afval|swill|etensresten|keukenafval|voedselafval|voedselresten/ },
-  { naam: 'Groenafval', tekst: /groen-?afval|snoei(afval|hout)|maaisel|blad-?afval|bermgras|groenresten/ },
+  { naam: 'Groenafval', tekst: /groen-?afval|snoei(afval|hout)|maaisel|blad-?afval|bermgras|groenresten|tuinafval|hekkel/ },
   { naam: 'PMD en kunststof', tekst: /\bpmd\b|plastic( |-)?(afval|verpakking)|kunststof(afval|verpakking|fractie|fen)|drankkarton/ },
   { naam: 'Papier en karton', cpv: ['90511400'], tekst: /papier|(?<!drank)karton|\bopk\b/ },
   { naam: 'Glas', tekst: /\bglas\b|glasbak|glasafval|vlakglas|verpakkingsglas/ },
@@ -120,11 +120,19 @@ export const STROOM_REGELS: StroomRegel[] = [
   { naam: 'Gevaarlijk afval', cpv: ['90520', '90523'], tekst: /(?<!niet[- ])gevaarlijk(e)? afval|gevaarlijke afvalstoffen|\bkca\b|klein chemisch|asbest|chemisch afval/ },
   { naam: 'Medisch afval', cpv: ['90524'], tekst: /medisch afval|ziekenhuisafval|\bsza\b|zorgafval|klinisch afval/ },
   { naam: 'Radioactief afval', cpv: ['90521'] },
-  { naam: 'Verontreinigde grond', cpv: ['90522'], tekst: /verontreinigde grond|grondreiniging/ },
-  { naam: 'Bodemas en vliegas', cpv: ['9051340'], tekst: /bodemas|vliegas|aec-?as|verbrandingsslakken/ },
-  { naam: 'Slib', cpv: ['905136', '905137', '905138', '905139'], tekst: /\bslib|zuiveringsslib|rioolslib/ },
+  { naam: 'Grond en baggerspecie', cpv: ['90522'], tekst: /verontreinigde grond|grondreiniging|gronddepot|(?<!op )\bgrond\b(?! van)|baggerspecie/ },
+  { naam: 'Bodemas en vliegas', cpv: ['9051340'], tekst: /bodemas|vliegas|aec-?as|verbrandingsslakken|\bwte\b|reststoffen (van )?(afval)?verbranding/ },
+  { naam: 'Slib en septictanks', cpv: ['905136', '905137', '905138', '905139'], tekst: /\bslib|zuiveringsslib|rioolslib|septictank|beerput/ },
   { naam: 'Zwerfafval en straatreiniging', cpv: ['90511300'], tekst: /zwerf(afval|vuil)|veegvuil|straatvegen|afvalbakken/ },
-  { naam: 'Bedrijfsafval', tekst: /bedrijfsafval|kantoorafval|bedrijfsafvalstoffen/ },
+  { naam: 'Matrassen', tekst: /matras/ },
+  { naam: 'Metalen', tekst: /metalen|\bferro|schroot/ },
+  { naam: 'Luiers en incontinentiemateriaal', tekst: /luier|incontinentie/ },
+  { naam: 'Drukhouders en gasflessen', tekst: /drukhouder|gasfles|lachgas/ },
+  { naam: 'Overige monostromen', tekst: /\bgips|dakleer|tapijt|koffiedik|kunstgras|monostro|frituurvet/ },
+  { naam: 'Kringloop en hergebruik', tekst: /kringloop|goedzooi|refurbish/ },
+  { naam: 'Milieustraat', tekst: /milieustra|milieupark|milieustation|brengvoorziening|brengstation|recyclingstation|recyclingpark/ },
+  { naam: 'Containers en inzamelmiddelen', tekst: /minicontainer|ondergrondse (afval)?container|containerbehuizing|verzamelcontainer|afvalcontainer|inzamelvoertuig|achterlader/ },
+  { naam: 'Bedrijfsafval', tekst: /bedrijfsafval|kantoorafval|bedrijfsafvalstoffen|afvaldienstverlening|afval(stoffen)?management/ },
 ];
 
 export const STROMEN: string[] = [...STROOM_REGELS.map((r) => r.naam), ONBEKENDE_STROOM];
@@ -138,7 +146,8 @@ const cpv8 = (code: string) => code.replace(/\D/g, '').slice(0, 8);
 /** Afvalstromen uit CPV-codes en tekst. Altijd minstens één waarde. */
 export function afvalstromen(cpvCodes: string[], tekst: string): string[] {
   const codes = cpvCodes.map(cpv8);
-  const t = tekst.toLowerCase();
+  // Koppeltekens normaliseren: TenderNed-teksten bevatten soms een niet-afbrekend koppelteken (U+2011).
+  const t = tekst.toLowerCase().replace(/[\u2010-\u2015\u00ad]/g, '-');
   const gevonden = STROOM_REGELS.filter(
     (r) => (r.cpv && codes.some((c) => r.cpv!.some((p) => c.startsWith(p)))) || (r.tekst && r.tekst.test(t)),
   ).map((r) => r.naam);

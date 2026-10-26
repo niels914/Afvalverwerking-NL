@@ -122,6 +122,8 @@ Deno.serve(async (req) => {
     const teDoen = [...perKenmerk.entries()]
       .map(([kenmerk, ps]) => ({ kenmerk, laatste: nieuwste(ps.filter((p) => p.publicatiestatus?.code !== 'INT').length ? ps.filter((p) => p.publicatiestatus?.code !== 'INT') : ps) }))
       .filter(({ kenmerk, laatste }) => {
+        // Van ingetrokken publicaties geeft TenderNed geen detailpagina.
+        if (laatste.publicatiestatus?.code === 'INT') return false;
         const d = bestaand.get(kenmerk);
         return !d || Number(laatste.publicatieId) > d.publicatieId;
       })

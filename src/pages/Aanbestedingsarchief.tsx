@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Vergrendeld } from '../components/betaalmuur/Vergrendeld';
 import { Badge, Kaart, KeuzeVeld, PaginaKop } from '../components/ui';
 import { aanbestedingenBron, cpvFilterUitleg } from '../data/aanbestedingen';
-import { useAuth } from '../lib/auth';
+import { isToegangOnbekend, useAuth } from '../lib/auth';
 import {
   DIENSTEN,
   LEGE_FILTERS,
@@ -32,7 +32,9 @@ import { datum, datumKortNl, getal } from '../lib/format';
 import './Aanbestedingsarchief.css';
 
 export function Aanbestedingsarchief() {
-  const { isLid } = useAuth();
+  const auth = useAuth();
+  const { isLid } = auth;
+  const toegangOnbekend = isToegangOnbekend(auth);
 
   return (
     <>
@@ -40,6 +42,22 @@ export function Aanbestedingsarchief() {
         Aanbestedingen voor inzameling, transport en verwerking van afval, zoals opdrachtgevers die op TenderNed publiceren. Zoek op
         opdrachtgever of onderwerp, filter op afvalstroom, status en provincie en ga door naar de aankondiging.
       </PaginaKop>
+
+      {!isLid && !toegangOnbekend && (
+        <section className="archief-uitleg" aria-labelledby="archief-uitleg-kop">
+          <h2 id="archief-uitleg-kop">Wat staat in het archief</h2>
+          <p>
+            Alle aankondigingen op{' '}
+            <a href={aanbestedingenBron.url} target="_blank" rel="noopener noreferrer">
+              TenderNed
+              <span className="visueel-verborgen"> (opent in nieuw venster)</span>
+            </a>{' '}
+            met CPV-code 90500000 of een code daaronder: inzameling, transport, verwerking en recycling van afval en het beheer van
+            stortplaatsen. Publicaties van dezelfde aanbesteding (aankondiging, rectificatie, gunning) staan bij elkaar. Het archief
+            wordt elke ochtend bijgewerkt.
+          </p>
+        </section>
+      )}
 
       <Vergrendeld
         titel="Aanbestedingsarchief"
@@ -62,9 +80,9 @@ function Archief() {
   const filters = filtersUitUrl(params);
   const sleutel = filtersNaarUrl(filters).toString();
 
-  const [resultaat, setResultaat] = useState<{ regels: AanbestedingRegel[]; totaal: number } | null>(null);
-  const [fout, setFout] = useState(false);
-  const [laden, setLaden] = useState(true);
+  // Resultaat met de filters waarvoor het geldt: zo is "laden" altijd eenduidig (andere filters = nog niet binnen).
+  const [resultaat, setResultaat] = useState<{ voor: string; regels: AanbestedingRegel[]; totaal: number } | null>(null);
+  const [fout, setFout] = useState<string | null>(null);
   const [poging, setPoging] = useState(0);
   const [kern, setKern] = useState<Kerncijfers | null>(null);
   const [zoekInvoer, setZoekInvoer] = useState(filters.zoek);
@@ -82,13 +100,11 @@ function Archief() {
 
   useEffect(() => {
     let actief = true;
-    setLaden(true);
-    setFout(false);
+    setFout(null);
     zoekAanbestedingen(filtersUitUrl(new URLSearchParams(sleutel))).then(
       (r) => {
         if (!actief) return;
-        setResultaat(r);
-        setLaden(false);
+        setResultaat({ voor: sleutel, ...r });
         if (focusNaLaden.current) {
           focusNaLaden.current = false;
           resultatenKop.current?.focus();
@@ -96,8 +112,7 @@ function Archief() {
       },
       () => {
         if (!actief) return;
-        setFout(true);
-        setLaden(false);
+        setFout(sleutel);
       },
     );
     return () => {
@@ -127,6 +142,7 @@ function Archief() {
     zetFilters({ zoek: zoekInvoer }, { focus: true });
   }
 
+  const laden = !fout && resultaat?.voor !== sleutel;
   const actieveFilters = filtersNaarUrl({ ...filters, sortering: 'publicatie-nieuw', pagina: 1 }).toString() !== '';
   const totaal = resultaat?.totaal ?? 0;
   const paginas = Math.max(1, Math.ceil(totaal / PER_PAGINA));
@@ -229,7 +245,7 @@ function Archief() {
                   }.`}
         </p>
 
-        {fout && (
+        {fout === sleutel && (
           <div role="alert" className="archief-fout">
             <p>De aanbestedingen konden niet worden geladen. Controleer uw internetverbinding en probeer het opnieuw.</p>
             <button type="button" onClick={() => setPoging((p) => p + 1)}>
@@ -251,7 +267,6 @@ function Archief() {
                   </th>
                   <th scope="col">Afvalstroom</th>
                   <th scope="col">Procedure</th>
-                  <th scope="col">Provincie</th>
                   <th
                     scope="col"
                     aria-sort={
@@ -267,7 +282,6 @@ function Archief() {
                     Sluiting
                   </th>
                   <th scope="col">Status</th>
-                  <th scope="col">Aankondiging</th>
                 </tr>
               </thead>
               <tbody>
@@ -306,7 +320,13 @@ function Regel({ a, vandaag }: { a: AanbestedingRegel; vandaag: string }) {
     <tr>
       <td data-label="Opdracht" className="archief-opdracht">
         <span className="archief-opdrachtgever">{a.opdrachtgever}</span>
-        <span className="archief-titel">{a.titel}</span>
+        <a className="archief-titel" href={a.tenderned_url} target="_blank" rel="noopener noreferrer">
+          {a.titel}
+          <span className="visueel-verborgen"> (aankondiging op TenderNed, opent in nieuw venster)</span>
+        </a>
+        <span className="archief-provincie">
+          {a.provincies.length ? `Provincie: ${a.provincies.join(', ')}` : 'Provincie: landelijk of niet vermeld'}
+        </span>
         <details className="archief-meer">
           <summary>
             Details<span className="visueel-verborgen"> van {a.titel}</span>
@@ -371,19 +391,18 @@ function Regel({ a, vandaag }: { a: AanbestedingRegel; vandaag: string }) {
         </ul>
       </td>
       <td data-label="Procedure">{a.procedure}</td>
-      <td data-label="Provincie">{a.provincies.length ? a.provincies.join(', ') : <span className="muted">Landelijk of niet vermeld</span>}</td>
       <td data-label="Publicatie">
         <time dateTime={a.publicatiedatum}>{datumKortNl(a.publicatiedatum)}</time>
       </td>
       <td data-label="Sluiting">
         {a.sluitingsdatum ? (
-          <>
+          <div>
             <time dateTime={a.sluitingsdatum}>{datumKortNl(a.sluitingsdatum.slice(0, 10))}</time>
             {a.sluiting_tijd_bekend && <span className="archief-tijd"> {sluitingTijd(a.sluitingsdatum)}</span>}
             {a.status === 'open' && dagen !== null && dagen >= 0 && (
               <span className="archief-nog">{dagen === 0 ? 'vandaag' : `nog ${getal(dagen)} ${dagen === 1 ? 'dag' : 'dagen'}`}</span>
             )}
-          </>
+          </div>
         ) : (
           <span className="muted">Niet vermeld</span>
         )}
@@ -392,11 +411,6 @@ function Regel({ a, vandaag }: { a: AanbestedingRegel; vandaag: string }) {
         <span title={STATUS_UITLEG[a.status]}>
           <Badge soort={statusBadge(a.status)}>{STATUS_LABEL[a.status]}</Badge>
         </span>
-      </td>
-      <td data-label="Aankondiging">
-        <a href={a.tenderned_url} target="_blank" rel="noopener noreferrer">
-          TenderNed<span className="visueel-verborgen">: {a.titel} (opent in nieuw venster)</span>
-        </a>
       </td>
     </tr>
   );

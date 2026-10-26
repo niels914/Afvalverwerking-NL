@@ -9,7 +9,7 @@ import {
   vatDetailSamen,
   type TnsLijstPublicatie,
 } from '../../supabase/functions/ververs-aanbestedingen/afleiding';
-import { dagenTot, filtersNaarUrl, filtersUitUrl, LEGE_FILTERS, sluitingTijd, vandaagNl } from './aanbestedingen';
+import { dagenTot, filtersNaarUrl, filtersUitUrl, LEGE_FILTERS, sluitingTijd, tijdstempel, vandaagNl } from './aanbestedingen';
 
 // Publicaties in de vorm van de TenderNed-webservice (velden ingekort).
 const pub = (id: number, datum: string, type: string, extra: Partial<TnsLijstPublicatie> = {}): TnsLijstPublicatie => ({
@@ -30,7 +30,7 @@ describe('afvalstroom en dienst uit CPV en tekst', () => {
   it('specifieke CPV-codes bepalen de stroom', () => {
     expect(afvalstromen(['90511400-6'], '')).toEqual(['Papier en karton']);
     expect(afvalstromen(['90524400-0'], '')).toEqual(['Medisch afval']);
-    expect(afvalstromen(['90513600-1'], '')).toEqual(['Slib']);
+    expect(afvalstromen(['90513600-1'], '')).toEqual(['Slib en septictanks']);
   });
 
   it('bij algemene CPV-codes tellen trefwoorden in de tekst', () => {
@@ -39,12 +39,13 @@ describe('afvalstroom en dienst uit CPV en tekst', () => {
   });
 
   it('"niet-gevaarlijk afval" telt niet als gevaarlijk afval', () => {
-    expect(afvalstromen(['90510000-5'], 'Verwerking van niet-gevaarlijk afval')).toEqual(['Niet te bepalen']);
+    expect(afvalstromen(['90510000-5'], 'Verwerking van niet-gevaarlijk afval')).toEqual(['Niet gespecificeerd']);
     expect(afvalstromen(['90510000-5'], 'Inzameling van gevaarlijk afval')).toEqual(['Gevaarlijk afval']);
+    expect(afvalstromen(['90510000-5'], 'Verwerking van niet\u2011gevaarlijk afval')).toEqual(['Niet gespecificeerd']);
   });
 
   it('glasvezel is geen glas', () => {
-    expect(afvalstromen([], 'Aanleg glasvezel')).toEqual(['Niet te bepalen']);
+    expect(afvalstromen([], 'Aanleg glasvezel')).toEqual(['Niet gespecificeerd']);
   });
 
   it('soort dienst', () => {
@@ -160,7 +161,22 @@ describe('weergave', () => {
     expect(dagenTot('2026-12-15T12:00:00', '2026-10-26')).toBe(50);
     expect(dagenTot('2026-10-26T23:59:59', '2026-10-26')).toBe(0);
   });
+  it('tijdstempel zonder dubbel "om"', () => {
+    expect(tijdstempel('2026-10-26T19:47:00Z')).toBe('26 oktober 2026 om 20:47');
+  });
   it('vandaag in Nederlandse tijd', () => {
     expect(vandaagNl(new Date('2026-10-26T23:30:00Z'))).toBe('2026-10-27');
+  });
+});
+
+describe('afvalstroom: juridische formuleringen en monostromen', () => {
+  it('"op grond van" is geen grond', () => {
+    expect(afvalstromen([], 'Op grond van artikel 2.32 Aanbestedingswet')).toEqual(['Niet gespecificeerd']);
+    expect(afvalstromen([], 'Verwerking van grond, gips en dakleer')).toEqual(['Grond en baggerspecie', 'Overige monostromen']);
+  });
+  it('matrassen, milieustraat en luiers', () => {
+    expect(afvalstromen([], 'Afvoer en verwerking van matrassen')).toEqual(['Matrassen']);
+    expect(afvalstromen([], 'Exploitatie milieustraat gemeente X')).toEqual(['Milieustraat']);
+    expect(afvalstromen([], 'Recycling luier- en incontinentiemateriaal')).toEqual(['Luiers en incontinentiemateriaal']);
   });
 });
