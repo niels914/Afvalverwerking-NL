@@ -276,6 +276,9 @@ export interface SupabaseGebruik {
 export const supabaseGebruik: SupabaseGebruik[] = [
   { naam: 'is_lid', soort: 'functie', wat: 'Controleert of uw bevestigde e-maildomein hoort bij een organisatie met een actief lidmaatschap. Geeft alleen ja of nee terug.' },
   { naam: 'mijn_lidmaatschap', soort: 'functie', wat: 'Geeft naam, soort, status en einddatum van het lidmaatschap van uw organisatie terug, om te tonen op Mijn account.' },
+  { naam: 'zoek_aanbestedingen', soort: 'functie', wat: 'Zoekt in het aanbestedingsarchief: openbare aankondigingen van TenderNed (opdrachtgever, titel, data, status). Bevat geen persoonsgegevens en slaat uw zoekopdracht niet op. Alleen leden kunnen het lezen.' },
+  { naam: 'aanbestedingen_telling', soort: 'functie', wat: 'Telt de aanbestedingen in het archief per status. Bevat geen persoonsgegevens. Alleen leden kunnen het lezen.' },
+  { naam: 'aanbestedingen_verversingen', soort: 'tabel', wat: 'Logboek van het dagelijks ophalen van aanbestedingen bij TenderNed (tijdstip en aantallen), voor de vermelding "laatst bijgewerkt". Bevat geen persoonsgegevens. Alleen leden kunnen het lezen.' },
 ];
 
 // ---------- Externe diensten (privacy- en cookieverklaring) ----------
