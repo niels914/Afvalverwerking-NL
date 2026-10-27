@@ -5,6 +5,17 @@
 
 export const PEILDATUM = '2026-10-27';
 
+/** Versie van de scan. Verhoog bij een wijziging in tarieven, regels of rekenwijze; de pagina en de CSV tonen dit. */
+export const co2ToolVersie = {
+  versie: '3.0',
+  datum: '2026-10-27',
+  wijzigingen: [
+    { versie: '3.0', datum: '2026-10-27', tekst: 'Bandbreedte en onzekerheid bij de uitkomst, uitstoot ten opzichte van historisch niveau tussen 1 en 300 %, tarief met inflatieaanname apart gelabeld.' },
+    { versie: '2.0', datum: '2026-10-27', tekst: 'Standaardinflatie 2,6 %, vergelijking in prijspeil 2026, emissiefactor uit de lijst van energiedragers 2026.' },
+    { versie: '1.0', datum: '2026-10-20', tekst: 'Tarieven en regels uit de wet, van de NEa en uit het Belastingplan 2027.' },
+  ],
+};
+
 export interface Bron {
   titel: string;
   url: string;

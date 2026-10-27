@@ -101,11 +101,20 @@ export interface VrijstellingFactoren {
 /** Grenzen waarbinnen de NEa het historisch activiteitsniveau gebruikt (± 15 %). */
 export const VERHOUDING_MIN = 0.85;
 export const VERHOUDING_MAX = 1.15;
+/** Wat de gebruiker mag invullen voor uitstoot ÷ historisch niveau, in procent. */
+export const VERHOUDING_INVOER_MIN_PCT = 1;
+export const VERHOUDING_INVOER_MAX_PCT = 300;
+
+/** Ligt de verhouding buiten de band van ± 15 %, waar de NEa het activiteitsniveau aanpast? */
+export function buitenBand(uitstootVerhouding: number): boolean {
+  return uitstootVerhouding < VERHOUDING_MIN || uitstootVerhouding > VERHOUDING_MAX;
+}
 
 /**
  * Vrijgesteld deel van de uitstoot volgens de wettelijke formule.
- * uitstootVerhouding = huidige uitstoot ÷ historisch activiteitsniveau (mediaan 2019–2023), tussen 0,85 en 1,15.
- * Buiten die band gebruikt de NEa het actuele niveau; dan telt verhouding 1.
+ * uitstootVerhouding = huidige uitstoot ÷ historisch activiteitsniveau (mediaan 2019–2023).
+ * Binnen 0,85–1,15 telt het historisch niveau. Wijkt de uitstoot meer dan 15 % af, dan past de NEa het activiteitsniveau
+ * aan met de efficiëntieregels uit het EU ETS. De scan benadert dat met het actuele niveau (verhouding 1): een aanname.
  */
 export function wettelijkVrijgesteldDeel(f: VrijstellingFactoren, uitstootVerhouding = 1): number {
   const v = uitstootVerhouding >= VERHOUDING_MIN && uitstootVerhouding <= VERHOUDING_MAX ? uitstootVerhouding : 1;
@@ -167,7 +176,7 @@ export interface ScanInvoer {
   vrijstelling: 'wettelijk' | 'eigen';
   /** Vrijgesteld deel in procent, als vrijstelling 'eigen' is. */
   eigenVrijgesteldPct: number;
-  /** Huidige uitstoot ÷ historisch niveau in procent (85–115). */
+  /** Huidige uitstoot ÷ historisch niveau in procent (1–300; buiten 85–115 benadert de scan de aanpassing van de NEa). */
   uitstootVerhoudingPct: number;
 }
 
@@ -181,6 +190,34 @@ export function scanJaar(regels: Co2Regels, invoer: ScanInvoer, jaar: number, to
   const vrijgesteldDeel =
     invoer.vrijstelling === 'eigen' ? invoer.eigenVrijgesteldPct / 100 : wettelijkVrijgesteldDeel(p, invoer.uitstootVerhoudingPct / 100);
   return { ...p, vrijgesteldDeel, ...co2Jaar({ tonnage, emissiefactor: invoer.emissiefactor, tarief: p.tarief, vrijgesteldDeel }) };
+}
+
+/**
+ * Zit er een inflatieaanname in het tarief van dit jaar? Ja als het jaar na het laatste vaste tarief ligt en de
+ * inflatie niet 0 is. Dan is het tarief geen bedrag uit de wet, maar wet plus aanname.
+ */
+export function inflatieInTarief(regels: TariefpadRegels, jaar: number, inflatiePct: number): boolean {
+  const laatsteVast = Math.max(...Object.keys(regels.vast).map(Number).filter((j) => j <= jaar));
+  return inflatiePct !== 0 && jaar > laatsteVast;
+}
+
+export interface Bandbreedte {
+  laag: ScanJaar;
+  hoog: ScanJaar;
+  /** Gebruikte inflatie onder en boven, in procent. */
+  inflatie: [number, number];
+}
+
+/**
+ * Onder- en bovengrens voor één jaar: beide tariefpaden, met de inflatie van de gebruiker min en plus een marge
+ * (standaard 1 procentpunt, niet onder 0 %). Alle overige invoer blijft gelijk. Afschaffing van de heffing valt erbuiten.
+ */
+export function bandbreedte(paden: Co2Regels[], invoer: ScanInvoer, jaar: number, margePct = 1): Bandbreedte {
+  const inflatie: [number, number] = [Math.max(0, invoer.inflatiePct - margePct), invoer.inflatiePct + margePct];
+  const uitkomsten = paden.flatMap((regels) => inflatie.map((i) => scanJaar(regels, { ...invoer, inflatiePct: i }, jaar)));
+  const laag = uitkomsten.reduce((a, b) => (b.kosten < a.kosten ? b : a));
+  const hoog = uitkomsten.reduce((a, b) => (b.kosten > a.kosten ? b : a));
+  return { laag, hoog, inflatie };
 }
 
 /** Scan over een reeks jaren, optioneel bij een ander scheidingspercentage. */
@@ -249,7 +286,7 @@ export function co2InvoerUitParams(
     inflatiePct: num('inflatiePct', -10, 25),
     vrijstelling: vrij === 'eigen' || vrij === 'wettelijk' ? vrij : standaard.vrijstelling,
     eigenVrijgesteldPct: num('eigenVrijgesteldPct', 0, 200),
-    uitstootVerhoudingPct: num('uitstootVerhoudingPct', VERHOUDING_MIN * 100, VERHOUDING_MAX * 100),
+    uitstootVerhoudingPct: num('uitstootVerhoudingPct', VERHOUDING_INVOER_MIN_PCT, VERHOUDING_INVOER_MAX_PCT),
     jaar: num('jaar', grenzen.eersteJaar, grenzen.laatsteJaar, true),
     pad: pad && grenzen.paden.includes(pad) ? pad : standaard.pad,
     inwoners: num('inwoners', 0, 1e8),

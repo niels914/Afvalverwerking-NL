@@ -166,6 +166,73 @@ test.describe('Indexcalculator: vergelijking in de deellink', () => {
   });
 });
 
+test.describe('Indexcalculator: ronde 3', () => {
+  const Q = 'soort=jaar&tarief=100&reeks=cpi&basis=2021&peil=2025&weging=cpi:100&vast=0&van=2022&tot=2026&verschuiving=1&maand=9';
+
+  test('de grote Pro-tegel toont het tarief van het gekozen contractjaar, gelijk aan de tabel', async ({ page }) => {
+    await page.goto(`/tools/indexcalculator?${Q}&vgl=2022-2025`);
+    const pro = page.locator('.ta-pro');
+    const hero = pro.locator('.tegel.hero');
+    await expect(hero.locator('.tegel-label')).toHaveText(/Tarief contractjaar 2025/i);
+    // Contractjaar 2025 rekent met het jaarcijfer 2024 (indexcijfer uit het voorgaande jaar).
+    const tarief = nl(Math.round((100 * cpi.jaren['2024']) / cpi.jaren['2021'] * 100) / 100);
+    await expect(hero.locator('.tegel-waarde')).toContainText(tarief);
+    await expect(hero).toContainText('indexcijfer 2024');
+    // Voor bezoekers is het Pro-deel een inerte preview: zoeken via CSS in plaats van rollen.
+    const rij = pro.locator('table.ta-kaarttabel tbody tr').filter({ has: page.locator('th', { hasText: /^2025/ }) });
+    await expect(rij).toContainText(tarief);
+    await expect(rij).toContainText('in tegel');
+    // Het tarief bij peilperiode 2025 uit het gratis deel is een ander getal, met een ander label.
+    await expect(page.locator('.tegel.hero').first().locator('.tegel-label')).toHaveText(/Tarief peilperiode 2025/i);
+    await geenHorizontaleScroll(page);
+  });
+
+  test('rekent met een eigen indexreeks en zet die in de deellink', async ({ page }) => {
+    await page.goto('/tools/indexcalculator');
+    await page.locator('#eigen-reeks summary').click();
+    await page.getByLabel('Naam van de reeks').fill('Sectorindex');
+    await page.getByLabel('Indexcijfers per periode').fill('2021 80\n2024 90\n2025 100\nfout');
+    await expect(page.getByText(/Niet gelezen en overgeslagen: regel 4/)).toBeVisible();
+    await page.getByLabel('Indexreeks', { exact: true }).selectOption('eigen');
+    await page.getByLabel('Basisperiode', { exact: true }).selectOption('2021');
+    await page.getByLabel('Peilperiode', { exact: true }).selectOption('2025');
+    await expect(page.locator('.tegel.hero .tegel-waarde').first()).toContainText(nl(125));
+    await expect(page.getByRole('region', { name: 'In het kort' })).toContainText('eigen indexcijfers');
+    await expect(page).toHaveURL(/ereeks=2021%3A80%2C2024%3A90%2C2025%3A100/);
+    await expect(page).toHaveURL(/enaam=Sectorindex/);
+    const link = await page.getByLabel('Deellink met uw invoer').first().inputValue();
+    const tweede = await page.context().newPage();
+    await tweede.goto(link.replace(/^https?:\/\/[^/]+/, ''));
+    await expect(tweede.getByLabel('Indexreeks', { exact: true })).toHaveValue('eigen');
+    await expect(tweede.locator('.tegel.hero .tegel-waarde').first()).toContainText(nl(125));
+    await tweede.close();
+  });
+
+  test('toont geen oud bedrag na ongeldige invoer', async ({ page }) => {
+    await page.goto('/tools/indexcalculator');
+    await page.getByLabel('Basistarief', { exact: true }).fill('abc');
+    const kern = page.getByRole('region', { name: 'In het kort' });
+    await expect(kern).toContainText('Uitkomst niet bijgewerkt');
+    await expect(kern).toContainText('Basistarief');
+    await expect(page.locator('.tegel.hero .tegel-waarde').first()).toHaveText('–');
+    await page.getByLabel('Basistarief', { exact: true }).fill('100');
+    await expect(kern).not.toContainText('Uitkomst niet bijgewerkt');
+  });
+
+  test('laat de som zien om na te rekenen, met CBS-verwijzingen, en de versie', async ({ page }) => {
+    await page.goto('/tools/indexcalculator');
+    const blok = page.locator('.ta-narekenen');
+    await expect(blok).toContainText('Zelf narekenen');
+    await expect(blok).toContainText('÷');
+    await expect(blok.getByRole('link', { name: /CBS-tabel 86141NED/ })).toHaveAttribute('href', /opendata\.cbs\.nl/);
+    await expect(blok.getByRole('link', { name: /CBS over indexeren/ })).toHaveAttribute('href', /cbs\.nl\/nl-nl\/achtergrond/);
+    await expect(page.getByRole('region', { name: 'In het kort' })).toContainText(/Versie \d/);
+    const { tekst } = await leesDownload(page, 'CSV downloaden');
+    expect(tekst).toContain('Narekenen;');
+    expect(tekst).toContain('Versie tool;');
+  });
+});
+
 test.describe('CO2-heffingenscan', () => {
   test('rekent met het wettelijke tarief en de correctiefactor', async ({ page }) => {
     await page.goto('/tools/co2-heffingenscan');
@@ -174,7 +241,7 @@ test.describe('CO2-heffingenscan', () => {
 
     // Standaard: 2,6 % inflatie, dus geldend recht 2027 = (103,66 + 49,66) × 1,026.
     await expect(page.locator('.tegel').nth(2)).toContainText(nl((103.66 + 49.66) * 1.026));
-    await expect(page.getByRole('region', { name: 'In het kort' })).toContainText('Beide met 2,6');
+    await expect(page.getByRole('region', { name: 'In het kort' })).toContainText('ook met 2,6');
     await expect(page.getByRole('region', { name: 'In het kort' })).toContainText('0,380');
 
     await page.getByLabel('Restafval', { exact: true }).fill('10000');
@@ -190,7 +257,7 @@ test.describe('CO2-heffingenscan', () => {
     // Wetsvoorstel: 2027 € 129,15 en een zichtbaar label.
     await page.getByRole('radio', { name: /Voorstel BP 2027/ }).check();
     await expect(page.locator('.tegel').nth(2)).toContainText('€ 129,15');
-    await expect(page.getByText(/nog niet aangenomen/)).toBeVisible();
+    await expect(page.getByText(/nog niet aangenomen/).first()).toBeVisible();
 
     // Eigen vrijgesteld deel.
     await page.getByLabel('Eigen percentage van uw verwerker').check();
@@ -256,6 +323,37 @@ test.describe('CO2-heffingenscan', () => {
     await tweede.close();
   });
 
+  test('toont bandbreedte en onzekerheid bij de uitkomst', async ({ page }) => {
+    await page.goto('/tools/co2-heffingenscan');
+    const onzeker = page.getByRole('note', { name: 'Onzekerheid' });
+    await expect(onzeker).toContainText('Onder- en bovengrens 2027');
+    await expect(onzeker).toContainText('nog niet aangenomen');
+    await expect(page.getByRole('region', { name: 'In het kort' })).toContainText('coalitieakkoord noemt afschaffing');
+    await expect(page.getByRole('region', { name: 'In het kort' })).not.toContainText('kabinet wil');
+    await page.getByLabel('Heffingsjaar').selectOption('2026');
+    await expect(onzeker).toContainText('tarief ligt vast in de wet');
+  });
+
+  test('accepteert een uitstoot ver onder het historisch niveau en labelt de benadering', async ({ page }) => {
+    await page.goto('/tools/co2-heffingenscan');
+    await page.getByLabel('Uitstoot van de AVI ten opzichte van het historisch niveau').fill('70');
+    await expect(page.getByText('Vul een getal in.')).toBeHidden();
+    await expect(page.getByText(/Meer dan 15 % afwijking/)).toBeVisible();
+    await expect(page).toHaveURL(/verh=70/);
+  });
+
+  test('labelt het tarief met inflatieaanname in tegel en CSV, en verbergt bedragen bij ongeldige invoer', async ({ page }) => {
+    await page.goto('/tools/co2-heffingenscan');
+    await expect(page.locator('.tegel').nth(2)).toContainText('inflatie per jaar (aanname)');
+    const { tekst } = await leesDownload(page, 'CSV downloaden');
+    expect(tekst).toContain('Tarief 2027 volgens wet, zonder inflatiecorrectie (euro per ton CO2);153,32');
+    expect(tekst).toMatch(/Tarief 2027 incl\. inflatieaanname 2,6 % per jaar \(euro per ton CO2\);157,3/);
+    expect(tekst).toContain('Bandbreedte ondergrens');
+    await page.getByLabel('Restafval', { exact: true }).fill('');
+    await expect(page.getByRole('region', { name: 'In het kort' })).toContainText('Uitkomst niet bijgewerkt');
+    await expect(page.locator('.tegel.hero .tegel-waarde').first()).toHaveText('–');
+  });
+
   test('Pro-deel zit achter de betaalmuur', async ({ page }) => {
     test.skip(!!EMAIL, 'met inlog getest in de Pro-test');
     await page.goto('/tools/co2-heffingenscan');
@@ -306,7 +404,8 @@ test.describe('Pro voor leden', () => {
     expect(tekst).toContain('Indexcalculator');
     const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'CSV downloaden' }).nth(1).click()]);
     const pro = readFileSync((await download.path())!, 'utf8');
-    expect(pro).toContain('Indexcijfer CPI peilperiode (CBS)');
+    expect(pro).toContain('Indexcijfer CPI peilperiode (CBS 86141NED)');
+    expect(pro).toContain('Getoond contractjaar;');
     expect(pro).toContain('Afronding;');
     await expect(page.getByRole('button', { name: 'Rapport maken' })).toBeVisible();
   });
@@ -324,7 +423,25 @@ test.describe('Pro voor leden', () => {
 
   test('CO2-heffingenscan Pro: scenario’s en vergelijking', async ({ page }) => {
     await logIn(page, '/tools/co2-heffingenscan');
-    await expect(page.getByRole('region', { name: 'Tabel heffing per jaar per scenario' })).toBeVisible();
+    const tabel = page.getByRole('region', { name: 'Tabel heffing per jaar per scenario' });
+    // Op 400 px staan de bedragen per jaar ingeklapt; breed staan ze open.
+    if ((page.viewportSize()?.width ?? 1280) <= 520) {
+      await expect(tabel).toBeHidden();
+      await page.getByText('Bedragen per jaar').click();
+    }
+    await expect(tabel).toBeVisible();
+    await expect(tabel.locator('tbody tr')).toHaveCount(10);
     await expect(page.getByText(/Huidig scenario, totaal/)).toBeVisible();
+    await expect(page.getByRole('region', { name: 'In het kort' })).toContainText(/Pro: totaal 2026–2035/);
+    await geenHorizontaleScroll(page);
+  });
+
+  test('Indexcalculator Pro: kern noemt het tarief van het contractjaar', async ({ page }) => {
+    await logIn(page, '/tools/indexcalculator');
+    const hero = page.locator('.ta-pro .tegel.hero');
+    await expect(hero.locator('.tegel-label')).toHaveText(/Tarief contractjaar \d{4}/i);
+    const waarde = (await hero.locator('.tegel-waarde').textContent())!.trim();
+    await expect(page.getByRole('region', { name: 'In het kort' })).toContainText(`Met uw weging (Pro): ${waarde}`);
+    await geenHorizontaleScroll(page);
   });
 });

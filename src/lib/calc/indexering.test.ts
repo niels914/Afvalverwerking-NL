@@ -22,6 +22,12 @@ import {
   afrondingTekst,
   GEEN_AFRONDING,
   MAX_BASISTARIEF,
+  EIGEN_REEKS_ID,
+  eigenReeksNaarParam,
+  eigenReeksUitParam,
+  kiesContractjaren,
+  leesEigenReeks,
+  leesPeriode,
   type IndexInvoer,
 } from './indexering';
 import { indexreeksen, indexStandaardInvoer, reeksMetId } from '../../data/indexreeksen';
@@ -372,5 +378,100 @@ describe('indexering: deellink', () => {
     expect(uit('soort=jaar').afronding).toEqual(indexStandaardInvoer.afronding);
     expect(uit(`tarief=${MAX_BASISTARIEF}`).basistarief).toBe(MAX_BASISTARIEF);
     expect(uit(`tarief=${MAX_BASISTARIEF + 1}`).basistarief).toBe(indexStandaardInvoer.basistarief);
+  });
+});
+
+describe('indexering: tegel volgt het contractjaar (ronde 3)', () => {
+  const reeks = { maanden: {}, jaren: { '2021': 100, '2022': 110, '2023': 121, '2024': 133.1, '2025': 140 } };
+  const basis = {
+    basistarief: 100,
+    reeksen: [{ naam: 'X', weging: 1, reeks }],
+    vastDeel: 0,
+    soort: 'jaar' as const,
+    basisperiode: '2021',
+    eersteJaar: 2022,
+    laatsteJaar: 2026,
+    verschuiving: 1 as const,
+    peilmaand: 9,
+  };
+
+  it('toont het tarief van het gekozen contractjaar, met verschuiving van de peilperiode', () => {
+    const rijen = tariefPerContractjaar(basis);
+    const { a, b, verschil } = kiesContractjaren(rijen, null);
+    // Standaard: eerste en laatste contractjaar. Contractjaar 2026 rekent met het jaarcijfer 2025.
+    expect(a?.jaar).toBe(2022);
+    expect(b?.jaar).toBe(2026);
+    expect(b?.peilperiode).toBe('2025');
+    expect(b?.tarief).toBeCloseTo(140, 10);
+    // Het tarief bij peilperiode 2025 is niet het tarief van contractjaar 2025.
+    const j2025 = kiesContractjaren(rijen, [2022, 2025]).b!;
+    expect(j2025.peilperiode).toBe('2024');
+    expect(j2025.tarief).toBeCloseTo(133.1, 10);
+    expect(verschil?.verschilPct).toBeCloseTo((140 / 100 - 1) * 100, 10);
+  });
+
+  it('neemt de begrenzing mee in het getoonde tarief', () => {
+    const rijen = tariefPerContractjaar({ ...basis, plafondPct: 5 });
+    const { b } = kiesContractjaren(rijen, [2022, 2024]);
+    // 2022: stap 1,0 → 100; 2023: 1,10 → 1,05 → 105; 2024: 1,10 → 1,05 → 110,25.
+    expect(b?.tarief).toBeCloseTo(110.25, 10);
+    expect(b?.begrensd).toBe(true);
+    expect(b?.tariefZonderGrens).toBeCloseTo(121, 10);
+  });
+
+  it('valt terug op eerste en laatste jaar bij een onbekend contractjaar, en is leeg zonder rijen', () => {
+    const rijen = tariefPerContractjaar(basis);
+    expect(kiesContractjaren(rijen, [1999, 2050])).toMatchObject({ a: { jaar: 2022 }, b: { jaar: 2026 } });
+    expect(kiesContractjaren([], [2022, 2026])).toEqual({});
+  });
+});
+
+describe('indexering: eigen reeks (ronde 3)', () => {
+  it('leest perioden in verschillende schrijfwijzen', () => {
+    expect(leesPeriode('2024')).toBe('2024');
+    expect(leesPeriode('2024-9')).toBe('2024-09');
+    expect(leesPeriode('2024/10')).toBe('2024-10');
+    expect(leesPeriode('2024M03')).toBe('2024-03');
+    expect(leesPeriode('2024 september')).toBe('2024-09');
+    expect(leesPeriode('mrt 2025')).toBe('2025-03');
+    expect(leesPeriode('2024 september*')).toBe('2024-09'); // CBS markeert voorlopige cijfers met *
+    expect(leesPeriode('2024-13')).toBeUndefined();
+    expect(leesPeriode('vorig jaar')).toBeUndefined();
+  });
+
+  it('leest regels met spatie, tab, puntkomma of dubbele punt en meldt de rest', () => {
+    const { waarden, fouten } = leesEigenReeks('2023 100\n2024\t102,5\n2025;1.024,5\n2024-09: 103.1\n\nonzin\n2026 -3');
+    expect(waarden.jaren).toEqual({ '2023': 100, '2024': 102.5, '2025': 1024.5 });
+    expect(waarden.maanden).toEqual({ '2024-09': 103.1 });
+    expect(fouten).toHaveLength(2);
+    expect(fouten[0]).toContain('regel 6');
+  });
+
+  it('rekent met een eigen reeks zoals met een CBS-reeks', () => {
+    const { waarden } = leesEigenReeks('2021 80\n2025 100');
+    expect(factorTussen([{ naam: 'eigen', weging: 1, reeks: waarden }], 'jaar', '2021', '2025')).toBeCloseTo(1.25, 12);
+  });
+
+  it('zet een eigen reeks in de deellink en terug', () => {
+    const ids = [...indexreeksen.map((r) => r.id), EIGEN_REEKS_ID];
+    const inv: IndexInvoer = {
+      ...indexStandaardInvoer,
+      reeks: EIGEN_REEKS_ID,
+      eigenNaam: 'DPI reiniging',
+      eigenTekst: '2021 95,5\n2025 104\n2025-06 103,2',
+      wegingPct: { ...indexStandaardInvoer.wegingPct, [EIGEN_REEKS_ID]: 10 },
+    };
+    const p = indexInvoerNaarParams(inv);
+    expect(p.get('ereeks')).toBe('2021:95.5,2025:104,2025-06:103.2');
+    expect(p.get('enaam')).toBe('DPI reiniging');
+    const terug = indexInvoerUitParams(p, indexStandaardInvoer, ids);
+    expect(terug.reeks).toBe(EIGEN_REEKS_ID);
+    expect(terug.eigenNaam).toBe('DPI reiniging');
+    expect(leesEigenReeks(terug.eigenTekst).waarden).toEqual(leesEigenReeks(inv.eigenTekst).waarden);
+    expect(terug.wegingPct[EIGEN_REEKS_ID]).toBe(10);
+    // Zonder eigen cijfers geen parameters; ongeldige delen vallen weg.
+    expect(indexInvoerNaarParams(indexStandaardInvoer).has('ereeks')).toBe(false);
+    expect(eigenReeksUitParam('2021:100,abc:5,2022:-1,2023-02:101.5')).toBe('2021 100\n2023-02 101,5');
+    expect(eigenReeksNaarParam({ maanden: {}, jaren: {} })).toBe('');
   });
 });

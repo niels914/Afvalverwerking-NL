@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  bandbreedte,
+  buitenBand,
+  inflatieInTarief,
   co2Heffing,
   co2InvoerNaarParams,
   co2InvoerUitParams,
@@ -187,7 +190,7 @@ describe('CO2-heffingenscan: deellink', () => {
   });
 
   it('valt terug op de standaard bij ongeldige waarden', () => {
-    const p = new URLSearchParams('ton=abc&jaar=2050&pad=onzin&vrij=x&verh=50&sch=120');
+    const p = new URLSearchParams('ton=abc&jaar=2050&pad=onzin&vrij=x&verh=500&sch=120');
     const uit = co2InvoerUitParams(p, standaard, grenzen);
     expect(uit.tonnage).toBe(standaard.tonnage);
     expect(uit.jaar).toBe(standaard.jaar);
@@ -195,5 +198,56 @@ describe('CO2-heffingenscan: deellink', () => {
     expect(uit.vrijstelling).toBe(standaard.vrijstelling);
     expect(uit.uitstootVerhoudingPct).toBe(standaard.uitstootVerhoudingPct);
     expect(uit.scheidingNuPct).toBe(standaard.scheidingNuPct);
+  });
+});
+
+describe('CO2-heffingenscan: ronde 3', () => {
+  const grenzen = { paden: ['geldend', 'voorstel'], eersteJaar: 2026, laatsteJaar: 2035 };
+  const standaard = co2StandaardInvoer as Co2PaginaInvoer;
+
+  it('accepteert een uitstoot van 1 tot 300 % van het historisch niveau in de deellink', () => {
+    const uit = (v: string) => co2InvoerUitParams(new URLSearchParams(`verh=${v}`), standaard, grenzen).uitstootVerhoudingPct;
+    expect(uit('70')).toBe(70);
+    expect(uit('250')).toBe(250);
+    expect(uit('0')).toBe(standaard.uitstootVerhoudingPct);
+    expect(uit('301')).toBe(standaard.uitstootVerhoudingPct);
+  });
+
+  it('benadert buiten de band van 15 % met het actuele niveau', () => {
+    const f = { procesemissiefactor: 0.97, reductiefactor: 1.023, correctiefactor: 0.7 };
+    expect(buitenBand(0.7)).toBe(true);
+    expect(buitenBand(0.85)).toBe(false);
+    expect(buitenBand(1.15)).toBe(false);
+    expect(buitenBand(1.2)).toBe(true);
+    expect(wettelijkVrijgesteldDeel(f, 0.7)).toBeCloseTo(wettelijkVrijgesteldDeel(f, 1), 12);
+    expect(wettelijkVrijgesteldDeel(f, 0.9)).toBeCloseTo((0.97 * 1.023 * 0.7) / 0.9, 12);
+  });
+
+  it('weet wanneer het tarief een inflatieaanname bevat', () => {
+    expect(inflatieInTarief(regels('geldend'), 2026, 2.6)).toBe(false); // vast in de wet
+    expect(inflatieInTarief(regels('geldend'), 2027, 2.6)).toBe(true);
+    expect(inflatieInTarief(regels('geldend'), 2027, 0)).toBe(false);
+    expect(inflatieInTarief(regels('voorstel'), 2027, 2.6)).toBe(false); // € 129,15 staat in het voorstel
+    expect(inflatieInTarief(regels('voorstel'), 2028, 2.6)).toBe(true);
+  });
+
+  it('geeft een onder- en bovengrens over beide tariefpaden en inflatie ± 1 procentpunt', () => {
+    const inv = { ...standaard, tonnage: 10000, emissiefactor: 0.4, inflatiePct: 2.6 };
+    const b = bandbreedte([regels('geldend'), regels('voorstel')], inv, 2030);
+    expect(b.inflatie[0]).toBeCloseTo(1.6, 12);
+    expect(b.inflatie[1]).toBeCloseTo(3.6, 12);
+    const kandidaten = [regels('geldend'), regels('voorstel')].flatMap((r) => [1.6, 3.6].map((i) => scanJaar(r, { ...inv, inflatiePct: i }, 2030).kosten));
+    expect(b.laag.kosten).toBeCloseTo(Math.min(...kandidaten), 6);
+    expect(b.hoog.kosten).toBeCloseTo(Math.max(...kandidaten), 6);
+    // De uitkomst met de eigen aannames ligt ertussen.
+    for (const pad of ['geldend', 'voorstel'] as const) {
+      const k = scanJaar(regels(pad), inv, 2030).kosten;
+      expect(k).toBeGreaterThanOrEqual(b.laag.kosten);
+      expect(k).toBeLessThanOrEqual(b.hoog.kosten);
+    }
+    // 2026 ligt vast: geen bandbreedte. Inflatie gaat niet onder 0 %.
+    const vast = bandbreedte([regels('geldend'), regels('voorstel')], inv, 2026);
+    expect(vast.hoog.kosten).toBeCloseTo(vast.laag.kosten, 6);
+    expect(bandbreedte([regels('geldend')], { ...inv, inflatiePct: 0.5 }, 2028).inflatie[0]).toBe(0);
   });
 });

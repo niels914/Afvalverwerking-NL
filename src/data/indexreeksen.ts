@@ -85,4 +85,27 @@ export const indexStandaardInvoer: IndexInvoer = {
   vergelijk: null,
   // Standaard: indexcijfers en factor zoals berekend, tarief op hele centen. De gebruiker kiest de afronding uit het contract.
   afronding: { indexDecimalen: null, factorDecimalen: null, tariefCenten: true },
+  eigenNaam: '',
+  eigenTekst: '',
+};
+
+/**
+ * Versie van de Indexcalculator. Verhoog bij een wijziging in rekenregels of reeksen en zet de datum; de pagina toont
+ * versie en datum, en de CSV neemt ze over.
+ */
+export const indexToolVersie = {
+  versie: '3.0',
+  datum: '2026-10-27',
+  wijzigingen: [
+    { versie: '3.0', datum: '2026-10-27', tekst: 'Tarief per contractjaar in de grote tegel, eigen indexreeks, rekenvoorbeeld om na te rekenen.' },
+    { versie: '2.0', datum: '2026-10-27', tekst: 'Afronding volgens het contract, plafond en bodem, CSV met indexcijfers per reeks.' },
+    { versie: '1.0', datum: '2026-10-20', tekst: 'Zes CBS-reeksen, jaar- en maandcijfers, eigen weging, vergelijking van contractjaren.' },
+  ],
+};
+
+/** CBS-uitleg over indexeren in contracten: welke cijfers, voorlopig of definitief, rekenmethode. */
+export const cbsIndexeringUitleg = {
+  titel: 'CBS, Indexeringen voor nieuwe contracten (12 februari 2026)',
+  url: 'https://www.cbs.nl/nl-nl/achtergrond/2025/12/indexeringen-voor-nieuwe-contracten',
+  geraadpleegd: '2026-10-27',
 };

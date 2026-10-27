@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import './tools-a.css';
 
 // Bouwstenen om een rekentool op mobiel kort te houden: kern bovenaan, details inklapbaar.
@@ -86,4 +86,40 @@ export function openAnkerDoel(id: string) {
   const doel = document.getElementById(id);
   const details = doel?.closest('details');
   if (details && !details.open) details.open = true;
+}
+
+/**
+ * Houdt bij of een getalveld binnen het blok een ongeldige waarde bevat (aria-invalid="true"). Zolang dat zo is,
+ * hoort de getoonde uitkomst bij de vorige, geldige invoer; de tool kan die dan verbergen of markeren.
+ * Geeft de labels van de ongeldige velden terug (leeg als alles klopt).
+ */
+export function useOngeldigeInvoer<T extends HTMLElement = HTMLDivElement>(): [RefObject<T>, string[]] {
+  const ref = useRef<T>(null);
+  const [velden, setVelden] = useState<string[]>([]);
+  useEffect(() => {
+    const blok = ref.current;
+    if (!blok) return;
+    const lees = () => {
+      const labels = [...blok.querySelectorAll<HTMLInputElement>('input[aria-invalid="true"]')].map(
+        (i) => (i.id && blok.querySelector(`label[for="${CSS.escape(i.id)}"]`)?.textContent?.trim()) || 'een veld',
+      );
+      setVelden((oud) => (oud.join('|') === labels.join('|') ? oud : labels));
+    };
+    const waarnemer = new MutationObserver(lees);
+    waarnemer.observe(blok, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-invalid'] });
+    lees();
+    return () => waarnemer.disconnect();
+  }, []);
+  return [ref, velden];
+}
+
+/** Melding bovenaan als de invoer niet klopt: de uitkomst is dan niet bijgewerkt. */
+export function OngeldigeInvoer({ velden }: { velden: string[] }) {
+  if (velden.length === 0) return null;
+  return (
+    <p className="notitie ta-ongeldig" role="status">
+      <strong>Uitkomst niet bijgewerkt.</strong> Corrigeer {velden.length === 1 ? 'het veld' : 'de velden'}{' '}
+      {velden.map((v) => `“${v}”`).join(', ')}. Tot dan toont de tool geen bedragen.
+    </p>
+  );
 }

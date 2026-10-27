@@ -292,12 +292,122 @@ export function tariefPerContractjaar(inv: ContractjarenInvoer): Contractjaar[] 
   return uit;
 }
 
+/**
+ * Welke twee contractjaren de uitkomst laat zien: de gekozen jaren als die een tarief hebben, anders het eerste en het
+ * laatste contractjaar met cijfers. Jaar B is het jaar van de grote tegel; het tarief komt uit dezelfde rij als de tabel
+ * (met de verschuiving van de peilperiode, de begrenzing en de afronding).
+ */
+export function kiesContractjaren(
+  rijen: Contractjaar[],
+  vergelijk: [number, number] | null,
+): { a?: Contractjaar; b?: Contractjaar; verschil?: { verschil: number; verschilPct: number } } {
+  if (rijen.length === 0) return {};
+  const zoek = (j: number | undefined) => (j === undefined ? undefined : rijen.find((r) => r.jaar === j));
+  const a = zoek(vergelijk?.[0]) ?? rijen[0];
+  const b = zoek(vergelijk?.[1]) ?? rijen[rijen.length - 1];
+  return { a, b, verschil: vergelijkJaren(rijen, a.jaar, b.jaar) };
+}
+
 /** Verschil tussen twee contractjaren: in euro en in procent van jaar A. */
 export function vergelijkJaren(rijen: Contractjaar[], a: number, b: number): { verschil: number; verschilPct: number } | undefined {
   const ra = rijen.find((r) => r.jaar === a);
   const rb = rijen.find((r) => r.jaar === b);
   if (!ra || !rb) return undefined;
   return { verschil: rb.tarief - ra.tarief, verschilPct: (rb.tarief / ra.tarief - 1) * 100 };
+}
+
+/* ---------- Eigen reeks ---------- */
+
+/** Id van de eigen reeks in wegingen en in de keuze van de reeks. */
+export const EIGEN_REEKS_ID = 'eigen';
+/** Hoeveel perioden een eigen reeks maximaal heeft (ook in de deellink). */
+export const MAX_EIGEN_PERIODEN = 400;
+/** Langste naam voor de eigen reeks. */
+export const MAX_EIGEN_NAAM = 80;
+
+const MAAND_AFKORTING: Record<string, number> = {
+  jan: 1, feb: 2, mrt: 3, maa: 3, mar: 3, apr: 4, mei: 5, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, okt: 10, oct: 10, nov: 11, dec: 12,
+};
+
+/** Periodetekst lezen: "2024", "2024-09", "2024/9", "2024M09" (CBS), "2024 september" of "september 2024". */
+export function leesPeriode(t: string): Periode | undefined {
+  const s = t.trim().toLowerCase().replace(/\*$/, '').trim();
+  let m = /^(\d{4})$/.exec(s);
+  if (m) return m[1];
+  m = /^(\d{4})\s*(?:[-/]|m)\s*(\d{1,2})$/.exec(s);
+  if (m && Number(m[2]) >= 1 && Number(m[2]) <= 12) return `${m[1]}-${m[2].padStart(2, '0')}`;
+  m = /^(\d{4})\s+([a-z]+)\.?$/.exec(s) ?? /^([a-z]+)\.?\s+(\d{4})$/.exec(s);
+  if (m) {
+    const [jaar, naam] = /^\d{4}$/.test(m[1]) ? [m[1], m[2]] : [m[2], m[1]];
+    const maand = MAAND_AFKORTING[naam.slice(0, 3)];
+    if (maand) return `${jaar}-${String(maand).padStart(2, '0')}`;
+  }
+  return undefined;
+}
+
+/** Getal lezen zoals het in een contract of spreadsheet staat: "102,5", "102.5" of "1.024,5". */
+function leesWaarde(t: string): number | undefined {
+  const s = t.trim();
+  if (!/^[\d.,]+$/.test(s)) return undefined;
+  const n = Number(s.includes(',') ? s.replace(/\./g, '').replace(',', '.') : s);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
+}
+
+export interface EigenReeks {
+  waarden: ReeksWaarden;
+  /** Regels die niet te lezen waren, met regelnummer. */
+  fouten: string[];
+}
+
+/**
+ * Leest een eigen indexreeks uit tekst: één periode per regel, gevolgd door het indexcijfer. Scheidingsteken: spatie,
+ * tab (plakken uit een spreadsheet), puntkomma of dubbele punt. Een periode die twee keer voorkomt, telt de laatste keer.
+ */
+export function leesEigenReeks(tekst: string): EigenReeks {
+  const waarden: ReeksWaarden = { maanden: {}, jaren: {} };
+  const fouten: string[] = [];
+  let aantal = 0;
+  tekst.split(/\r?\n/).forEach((regel, i) => {
+    const r = regel.trim();
+    if (!r) return;
+    const m = /^(.*?)[\s;:\t]+([\d.,]+)$/.exec(r);
+    const periode = m ? leesPeriode(m[1]) : undefined;
+    const waarde = m ? leesWaarde(m[2]) : undefined;
+    if (!periode || waarde === undefined) {
+      fouten.push(`regel ${i + 1} ("${r.length > 30 ? r.slice(0, 30) + '…' : r}")`);
+      return;
+    }
+    if (aantal >= MAX_EIGEN_PERIODEN) {
+      fouten.push(`regel ${i + 1}: meer dan ${MAX_EIGEN_PERIODEN} perioden`);
+      return;
+    }
+    aantal++;
+    if (periode.includes('-')) waarden.maanden[periode] = waarde;
+    else waarden.jaren[periode] = waarde;
+  });
+  return { waarden, fouten };
+}
+
+/** Eigen reeks voor de deellink: "2024:102.5,2024-09:103". */
+export function eigenReeksNaarParam(w: ReeksWaarden): string {
+  return [...Object.entries(w.jaren), ...Object.entries(w.maanden)]
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([p, v]) => `${p}:${v}`)
+    .join(',');
+}
+
+/** Deellink naar invoertekst (één periode per regel, decimale komma). Ongeldige delen vallen weg. */
+export function eigenReeksUitParam(t: string): string {
+  return t
+    .split(',')
+    .slice(0, MAX_EIGEN_PERIODEN)
+    .map((deel) => {
+      const [p, v] = deel.split(':');
+      const n = Number(v);
+      return p && (isPeriode(p, 'jaar') || isPeriode(p, 'maand')) && Number.isFinite(n) && n > 0 ? `${p} ${String(n).replace('.', ',')}` : '';
+    })
+    .filter(Boolean)
+    .join('\n');
 }
 
 /* ---------- Oude vorm: reeks per jaar ---------- */
@@ -358,6 +468,10 @@ export interface IndexInvoer {
   vergelijk: [number, number] | null;
   /** Afronding volgens het contract (gratis en Pro). */
   afronding: Afronding;
+  /** Naam van de eigen reeks (bijv. een sectorindex uit het contract). */
+  eigenNaam: string;
+  /** Eigen indexcijfers als tekst: één periode per regel. */
+  eigenTekst: string;
 }
 
 /** Hoogste basistarief dat de tool accepteert (euro per eenheid). */
@@ -389,6 +503,11 @@ export function indexInvoerNaarParams(inv: IndexInvoer): URLSearchParams {
   p.set('rindex', inv.afronding.indexDecimalen === null ? 'cbs' : String(inv.afronding.indexDecimalen));
   p.set('rfactor', inv.afronding.factorDecimalen === null ? 'nee' : String(inv.afronding.factorDecimalen));
   p.set('rtarief', inv.afronding.tariefCenten ? 'cent' : 'nee');
+  const eigen = eigenReeksNaarParam(leesEigenReeks(inv.eigenTekst).waarden);
+  if (eigen) {
+    p.set('ereeks', eigen);
+    if (inv.eigenNaam.trim()) p.set('enaam', inv.eigenNaam.trim());
+  }
   return p;
 }
 
@@ -449,5 +568,7 @@ export function indexInvoerUitParams(p: URLSearchParams, standaard: IndexInvoer,
     geenDaling: bodem === null ? (p.toString() === '' ? standaard.geenDaling : false) : bodem === '1',
     vergelijk: vgl && jaarOk(Number(vgl[1])) && jaarOk(Number(vgl[2])) ? [Number(vgl[1]), Number(vgl[2])] : p.toString() === '' ? standaard.vergelijk : null,
     afronding,
+    eigenNaam: (p.get('enaam') ?? standaard.eigenNaam).slice(0, MAX_EIGEN_NAAM),
+    eigenTekst: p.has('ereeks') ? eigenReeksUitParam(p.get('ereeks') ?? '') : standaard.eigenTekst,
   };
 }

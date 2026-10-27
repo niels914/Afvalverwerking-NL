@@ -1,8 +1,28 @@
 # Tools A: Indexcalculator en CO2-heffingenscan
 
-Stand: 27 oktober 2026 (ronde 2). Beide tools rekenen met officiële cijfers. Elk cijfer heeft een bron en een peildatum
+Stand: 27 oktober 2026 (ronde 3, versie 3.0 van beide tools). Beide tools rekenen met officiële cijfers. Elk cijfer heeft een bron en een peildatum
 in de UI, in de CSV en in een databestand. Wat de tool niet uit een officiële bron kan halen, staat zichtbaar als
 aanname of kental.
+
+## Wat er in ronde 3 is veranderd
+
+| Punt uit inspectie of jury (ronde 2) | Wat er nu is |
+|---|---|
+| Blokkerend: Pro-kerntegel "Gewogen tarief 2025: € 124,85" sprak de tabel tegen (contractjaar 2025 = € 121,62) | De grote tegel in Pro is nu "Tarief contractjaar J" en komt uit dezelfde rij als de tabel, dus met verschuiving van de peilperiode, plafond/bodem en afronding. Toelichting in de tegel: "indexcijfer 2025"; eronder een zin welke periode en factor het jaar gebruikt. De gebruiker kiest het jaar ("Tarief tonen voor contractjaar") en een vergelijkingsjaar; de rij in de tabel krijgt het label "in tegel". De tegel in het gratis deel heet nu "Tarief peilperiode 2025". Pure functie `kiesContractjaren` met tests (ook met plafond). |
+| Kern bovenaan voor leden | Kern noemt voor leden ook het Pro-tarief van het getoonde contractjaar (indexcalculator) en het totaal 2026–2035 (CO2-scan). |
+| CO2-CSV: tarief 157,31 met bron wetten.overheid.nl bevat inflatieaanname | CSV heeft nu twee rijen: tarief volgens wet zonder inflatiecorrectie (153,32, bron wet) en tarief incl. inflatieaanname (157,31, "wet plus aanname gebruiker"). Tegel en gebruikte invoer zeggen hetzelfde; badge "Wet en NEa + uw aannames". Pro-CSV-kolom ook gelabeld. `inflatieInTarief` met tests. |
+| Kerntegel toonde oud bedrag na ongeldige invoer | `useOngeldigeInvoer` (in `Inklap.tsx`) volgt `aria-invalid` van alle getalvelden. Bij een fout: kern meldt "Uitkomst niet bijgewerkt" met de veldnaam, tegels en tabellen tonen "–", CSV en deellink verdwijnen tot de invoer klopt. Beide tools, gratis en Pro. |
+| CO2: uitstoot t.o.v. historisch alleen 85–115 % | Invoer 1–300 % (ook in de deellink). Buiten ± 15 % past de NEa het activiteitsniveau aan met efficiëntieregels uit het EU ETS (NEa-pagina berekening dispensatierechten, gecontroleerd 27-10-2026); de scan benadert dat met de actuele uitstoot en zegt dat als aanname, met verwijzing naar "Eigen percentage". |
+| "Kabinet wil afschaffen" sterker dan de bron | Overal: "het coalitieakkoord noemt afschaffing". |
+| Eigen indexreeks ontbrak | "Eigen indexreeks": naam plus cijfers per periode (2024 102,4 / 2024-09 / 2024M09 / september 2024; plakken uit een spreadsheet werkt). Te kiezen in het gratis deel en te wegen in Pro; gelabeld als eigen invoer (geen CBS), in CSV, bronnenlijst (status aanname) en deellink (`ereeks`, `enaam`). |
+| Pro-invoer lid als lange kolom | Weging compact: label links, smal veld rechts. Op 400 px: hoofdtegel over de volle breedte, overige tegels naast elkaar; contractjaren naast elkaar. |
+| Jury: rekenvoorbeeld-validatie met tweede CBS-verwijzing | Blok "Zelf narekenen": peil ÷ basis = factor; basistarief × factor = tarief, met de afgeronde cijfers die de tool gebruikt, een link naar de CBS-tabel en naar de CBS-uitleg "Indexeringen voor nieuwe contracten" (zelfde rekenmethode). Ook in de CSV. |
+| Jury: versie en wijzigingsdatum | "Versie 3.0, bijgewerkt 27 oktober 2026" in de kern, het rapport en de CSV; inklapblok "Versie en wijzigingen". Bron: `indexToolVersie` en `co2ToolVersie` in de databestanden. |
+| Jury: tabel op mobiel als compacte kaarten | Contractjarentabel en scenariotabel worden op ≤ 520 px kaarten (één per jaar, kolomnaam boven elk getal, volledige bedragen). De CO2-bedragen per jaar staan op mobiel ingeklapt ("Bedragen per jaar"), breed open. |
+| Jury CO2: onzekerheid en onder-/bovengrens bij het resultaat | Kader direct onder de tegels: onder- en bovengrens over beide tariefpaden en inflatie ± 1 procentpunt (`bandbreedte`, met tests), status van het Belastingplan en de afschaffing. Ook in kern en CSV. |
+
+Hoogte op 400 px (demo-lid): indexcalculator ca. 6.950 px (was 6.596, met eigen reeks, narekenen en versie erbij), CO2-scan
+6.078 px (was 6.619). Bezoeker: 4.312 en 4.779 px.
 
 ## Wat er in ronde 2 is veranderd
 
@@ -33,7 +53,7 @@ aanname of kental.
 | CO2-tarieven en regels | `src/data/co2-tarieven.ts` | Tarieven, verhogingen, correctie-, reductie- en procesemissiefactoren, kental emissiefactor, tabel prijspeil 2026, bronnen, `PEILDATUM`. |
 | Inklappen en kern | `src/components/rekenen/Inklap.tsx`, `tools-a.css` | `Kern`, `Inklapbaar`, `useInklapBijPrintEnAnker` (ingeklapte blokken gaan open bij printen en als een anker ernaar wijst), `openAnkerDoel`. Alle CSS-klassen beginnen met `ta-`. |
 | Gedeelde rekencomponenten | `src/components/rekenen/*` | Nieuw, zonder bestaande props te breken: `Uitkomst` prop `inklapbaar`, `ExportKnoppen` prop `linkInklappen`, export `BronRegels` (lijst zonder kaart). `OpDezePagina` opent een ingeklapt doel. |
-| E2E | `e2e/tools-a.spec.ts` | 18 tests × 2 viewports: rekenen, afronding, diesel-uitleg, inklappen en anker, CSV, deellink, betaalmuur, Pro-preview, hoogte op 400 px, print (ingeklapte delen zichtbaar), Pro met inlog (CSV met indexcijfers, invoer blijft staan). |
+| E2E | `e2e/tools-a.spec.ts` | 27 tests × 2 viewports (ronde 3 erbij: tegel volgt contractjaar, eigen reeks, ongeldige invoer, narekenen en versie, bandbreedte, uitstoot buiten de band, inflatielabel in CSV, kern voor leden). Eerder: rekenen, afronding, diesel-uitleg, inklappen en anker, CSV, deellink, betaalmuur, Pro-preview, hoogte op 400 px, print (ingeklapte delen zichtbaar), Pro met inlog (CSV met indexcijfers, invoer blijft staan). |
 
 ## Indexcalculator
 
@@ -50,6 +70,11 @@ aangevuld met de algemene prijsontwikkeling.
 | Idem, alle economische activiteiten | 85663NED | Als het contract geen bedrijfstak noemt. |
 | PPI afzet binnenland, D Elektriciteit, gas, stoom en warmte (2021=100) | 85770NED | Energiekosten van installaties. |
 | Gemiddelde pompprijs diesel, inclusief accijns en btw (euro per liter) | 81567NED | Brandstof van inzamelvoertuigen. Geen index; alleen de verhouding telt. Accijns is een vast bedrag per liter en verandert de verhouding. |
+
+Het CBS noemt cao-loonindex, CPI, PPI en dienstenprijsindex als de cijfers die contracten gebruiken
+(https://www.cbs.nl/nl-nl/achtergrond/2025/12/indexeringen-voor-nieuwe-contracten, 12-2-2026, geraadpleegd 27-10-2026);
+de tool linkt daarnaar bij "Zelf narekenen" en in de bronnen. Een reeks die er niet bij staat (bijv. DPI reiniging) vult
+de gebruiker in als eigen reeks.
 
 Niet opgenomen: PPI gasolie (85770NED, ProdCom 192026). CBS laat daar veel maanden leeg (onder meer heel 2023 en 2024).
 
@@ -74,6 +99,9 @@ CPI, cao-lonen en dieselprijs t/m september 2026, PPI energie t/m augustus 2026.
 NODE_USE_ENV_PROXY=1 node scripts/cbs-indexreeksen.mjs   # achter de proxy; zonder proxy zonder de variabele
 npx vitest run src/lib/calc/indexering.test.ts
 ```
+
+Bij een wijziging in rekenregels of reeksen: `indexToolVersie` (en bij de CO2-scan `co2ToolVersie`) ophogen, datum
+zetten en een regel aan `wijzigingen` toevoegen.
 
 CBS publiceert de CPI rond de tiende van de maand, cao-lonen en PPI aan het eind van de maand. Maandelijks draaien is
 genoeg. Bij een herbasering (nieuwe tabel-id of basisjaar): `tabelId`, `onderwerp`, dimensiesleutels en `basisjaar` in
@@ -134,18 +162,25 @@ wetten.overheid.nl.
    aanpassen, het oude pad verwijderen of hernoemen, `ontwikkelingen` bijwerken.
 4. Draai `npx vitest run src/lib/calc/co2.test.ts`; pas verwachte waarden alleen aan na een wetswijziging.
 
-## Controles (27 oktober 2026)
+## Controles (27 oktober 2026, ronde 3)
 
 - `npx tsc --noEmit -p .`: geen fouten.
-- `npx vitest run src/lib/calc/indexering.test.ts src/lib/calc/co2.test.ts src/components/rekenen`: 52 geslaagd (nieuw:
-  afronding, deellink met afronding en bovengrens, kental 2026, eerlijke vergelijking met standaardinflatie).
+- `npx vitest run src/lib/calc/indexering.test.ts src/lib/calc/co2.test.ts src/components/rekenen`: 67 geslaagd (nieuw:
+  `kiesContractjaren` met verschuiving en plafond, eigen reeks lezen en in de deellink, `bandbreedte`, `inflatieInTarief`,
+  uitstoot 1–300 %).
 - `npx vite build --outDir /tmp/claude-0/build-tools-a`: geslaagd.
-- `PW_BASE=http://localhost:5103 npx playwright test e2e/tools-a.spec.ts` met testaccount: 33 geslaagd, 5 overgeslagen
-  (betaalmuurtests die met inlog niet gelden, en de hoogtetest op desktop). Zonder inlog: 31 geslaagd, 7 overgeslagen.
-- Lighthouse (mobiel): beide pagina's prestaties 97, toegankelijkheid 100, best practices 100.
-- Op 400 px geen horizontale pagina-scroll; de tabellen scrollen ook binnen hun kader niet meer.
+- `PW_BASE=http://localhost:5103 npx playwright test e2e/tools-a.spec.ts` met testaccount: 49 geslaagd, 5 overgeslagen
+  (betaalmuurtests die met inlog niet gelden, en de hoogtetest op desktop). Zonder inlog: 45 geslaagd, 9 overgeslagen.
+- Lighthouse (mobiel): indexcalculator prestaties 96, CO2-scan 97; toegankelijkheid en best practices 100.
+- Op 400 px geen horizontale pagina-scroll.
 
 ## Open punten
+
+- **Bandbreedte CO2** gebruikt beide tariefpaden en inflatie ± 1 procentpunt. Onzekerheid in emissiefactor, tonnage en
+  vrijstelling zit er niet in; die vult de gebruiker zelf in.
+- **Eigen reeks** wordt niet gecontroleerd (geen bron). Eén eigen reeks per berekening.
+- **Ongeldige invoer** wordt herkend via `aria-invalid` van `GetalVeld`. Verandert het onderdeel UI dat attribuut, dan moet
+  `useOngeldigeInvoer` mee.
 
 - **Betaalmuur tijdens laden (algemeen).** De fix zit nu in deze twee pagina's. Beter is dat `Vergrendeld` zelf tijdens
   het laden geen bedienbare kopie van de inhoud toont; dat raakt alle Pro-onderdelen (onderdeel toegang).
