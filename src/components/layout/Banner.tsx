@@ -11,14 +11,14 @@ export const BETA = true;
 export function Banner() {
   if (!BETA) return null;
   return (
-    <div className="banner" role="note" aria-label="Bètaversie">
-      <div className="wrap banner-beta">
+    <aside className="banner" aria-label="Bètaversie">
+      <div className="wrap banner-beta" role="note" aria-label="Bètaversie">
         <span className="banner-label">Bèta</span>
         <span>
           Prijzen en voorwaarden zijn nog concept en uitkomsten van rekentools zijn indicatief.{' '}
           <Link to="/disclaimer#voorbeelddata">Wat betekent dit?</Link>
         </span>
       </div>
-    </div>
+    </aside>
   );
 }

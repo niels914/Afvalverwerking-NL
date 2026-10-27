@@ -157,41 +157,6 @@ th,
   flex-wrap: wrap;
 }
 
-/* Rolschakelaar: Bekijk als Bezoeker | Lid */
-.rol {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
-  color: var(--lichtviolet);
-}
-.rol-groep {
-  display: inline-flex;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 10px;
-  padding: 2px;
-}
-.rol-groep button {
-  border: 0;
-  background: transparent;
-  color: var(--wit);
-  font: inherit;
-  font-size: 12.5px;
-  font-weight: 500;
-  padding: 5px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-.rol-groep button[aria-pressed='true'] {
-  background: var(--wit);
-  color: var(--donkerviolet);
-  font-weight: 600;
-}
-.rol-groep button[aria-pressed='true']::before {
-  content: '✓ ';
-}
-
 /* Hoofdmenu */
 .menuknop {
   display: none;

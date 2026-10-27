@@ -87,7 +87,7 @@ export function Layout() {
       <Banner />
       <main id="inhoud" className="wrap" tabIndex={-1}>
         {/* Houdt tijdens het laden een schermhoogte vrij, zodat de voettekst niet verspringt. */}
-        <Suspense fallback={<p className="sectie muted" style={{ minHeight: '100vh' }}>Pagina laden…</p>}>
+        <Suspense fallback={<p className="sectie muted" style={{ minHeight: '100vh', margin: '28px 0 0' }}>Pagina laden…</p>}>
           <Outlet />
         </Suspense>
       </main>
