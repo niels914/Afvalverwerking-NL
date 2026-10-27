@@ -1,127 +1,149 @@
-# Aanbestedingsarchief (ronde 1)
+# Aanbestedingsarchief (ronde 2)
 
-Stand: 26 oktober 2026. Onderdeel van de opdracht "platform gebruiksklaar" (docs/opdracht-gebruiksklaar.md).
+Stand: 27 oktober 2026. Onderdeel van de opdracht "platform gebruiksklaar" (docs/opdracht-gebruiksklaar.md).
 
 ## Wat er gebouwd is
 
-Het archief op `/aanbestedingsarchief` toont echte aanbestedingen over afval uit TenderNed. De 15 verzonnen aanbestedingen
-zijn weg.
+Het archief op `/aanbestedingsarchief` toont echte aanbestedingen over afval uit TenderNed.
 
 - **Bron:** de openbare publicatie-webservice van TenderNed (TNS), gefilterd op CPV-code `90500000-2` (diensten op het
-  gebied van vuilnis en afval). De webservice neemt onderliggende codes vanzelf mee: 90510000 (afvalverwijdering en
-  -verwerking), 90511000 tot en met 90514000, 90520000 tot en met 90524000 en 90530000 tot en met 90533000.
-  Bij de eerste vulling (26-10-2026) waren dat 2.498 publicaties, samen 1.435 aanbestedingen, de oudste uit 2013.
-- **Database:** tabel `public.aanbestedingen` in Supabase-project `mnwynrioozcqqvhelqku`, één rij per TenderNed-kenmerk
-  (alle publicaties van één aanbesteding: aankondiging, rectificaties, gunning, beëindiging). RLS staat aan; de enige
-  policy is `select` voor `authenticated` met `(select public.is_lid())`. `anon` heeft geen rechten. Alleen de service-rol
-  (Edge Function) schrijft.
-- **View en functies** (alle `security invoker`, dus RLS blijft gelden):
-  - `public.aanbestedingen_overzicht` voegt de actuele status toe (open/gesloten hangt af van de klok).
-  - `public.zoek_aanbestedingen(p_zoek, p_stroom, p_status, p_provincie, p_dienst, p_sortering)` voor zoeken, filteren,
-    sorteren; de pagina haalt 25 rijen per keer op met `range` en `count: 'exact'`.
-  - `public.aanbestedingen_telling()` aantallen per status.
-  - `public.aanbestedingen_verversingen` logboek van elke verversing (peildatum "laatst bijgewerkt" in de UI).
-- **Verversen:** Edge Function `ververs-aanbestedingen` (code in `supabase/functions/ververs-aanbestedingen/`). Haalt de
-  hele lijst op (±25 verzoeken van 100), haalt detailpagina's (CPV-codes, NUTS-codes, trefwoorden) alleen voor nieuwe
-  aanbestedingen of aanbestedingen met een nieuwe publicatie, bouwt per kenmerk één rij en doet een upsert.
-  pg_cron-taak `ververs-aanbestedingen` draait elke dag om 05:17 UTC en roept via pg_net
-  `public.start_ververs_aanbestedingen()` aan.
-- **Beveiliging van de functie:** `verify_jwt` staat uit; de functie eist de kop `x-ververs-geheim`. Het geheim is in de
-  database gegenereerd en staat alleen in Vault (`ververs_aanbestedingen_geheim`). De functie controleert het met
-  `public.ververs_geheim_klopt()` (alleen service-rol). Zonder of met een fout geheim: 401 (getest).
-- **Pagina voor leden:** zoekveld (ook `?zoek=` in de URL), filters afvalstroom, status (met aantallen), provincie, soort
-  dienst, sortering (publicatie- of sluitingsdatum, opdrachtgever), paginering. Alle filters staan in de URL, dus een
-  zoekopdracht is te delen of te bookmarken. Per aanbesteding: opdrachtgever, titel (link naar de aankondiging op
-  TenderNed), provincie, afvalstromen, procedure, publicatie- en sluitingsdatum (met tijd en "nog n dagen"), status, en
-  onder "Details" de omschrijving, soort opdracht, hoofd-CPV, link naar het externe platform (Mercell, Negometrix e.d.)
-  en de tijdlijn van publicaties met links. Bovenaan staan bron, licentie, aantal en tijdstip van de laatste verversing.
-  Onderaan staat hoe afvalstroom, provincie en status worden afgeleid.
-- **Bezoekers en niet-leden:** korte uitleg over de inhoud, dan de betaalmuur (`Vergrendeld`) met een wazige preview van
-  grijze balken. Er wordt voor hen niets uit de database gehaald (en RLS zou ook niets teruggeven).
-- **Telefoon:** onder 760 px wordt elke tabelrij een blok met kolomnamen; geen horizontale scroll op 400 px (getest).
+  gebied van vuilnis en afval) met alle onderliggende codes (90510000 tot en met 90533000). Op 27-10-2026: 2.502
+  publicaties, samen 1.435 aanbestedingen, de oudste uit 2013.
+- **Database:** tabel `public.aanbestedingen` in Supabase-project `mnwynrioozcqqvhelqku`, één rij per TenderNed-kenmerk.
+  RLS staat aan; de enige policy is `select` voor `authenticated` met `(select public.is_lid())`. `anon` heeft geen rechten
+  op de tabel of de view. Alleen de service-rol (Edge Function) schrijft.
+- **View en functies:**
+  - `public.aanbestedingen_overzicht` (security invoker): actuele status (open/gesloten hangt af van de klok),
+    `provincie_bron` en `afval_hoofd` (hoofd-CPV is 905…, 90000000 of onbekend).
+  - `public.aanbestedingen_zoeken(p_zoek, p_stroom, p_status, p_provincie, p_dienst, p_sortering, p_alleen_hoofd)`
+    (security invoker, alleen `authenticated`, RLS geldt): zoeken, filteren, sorteren. Zoekt in titel, opdrachtgever,
+    omschrijving, trefwoorden, CPV-codes en -omschrijving, afvalstroom, provincie en kenmerk. "Woordgroep tussen
+    aanhalingstekens" is één term; tekens als `% * ? ( )` worden genegeerd (`public.aanbestedingen_zoektermen`).
+  - `public.zoek_aanbestedingen(...)` (ronde 1) bestaat nog en roept `aanbestedingen_zoeken` aan; de site gebruikt hem niet
+    meer. Kan weg met `drop function public.zoek_aanbestedingen(text, text, text, text, text, text);`.
+  - `public.aanbestedingen_telling()` en `public.aanbestedingen_telling_stromen()`: aantallen per status en per stroom.
+  - `public.open_aanbestedingen_zoeken(p_zoek)` (security definer, ook `anon`): zie "Bezoekers".
+  - `public.aanbestedingen_verversingen`: logboek van elke verversing ("laatst bijgewerkt" in de UI).
+- **Verversen:** Edge Function `ververs-aanbestedingen` (`supabase/functions/ververs-aanbestedingen/`, versie 5). Haalt de
+  hele lijst op (±26 verzoeken van 100), haalt detailpagina's (CPV, NUTS, trefwoorden) alleen voor nieuwe of gewijzigde
+  aanbestedingen, bouwt per kenmerk één rij en doet een upsert. pg_cron-taak `ververs-aanbestedingen` draait elke dag om
+  05:17 UTC; op 27-10-2026 voor het eerst zelfstandig waargenomen (run 7, geslaagd).
+- **Beveiliging van de functie:** `verify_jwt` uit; de functie eist de kop `x-ververs-geheim`, gecontroleerd tegen een
+  Vault-geheim via `public.ververs_geheim_klopt()` (alleen service-rol).
 
-### Afleiding (bestand `supabase/functions/ververs-aanbestedingen/afleiding.ts`)
+### Bezoekers: open aanbestedingen (besluit Niels, 27-10-2026)
 
-Eén bestand zonder imports, gebruikt door de Edge Function én door de frontend en de tests (`src/lib/aanbestedingen.test.ts`).
+Bezoekers en ingelogde niet-leden zien bovenaan "Open voor inschrijving": zoeken (ook via `?zoek=`) in titel en
+opdrachtgever, en per aanbesteding alleen titel, opdrachtgever, sluitingsdatum en de link naar TenderNed. Eerst tien,
+de rest met één knop. Daaronder de betaalmuur (`Vergrendeld`) voor het volledige archief, met een wazige voorbeeldweergave
+van grijze balken (geen echte data).
 
-- **Afvalstroom:** eerst CPV (bijv. 90511400 papier, 90524 medisch, 90522 grond, 905136-9 slib, 9051340 as); omdat de
-  meeste aanbestedingen alleen de algemene code 90510000 hebben, daarna trefwoorden in titel, omschrijving en de
-  trefwoorden van de opdrachtgever. Meerdere stromen per aanbesteding mogelijk. Lukt het niet: "Niet gespecificeerd"
-  (op 26-10-2026: 229 van 1.435, vaak "afvalinzameling en -verwerking" van scholen of zorginstellingen).
-  Bekende valkuilen zijn afgevangen en getest: "niet-gevaarlijk afval", "drankkartons" (geen papier), "op grond van",
-  "glasvezel", het niet-afbrekende koppelteken (U+2011) in TenderNed-teksten.
-- **Soort dienst:** uit CPV: inzameling (90511), transport (90512, 905137), verwerking (90513, 9052), recycling (90514),
-  stortplaats (9053), anders "Algemeen".
-- **Provincie:** uit de NUTS-code van de plaats van uitvoering, NUTS-2-indeling 2021 en 2024 (NL31/NL35 Utrecht,
-  NL33/NL36 Zuid-Holland). Bron: Eurostat GISCO. Staat er alleen "NL": "landelijk of niet vermeld" (op 26-10-2026: 776 van 1.435).
-- **Status:** ingetrokken publicaties tellen niet mee. De laatste beslissende publicatie bepaalt: gunning of wijziging
-  → Gegund; vroegtijdige beëindiging → Vroegtijdig beëindigd. Anders bij een aankondiging of rectificatie: open als de
-  (eventueel door een rectificatie verlengde) sluitingsdatum in Nederlandse tijd nog niet voorbij is, anders "Inschrijving
-  gesloten" (nog geen gunning gepubliceerd). Alleen vooraankondiging of marktconsultatie krijgt die status.
+Afgedwongen op de server: `public.open_aanbestedingen_zoeken` is security definer, maar geeft hard alleen rijen met
+`status_basis = 'aankondiging'` en een sluitingsdatum in de toekomst (dus geen marktconsultaties, gunningen of
+beëindigingen) en alleen vijf kolommen terug, maximaal 100 rijen. De tabel en de view blijven dicht voor `anon`
+(e2e-test controleert dit). De advisor meldt "anon kan security definer-functie uitvoeren"; dat is hier de bedoeling.
 
-## Gebruiksvoorwaarden van de bron (gecontroleerd 26-10-2026)
+### Leden: het volledige archief
 
-- data.overheid.nl, dataset "Aankondigingen van overheidsopdrachten - TenderNed" (eigenaar PIANOo, Rijk), licentie
-  **CC-0 1.0**, toegang publiek: https://data.overheid.nl/dataset/26e6440b-1d39-4e28-8d18-57d987042622 (via de CKAN-API
-  opgevraagd: `license_id` = creativecommons.org/publicdomain/zero/1.0). De beschrijving noemt de publicatie-webservice
-  `https://www.tenderned.nl/papi/tenderned-rs-tns/v2/publicaties` uitdrukkelijk als manier om aankondigingen te bekijken,
-  met de waarschuwing dat die "zonder voorafgaande kennisgeving gewijzigd kan worden". Voor de officiële XML-API is een
-  account nodig (functioneelbeheer@tenderned.nl).
-- TenderNed, "Datasets aanbesteden voor analyses": alle aankondigingen zijn openbaar, zodat de gegevens voor iedereen
-  beschikbaar zijn (https://www.tenderned.nl/cms/nl/aanbesteden-in-cijfers/datasets-aanbestedingen).
+- Kerncijfers en bron bovenaan (aantal, aantal open, tijdstip laatste verversing, licentie).
+- Snelkeuzes: "Open voor inschrijving, vroegste sluiting eerst", "Marktconsultaties", "Recent gegund" (met aantallen).
+- Zoeken, filters (afvalstroom met aantallen; stromen zonder treffers staan er niet in, status, provincie, soort dienst),
+  sorteren (ook op laatste publicatie) en het vinkje "Alleen aanbestedingen met afval als hoofdopdracht". Op de telefoon
+  staan filters en sorteren achter een knop.
+- "Link kopiëren" (de URL bevat alle filters) en "Download CSV" (puntkomma, BOM, maximaal 2.000 rijen, voor Excel).
+- Legenda "Wat betekenen de statussen en lege velden?" (inklapbaar), statussen met tekst; kleur is nooit de enige drager.
+- Tabel op desktop; op de telefoon een compacte lijst: opdrachtgever, titel, status met sluiting en "nog n dagen",
+  afvalstroom en provincie; procedure, publicatiedatum, omschrijving, CPV, documentenplatform en tijdlijn onder Details.
+  Lege velden worden weggelaten.
+- `?pagina=999` gaat naar de laatste pagina in plaats van een lege tabel.
+- Toelichting "Zo komt dit overzicht tot stand" onderaan, ingeklapt.
+
+### Afleiding (`supabase/functions/ververs-aanbestedingen/afleiding.ts`)
+
+Eén bestand zonder imports, gebruikt door de Edge Function, de frontend en de tests (`src/lib/aanbestedingen.test.ts`).
+
+- **Status:** ingetrokken publicaties tellen niet mee. Gunning of wijziging → Gegund; vroegtijdige beëindiging →
+  Vroegtijdig beëindigd. **Nieuw:** noemt de laatste aankondiging, rectificatie of vooraankondiging zichzelf een
+  marktconsultatie, marktverkenning, market consultation, RFI of informatieverzoek in de titel, of zegt de eerste zin van
+  de omschrijving dat de opdrachtgever "een marktconsultatie" organiseert/houdt/start, dan is de status Marktconsultatie,
+  ook als het formulier "Aankondiging opdracht" is gebruikt. Zo staat Rotterdam 618943 niet meer als "Open voor
+  inschrijving". Op 27-10-2026 geldt dit voor vijf aanbestedingen met een AAO-publicatie. Een latere verwijzing ("na de
+  marktconsultatie …") telt niet. Anders: open als de (eventueel door een rectificatie verlengde) sluitingsdatum nog niet
+  voorbij is, anders "Inschrijving gesloten".
+- **Afvalstroom:** CPV en trefwoorden. **Nieuw:** afvalbakken in gebouwen (zoals afvalscheidingsunits, TU Delft 515890)
+  vallen onder "Containers en inzamelmiddelen", niet meer onder zwerfafval; zwerfafval alleen bij openbare ruimte,
+  straat- of hondenafvalbakken, veegvuil of CPV 90511300.
+- **Provincie:** eerst NUTS (2021 en 2024). **Nieuw:** staat daar alleen "NL", dan uit de naam van de opdrachtgever:
+  "Gemeente X" (ook opsommingen als "gemeente Duiven, Westervoort en Zevenaar") en "Provincie X". Gemeentelijst:
+  `gemeenten.ts`, gegenereerd door `maak-gemeenten.mjs` uit CBS "Gebieden in Nederland" 2013 tot en met 2026 (441 namen,
+  ook opgeheven gemeenten). Samenwerkingsverbanden en bedrijven zonder gemeentenaam blijven zonder provincie. Kolom
+  `provincie_bron` zegt waar de provincie vandaan komt; Details toont dat. Resultaat 27-10-2026: zonder provincie van
+  776 naar 469 van 1.435.
+- **Afval als hoofdopdracht:** 206 van 1.435 aanbestedingen hebben een hoofd-CPV buiten 905… en 90000000 (bijv. maaien,
+  ICT; de inspectie telde 267 inclusief 90000000). Ze blijven in het
+  archief (sommige zijn echte afvalopdrachten met een vreemde hoofdcode, zoals groenafval onder 09120000), maar krijgen het
+  label "Afval is nevenonderdeel" en zijn weg te filteren.
+
+## Bronnen en gebruiksvoorwaarden (gecontroleerd 26-10-2026)
+
+- data.overheid.nl, dataset "Aankondigingen van overheidsopdrachten - TenderNed" (PIANOo), licentie **CC-0 1.0**:
+  https://data.overheid.nl/dataset/26e6440b-1d39-4e28-8d18-57d987042622 . De beschrijving noemt de webservice
+  `https://www.tenderned.nl/papi/tenderned-rs-tns/v2/publicaties` als manier om aankondigingen te bekijken, met de
+  waarschuwing dat die zonder kennisgeving kan wijzigen. De officiële XML-API vraagt een account.
+- TenderNed, "Datasets aanbesteden voor analyses": https://www.tenderned.nl/cms/nl/aanbesteden-in-cijfers/datasets-aanbestedingen
 - TenderNed gebruiksvoorwaarden (versie 19-11-2025), https://www.tenderned.nl/over-deze-site/gebruiksvoorwaarden:
-  - art. 7: opdrachtgevers zijn zelf verantwoordelijk voor juistheid en actualiteit; TenderNed controleert dat niet.
-    → In de UI: "Juridisch geldt alleen de aankondiging op TenderNed" en de uitleg onderaan.
-  - art. 16: rechten op teksten, databestanden, vormgeving en merk berusten bij de Staat; gebruik van het beeldmerk of
-    andere rechten alleen met schriftelijke toestemming. → We gebruiken geen logo of vormgeving van TenderNed, noemen
-    TenderNed als bron en linken naar elke aankondiging. De overgenomen gegevens zijn feitelijke metadata van openbare
-    aankondigingen onder CC-0.
-  - De voorwaarden gaan verder vooral over geregistreerde gebruikers van het elektronisch systeem; wij registreren niet.
-  - Tijdens de controle gaf de pagina een tijdelijke 503; gelezen is de kopie van 19-10-2026 in de werkmap (zelfde
-    versie, 19-11-2025).
-- We nemen geen persoonsgegevens over: de lijst en de gebruikte detailvelden bevatten geen contactpersonen.
-- Belasting van de bron: één run per dag, ±25 lijstverzoeken plus enkele detailverzoeken, met pauzes en maximaal 4
-  gelijktijdige verzoeken.
+  art. 7 (opdrachtgever verantwoordelijk voor juistheid; in de UI: "Juridisch geldt alleen de aankondiging op TenderNed")
+  en art. 16 (rechten bij de Staat; wij gebruiken geen logo of vormgeving, noemen de bron en linken naar elke aankondiging).
+- CBS, Gebieden in Nederland 2013-2026 (open data, CC BY 4.0), tabellen 82000NED tot en met 86247NED,
+  https://opendata.cbs.nl/statline/#/CBS/nl/dataset/86247NED/table , peildatum 27-10-2026.
+- Eurostat GISCO, NUTS 2021 en 2024, https://gisco-services.ec.europa.eu/distribution/v2/nuts/ .
+- Geen persoonsgegevens: lijst en gebruikte detailvelden bevatten geen contactpersonen.
+- Belasting van de bron: één run per dag, ±26 lijstverzoeken plus enkele detailverzoeken, met pauzes.
 
 ## Onderhoud
 
 - **Dagelijks vanzelf.** Controle: `select * from public.aanbestedingen_verversingen order by id desc limit 5;`
-  (`gelukt`, aantallen, `melding`). De UI toont het tijdstip van de laatste gelukte verversing.
 - **Handmatig verversen** (SQL-editor of MCP, als postgres): `select public.start_ververs_aanbestedingen(300);`
-  Het argument is het maximum aantal detailpagina's per run (max 1.000; een run met 600 duurde ongeveer een minuut).
-  Antwoord bekijken: `select status_code, content from net._http_response order by id desc limit 1;`
-- **Regels voor afvalstroom aanpassen:** `STROOM_REGELS` in `afleiding.ts`, test toevoegen in
-  `src/lib/aanbestedingen.test.ts`, daarna de functie opnieuw uitrollen (beide bestanden, `verify_jwt: false`) en één
-  keer verversen; alle rijen worden opnieuw afgeleid uit de opgeslagen details.
-- **Webservice gewijzigd** (lege lijst of fouten in het logboek): de functie schrijft dan niets weg en logt
-  `gelukt = false`. Kijk of de TNS-URL of de veldnamen zijn veranderd, of vraag toegang tot de officiële XML-API.
+  Antwoord: `select status_code, content from net._http_response order by id desc limit 1;`
+- **Regels aanpassen** (stromen, marktconsultatie, provincie): `afleiding.ts`, test toevoegen in
+  `src/lib/aanbestedingen.test.ts`, de functie opnieuw uitrollen (`index.ts`, `afleiding.ts`, `gemeenten.ts`,
+  `verify_jwt: false`) en één keer verversen; alle rijen worden opnieuw afgeleid uit de opgeslagen details.
+- **Gemeentelijst bijwerken** (na een gemeentelijke herindeling, jaarlijks in januari): tabel-id van het nieuwe jaar
+  toevoegen in `maak-gemeenten.mjs`, `NODE_USE_ENV_PROXY=1 node supabase/functions/ververs-aanbestedingen/maak-gemeenten.mjs`,
+  daarna uitrollen en verversen.
 - **Geheim vernieuwen:** `select vault.update_secret((select id from vault.secrets where name='ververs_aanbestedingen_geheim'), encode(extensions.gen_random_bytes(32),'hex'));`
-  Er hoeft verder niets te veranderen.
-- Migraties: `supabase/migrations/20261026090000_aanbestedingen.sql` en `20261026091000_aanbestedingen_cron.sql`.
+- Migraties: `20261026090000_aanbestedingen.sql`, `20261026091000_aanbestedingen_cron.sql`,
+  `20261027090000_aanbestedingen_r2.sql`, `20261027190000_aanbestedingen_open_voor_bezoekers.sql`.
+  De r2-migratie is eerst via `execute_sql` toegepast (de bevestigingsvraag bij `apply_migration` kreeg geen antwoord;
+  de versie zonder drop/update is daarna alsnog via `apply_migration` vastgelegd, idempotent).
 
-## Controles
+## Controles (27-10-2026)
 
 - `npx tsc --noEmit -p .`: geen fouten.
-- `npx vitest run`: alle tests groen, waaronder 23 in `src/lib/aanbestedingen.test.ts`.
+- `npx vitest run`: 297 tests groen, waarvan 37 in `src/lib/aanbestedingen.test.ts`.
 - `npx vite build --outDir /tmp/claude-0/build-aanbestedingen`: geslaagd.
-- `e2e/aanbestedingen.spec.ts` (400 px en 1280 px): betaalmuur zonder echte data, RLS voor anon, lid leest via RLS,
-  `?zoek=`, filters, sortering, paginering, details, geen horizontale scroll. 10 van 10 geslaagd.
+- `e2e/aanbestedingen.spec.ts` (400 px en 1280 px) tegen `vite preview` op poort 5107: 15 geslaagd, 1 overgeslagen
+  (telefoontest alleen op 400 px). Dekt: open lijst voor bezoekers zonder marktconsultaties, betaalmuur zonder echte data,
+  anon krijgt alleen vijf velden van open rijen en geen toegang tot tabel, view of ledenfuncties, Rotterdam 618943 is
+  marktconsultatie, zoeken op CPV-code en woordgroep met `%` en `*`, afval-als-hoofdopdracht, `?zoek=`, filters,
+  sortering, paginering, `?pagina=999`, snelkeuze, link kopiëren, CSV-download, legenda, compacte lijst op de telefoon,
+  geen horizontale scroll.
   Draaien: `NODE_USE_ENV_PROXY=1 PW_BASE=http://localhost:5107 E2E_EMAIL=… E2E_WACHTWOORD=… npx playwright test e2e/aanbestedingen.spec.ts`.
-- Lighthouse mobiel (bezoeker): prestaties 0,97, toegankelijkheid 1,0. axe op de ledenweergave: alleen `region` op de
-  bètabanner van de layout.
-- `get_advisors` (security) na elke DDL: geen meldingen voor deze tabellen of functies.
+- Lighthouse mobiel (bezoeker): prestaties 0,98, toegankelijkheid 1,0, best practices 1,0, CLS 0.
+- `get_advisors` (security) na de DDL: alleen de bedoelde melding voor `open_aanbestedingen_zoeken` (anon en
+  authenticated) en de bestaande meldingen voor `is_lid`, `mijn_domein` en wachtwoordlekcontrole.
+- Paginahoogte op 400 px: bezoeker 3.268 px (was 6.559 met alle open regels); lid met 25 resultaten 6.974 px (ronde 1
+  ±11.000 px).
 
 ## Open punten
 
-1. TenderNed of PIANOo vragen of hergebruik via de TNS-webservice in een ledenomgeving akkoord is, of een account voor de
-   officiële XML-API aanvragen (stabieler). Juridisch toetsen bij art. 16 van de gebruiksvoorwaarden.
-2. Mercell en andere platforms zijn niet als bron gebruikt; aankondigingen die alleen daar staan (onder de Europese
-   drempel, niet op TenderNed) ontbreken. TenderNed linkt wel naar het externe platform als de opdrachtgever dat gebruikt.
-3. Provincie ontbreekt bij ruim de helft (alleen "NL" als NUTS-code). Een koppeling opdrachtgever → gemeente of
-   samenwerkingsverband (en daarmee provincie en de Restafvalkaart) zou dat oplossen.
-4. CPV-filter: aanbestedingen die afval alleen onder een andere code zetten (bijv. 90000000 of 34928480 containers)
-   vallen erbuiten; omgekeerd staan er enkele aanbestedingen in die 90500000 alleen als nevencode hebben (bijv. ICT met
-   afvoer). Eventueel uitbreiden of filteren op hoofd-CPV.
-5. "Inschrijving gesloten" bij oudere aanbestedingen betekent vaak alleen dat de gunning niet (onder dezelfde CPV) is
-   gepubliceerd.
-6. Geen e-mailattendering op nieuwe aanbestedingen (leden kunnen een zoek-URL bewaren).
+1. Juridisch (Niels): hergebruik via de TNS-webservice, nu ook voor bezoekers, bevestigen bij TenderNed/PIANOo, of een
+   account voor de officiële XML-API aanvragen. Toetsen aan art. 16 van de gebruiksvoorwaarden.
+2. Marktconsultatie-herkenning is tekstueel; een opdrachtgever die een consultatie als aankondiging publiceert zonder het
+   woord in titel of eerste zin, valt erdoorheen. Leden kunnen dat melden via het feedbackformulier.
+3. Provincie ontbreekt nog bij 469 aanbestedingen (samenwerkingsverbanden, bedrijven, scholen). Een koppeling
+   samenwerkingsverband → gemeenten zou helpen, maar vraagt een onderhouden lijst.
+4. Mercell en andere platforms zijn geen bron; aankondigingen die alleen daar staan ontbreken.
+5. "Inschrijving gesloten" bij oudere aanbestedingen betekent vaak alleen dat de gunning niet is gepubliceerd.
+6. Geen e-mailattendering op nieuwe aanbestedingen (leden kunnen een zoeklink bewaren of kopiëren).
+7. `public.zoek_aanbestedingen` (ronde 1) kan worden verwijderd; dat is een drop en vraagt bevestiging.

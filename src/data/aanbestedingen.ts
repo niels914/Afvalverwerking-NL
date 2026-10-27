@@ -28,6 +28,9 @@ export const tendernedWebservice = 'https://www.tenderned.nl/papi/tenderned-rs-t
 /** Gebruiksvoorwaarden van TenderNed (gecontroleerd op de peildatum hierboven). */
 export const tendernedVoorwaarden = 'https://www.tenderned.nl/over-deze-site/gebruiksvoorwaarden';
 
+/** Gemeente → provincie (CBS, Gebieden in Nederland 2013-2026), voor de provincie uit de naam van de opdrachtgever. */
+export { GEMEENTEN_BRON as gemeentenBron } from '../../supabase/functions/ververs-aanbestedingen/gemeenten';
+
 /** Indeling NUTS-codes naar provincie. */
 export const nutsBron = {
   naam: 'Eurostat GISCO, NUTS 2021 en 2024',

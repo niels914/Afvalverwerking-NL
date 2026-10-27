@@ -213,6 +213,7 @@ test.describe('lid', () => {
 
   test('filter op afvalstroom en provincie', async ({ page }) => {
     await page.goto('/aanbestedingsarchief');
+    await resultatenBinnen(page);
     await filtersOpen(page);
     await page.getByLabel('Afvalstroom').selectOption('GFT en etensresten');
     await expect(page).toHaveURL(/stroom=GFT/);

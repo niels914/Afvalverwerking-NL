@@ -2,7 +2,7 @@ import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type R
 import { useSearchParams } from 'react-router-dom';
 import { Vergrendeld } from '../components/betaalmuur/Vergrendeld';
 import { Badge, KeuzeVeld, PaginaKop } from '../components/ui';
-import { aanbestedingenBron, cpvFilterUitleg } from '../data/aanbestedingen';
+import { aanbestedingenBron, cpvFilterUitleg, gemeentenBron } from '../data/aanbestedingen';
 import { isToegangOnbekend, useAuth } from '../lib/auth';
 import {
   CSV_MAX,
@@ -41,7 +41,6 @@ import './Aanbestedingsarchief.css';
 export function Aanbestedingsarchief() {
   const auth = useAuth();
   const { isLid } = auth;
-  const toegangOnbekend = isToegangOnbekend(auth);
 
   return (
     <>
@@ -66,7 +65,8 @@ export function Aanbestedingsarchief() {
           : ' Iedereen kan zoeken in de aanbestedingen die nu open zijn voor inschrijving. Leden zien ook gesloten en gegunde aanbestedingen, met filters, details en export.'}
       </PaginaKop>
 
-      {!isLid && !toegangOnbekend && <OpenAanbestedingen />}
+      {/* Niet zolang de toegang van een ingelogde gebruiker nog wordt gecontroleerd: dat is meestal een lid. */}
+      {!isLid && !isToegangOnbekend(auth) && <OpenAanbestedingen />}
 
       <Vergrendeld
         titel="Volledig aanbestedingsarchief"
@@ -162,6 +162,18 @@ function OpenAanbestedingen() {
                 : 'Op dit moment staan er geen open aanbestedingen in het archief.'
               : `${getal(aantal)} open ${aantal === 1 ? 'aanbesteding' : 'aanbestedingen'}${zoek ? ` voor “${zoek}”` : ''}, vroegste sluiting eerst.`}
       </p>
+
+      {!fout && !r && (
+        <ol className="open-regels open-laden" aria-hidden="true">
+          {Array.from({ length: 10 }, (_, i) => (
+            <li key={i}>
+              <span className="archief-balk dun" style={{ width: '40%' }} />
+              <span className="archief-balk" style={{ width: `${60 + ((i * 13) % 30)}%` }} />
+              <span className="archief-balk dun" style={{ width: '50%' }} />
+            </li>
+          ))}
+        </ol>
+      )}
 
       {fout && (
         <div role="alert" className="archief-fout">
@@ -837,8 +849,12 @@ function Toelichting({ oudste }: { oudste: string | null }) {
         </li>
         <li>
           <strong>Provincie.</strong> Uit de NUTS-code die de opdrachtgever als plaats van uitvoering opgeeft. Staat daar alleen
-          “Nederland”, dan uit de naam van de opdrachtgever als die een gemeente of provincie noemt (gemeentelijke indeling van het CBS,
-          2013 tot en met 2026). Lukt beide niet, dan blijft de provincie leeg.
+          “Nederland”, dan uit de naam van de opdrachtgever als die een gemeente of provincie noemt (
+          <a href={gemeentenBron.url} target="_blank" rel="noopener noreferrer">
+            {gemeentenBron.naam}
+            <span className="visueel-verborgen"> (opent in nieuw venster)</span>
+          </a>
+          , peildatum {datum(gemeentenBron.peildatum)}). Lukt beide niet, dan blijft de provincie leeg.
         </li>
         <li>
           <strong>Status.</strong> De laatste beslissende publicatie telt: een gunning of wijziging geeft “Gegund”, een vroegtijdige

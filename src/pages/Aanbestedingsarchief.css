@@ -237,6 +237,10 @@
   font-size: 14px;
   color: var(--tekst-2);
 }
+.open-laden li {
+  min-height: 92px;
+  align-content: center;
+}
 .open-meer {
   margin: 0 0 12px;
   min-height: 44px;
