@@ -2,6 +2,7 @@
 // De afleiding van afvalstroom, dienst, provincie en status staat in
 // supabase/functions/ververs-aanbestedingen/afleiding.ts (gedeeld met de Edge Function).
 
+import { getal } from './format';
 import { supabase } from './supabase';
 import { DIENSTEN, PROVINCIES, STROMEN, type Status } from '../../supabase/functions/ververs-aanbestedingen/afleiding';
 
@@ -164,6 +165,13 @@ export async function zoekAanbestedingen(f: Filters): Promise<Resultaat> {
     .rpc('aanbestedingen_zoeken', rpcArgumenten(f), { count: 'exact' })
     .select(KOLOMMEN)
     .range(van, van + PER_PAGINA - 1);
+  if (error?.code === 'PGRST103') {
+    // Pagina voorbij het einde (bijvoorbeeld ?pagina=999): geen rijen, wel het totaal, zodat de pagina kan doorverwijzen.
+    // Geen head-verzoek: dat zet de argumenten in de URL, waar null als de tekst "null" aankomt.
+    const telling = await supabase.rpc('aanbestedingen_zoeken', rpcArgumenten(f), { count: 'exact' }).select('kenmerk').range(0, 0);
+    if (telling.error) throw telling.error;
+    return { regels: [], totaal: telling.count ?? 0 };
+  }
   if (error) throw error;
   return { regels: (data ?? []) as unknown as AanbestedingRegel[], totaal: count ?? 0 };
 }
@@ -285,4 +293,32 @@ export function statusBadge(s: Status): string {
   if (s === 'gegund') return 'status-gegund';
   if (s === 'gesloten' || s === 'beeindigd' || s === 'ingetrokken') return 'status-gesloten';
   return 'thema';
+}
+
+/* ---------- Voor bezoekers: alleen open aanbestedingen ---------- */
+
+/** Wat bezoekers van een open aanbesteding zien (public.open_aanbestedingen_zoeken, ook zonder inloggen). */
+export interface OpenAanbesteding {
+  titel: string;
+  opdrachtgever: string;
+  sluitingsdatum: string;
+  sluiting_tijd_bekend: boolean;
+  tenderned_url: string;
+}
+
+/**
+ * Open aanbestedingen voor iedereen: titel, opdrachtgever, sluitingsdatum en TenderNed-link, vroegste sluiting eerst.
+ * De database geeft alleen open rijen en deze vijf velden terug (maximaal 100); de rest blijft voor leden.
+ */
+export async function zoekOpenAanbestedingen(zoek: string): Promise<OpenAanbesteding[]> {
+  const { data, error } = await supabase.rpc('open_aanbestedingen_zoeken', { p_zoek: zoek.trim() || null });
+  if (error) throw error;
+  return (data ?? []) as OpenAanbesteding[];
+}
+
+/** "nog 7 dagen", "vandaag" of null als de datum voorbij is. */
+export function nogTekst(sluiting: string, vandaag: string): string | null {
+  const d = dagenTot(sluiting, vandaag);
+  if (d < 0) return null;
+  return d === 0 ? 'vandaag' : `nog ${getal(d)} ${d === 1 ? 'dag' : 'dagen'}`;
 }

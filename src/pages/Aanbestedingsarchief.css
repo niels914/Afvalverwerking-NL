@@ -41,11 +41,219 @@
 .archief-zoek button {
   min-height: 44px;
 }
+.archief-zoek .hint {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: var(--tekst-secundair);
+}
+/* Raster met ruime kolommen, zodat de keuzelijsten hun tekst niet afkappen. */
 .archief-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+@media (min-width: 761px) {
+  /* Sorteren krijgt twee kolommen, zodat "Sluitingsdatum, vroegste eerst" niet wordt afgekapt. */
+  .archief-filters > .veld:last-child {
+    grid-column: span 2;
+  }
+}
+.archief-filters select {
+  width: 100%;
+  text-overflow: ellipsis;
+}
+.archief-vink {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+.archief-vink input {
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  flex: none;
+  accent-color: var(--paars);
+}
+.archief-vink input:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.archief-vink .hint {
+  color: var(--tekst-secundair);
+  font-size: 12.5px;
+}
+
+/* Snelkeuzes */
+.archief-snel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+}
+.archief-snel-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--tekst-2);
+}
+.archief-snel ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.archief-snel button {
+  min-height: 40px;
+  border-radius: 999px;
+  font-size: 13.5px;
+}
+.archief-snel button[aria-pressed='true'] {
+  background: var(--paars);
+  border-color: var(--paars);
+  color: var(--wit);
+}
+.archief-snel button[aria-pressed='true']::before {
+  content: '✓ ';
+}
+
+/* Kop van de resultaten met acties */
+.archief-resultaten-kop {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.archief-resultaten-kop h2 {
+  margin: 0;
+}
+.archief-acties {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+  max-width: 100%;
+}
+.archief-acties-knoppen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.archief-acties-knoppen button {
+  min-height: 40px;
+}
+.archief-acties-melding {
+  margin: 0;
+  min-height: 1em;
+  color: var(--tekst-2);
+}
+.archief-acties .veld {
+  width: min(100%, 420px);
+}
+
+/* Legenda */
+.archief-legenda {
+  margin: 0 0 12px;
+  font-size: 13.5px;
+}
+.archief-legenda summary {
+  cursor: pointer;
+  color: var(--link);
+  font-weight: 600;
+  min-height: 24px;
+  width: fit-content;
+}
+.archief-legenda summary:focus-visible,
+.archief-toelichting summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.archief-legenda dl {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+}
+.archief-legenda dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 13em) minmax(0, 1fr);
+  gap: 8px;
+}
+.archief-legenda dt {
+  font-weight: 600;
+}
+.archief-legenda dd {
+  margin: 0;
+  color: var(--tekst-2);
+}
+
+/* Inklapbare toelichting */
+.archief-toelichting summary {
+  cursor: pointer;
+  list-style-position: outside;
+}
+.archief-toelichting summary h2 {
+  display: inline;
+  font-size: 17px;
+}
+.archief-toelichting[open] summary {
   margin-bottom: 8px;
 }
-.archief-filters .veld {
-  flex: 1 1 140px;
+
+/* Open aanbestedingen voor iedereen */
+.open-lijst {
+  margin-bottom: 20px;
+}
+.open-lijst h2 {
+  margin-top: 0;
+}
+.open-regels {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+.open-regels.is-laden {
+  opacity: 0.6;
+}
+.open-regels li {
+  display: grid;
+  gap: 2px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rand);
+}
+.open-regels li:first-child {
+  border-top: 1px solid var(--rand);
+}
+.open-regels .archief-titel {
+  font-size: 16px;
+  font-weight: 600;
+}
+.open-sluit {
+  font-size: 14px;
+  color: var(--tekst-2);
+}
+.open-meer {
+  margin: 0 0 12px;
+  min-height: 44px;
+}
+.open-bron {
+  margin: 0;
+}
+
+/* Alleen op de telefoon */
+.alleen-mobiel,
+.archief-mobiel-kern {
+  display: none;
+}
+.archief-meta {
+  margin: 2px 0 0;
+  font-size: 12.5px;
+  color: var(--tekst-secundair);
 }
 .archief-wissen {
   min-height: 40px;
@@ -101,15 +309,11 @@
   color: var(--link);
   overflow-wrap: anywhere;
 }
-.archief-provincie {
-  display: block;
-  font-size: 12.5px;
-  color: var(--tekst-secundair);
-  margin-top: 2px;
-}
-.archief-tabel td[data-label='Procedure'] {
+.archief-tabel td.archief-procedure {
   min-width: 110px;
   max-width: 180px;
+  hyphens: manual;
+  overflow-wrap: anywhere;
 }
 .archief-stromen {
   list-style: none;
@@ -206,7 +410,8 @@
   color: var(--wit);
 }
 
-/* Telefoon: elke aanbesteding als blok, kolomnaam voor de waarde. */
+/* Telefoon: compacte lijst. Per aanbesteding opdrachtgever, titel, status met sluiting en afvalstroom;
+   procedure en publicatiedatum staan onder Details. */
 @media (max-width: 760px) {
   .archief-tabel {
     border: 0;
@@ -214,14 +419,9 @@
   }
   .archief-tabel table,
   .archief-tabel tbody,
-  .archief-tabel tr,
-  .archief-tabel td {
+  .archief-tabel tr {
     display: block;
     width: 100%;
-  }
-  .archief-tabel caption {
-    display: block;
-    padding: 8px 0;
   }
   .archief-tabel thead {
     position: absolute;
@@ -232,56 +432,84 @@
     white-space: nowrap;
   }
   .archief-tabel tr {
-    border: 1px solid var(--rand);
-    border-radius: var(--radius);
-    margin-bottom: 12px;
-    padding: 6px 0;
-    background: var(--wit);
+    border-bottom: 1px solid var(--rand);
+    padding: 10px 0;
+    background: transparent;
+  }
+  .archief-tabel tr:first-child {
+    border-top: 1px solid var(--rand);
   }
   .archief-tabel td {
-    border-bottom: 0;
-    padding: 4px 14px;
-    display: grid;
-    grid-template-columns: 7.5em 1fr;
-    gap: 8px;
-  }
-  .archief-tabel td::before {
-    content: attr(data-label);
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--tekst-secundair);
-    padding-top: 1px;
-  }
-  .archief-tabel td[data-label='Procedure'] {
-    min-width: 0;
-    max-width: none;
+    display: none;
   }
   .archief-tabel td.archief-opdracht {
     display: block;
+    width: 100%;
     max-width: none;
     min-width: 0;
-    padding-bottom: 8px;
+    padding: 0;
+    border: 0;
   }
-  .archief-tabel td.archief-opdracht::before {
-    content: none;
+  .archief-tabel .archief-titel {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.35;
+    margin: 1px 0 4px;
   }
-  .archief-tabel td[data-label='Publicatie'],
-  .archief-tabel td[data-label='Sluiting'],
-  .archief-tabel td[data-label='Status'] {
-    white-space: normal;
+  .archief-opdrachtgever {
+    font-size: 13.5px;
   }
-}
-
-.archief-uitleg {
-  margin-bottom: 20px;
-  max-width: 72ch;
-}
-.archief-uitleg h2 {
-  font-size: 18px;
-  margin: 0 0 6px;
-}
-.archief-uitleg p {
-  margin: 0;
+  .archief-mobiel-kern {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    align-items: center;
+    margin: 0;
+    font-size: 14px;
+    color: var(--tekst-2);
+  }
+  .archief-meta {
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .archief-meta .alleen-mobiel {
+    display: inline;
+  }
+  .archief-filterinklap {
+    margin-top: 4px;
+  }
+  .archief-filterinklap summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--link);
+    min-height: 44px;
+    line-height: 44px;
+  }
+  .archief-filterinklap summary:focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  .archief-dl .alleen-mobiel {
+    display: block;
+  }
+  .archief-meer {
+    margin-top: 2px;
+  }
+  .archief-meer summary {
+    min-height: 28px;
+    line-height: 28px;
+  }
+  .archief-resultaten-kop {
+    display: grid;
+  }
+  .archief-acties {
+    justify-items: start;
+  }
+  .archief-legenda dl > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
 }
 
 /* Voorbeeldweergave voor bezoekers: grijze balken, geen echte data. */
