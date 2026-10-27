@@ -1,11 +1,19 @@
-import { useEffect, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { flushSync } from 'react-dom';
 import { platform } from '../../data/site';
 import { datum } from '../../lib/format';
-import { aanbieder, bronnen, documenten, type BronSleutel, type DocumentId } from './gegevens';
+import { aanbieder, bronnen, documenten, toetspuntenTonen, type BronSleutel, type DocumentId } from './gegevens';
 import './juridisch.css';
 
-// Gedeelde opmaak voor de juridische pagina's: conceptmarkering, versie en datum, inhoudsopgave met ankers,
-// secties met een eigen id, contact en "naar boven".
+// Gedeelde opmaak voor de juridische pagina's: conceptmarkering, versie en datum, de kern in het kort,
+// inhoudsopgave met ankers, inklapbare secties met een eigen id, afdrukken als pdf, contact en "naar boven".
+//
+// Inklappen: op een breed scherm (vanaf BREED) staan alle secties open, op een smal scherm dicht. De kop van een
+// sectie blijft altijd zichtbaar, zodat ankers als /privacy#rechten blijven werken; een anker of zoeken in de pagina
+// (Ctrl+F, via hidden="until-found") klapt de sectie vanzelf open. Afdrukken klapt alles open.
+
+/** Vanaf deze breedte staan de secties standaard open en is de inhoudsopgave zichtbaar. Gelijk aan juridisch.css. */
+const BREED = '(min-width: 760px)';
 
 export interface Sectie {
   /** Anker in de URL, bijvoorbeeld "looptijd" → /algemene-voorwaarden#looptijd. Uniek per pagina. */
@@ -16,17 +24,98 @@ export interface Sectie {
 
 interface Props {
   id: DocumentId;
-  /** Korte samenvatting onder de titel: wat staat hier en voor wie. */
+  /** Eén zin onder de titel: wat staat hier en voor wie. */
   intro: ReactNode;
+  /** De belangrijkste afspraken of feiten in een paar regels. Staat altijd open, boven de inhoudsopgave. */
+  kern: ReactNode[];
   secties: Sectie[];
 }
 
-export function JuridischDocument({ id, intro, secties }: Props) {
+function isBreed(): boolean {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia(BREED).matches;
+}
+
+export function JuridischDocument({ id, intro, kern, secties }: Props) {
   const doc = documenten[id];
+  const alleIds = useMemo(() => secties.map((s) => s.id), [secties]);
+  const [open, setOpen] = useState<Set<string>>(() => {
+    if (isBreed()) return new Set(alleIds);
+    const anker = typeof window !== 'undefined' ? decodeURIComponent(window.location.hash.slice(1)) : '';
+    return new Set(alleIds.includes(anker) ? [anker] : []);
+  });
+  const inhoudRefs = useRef(new Map<string, HTMLDivElement>());
+  const allesOpen = open.size === secties.length;
 
   useEffect(() => {
     document.title = `${doc.titel} · ${platform.korteNaam}`;
   }, [doc.titel]);
+
+  const openSectie = useCallback((sectieId: string) => {
+    setOpen((o) => (o.has(sectieId) ? o : new Set(o).add(sectieId)));
+  }, []);
+
+  // Anker naar een sectie of naar iets binnen een sectie (bijv. #verwerking-account): sectie openen en erheen gaan.
+  useLayoutEffect(() => {
+    function volgAnker(bijLaden: boolean) {
+      const anker = decodeURIComponent(window.location.hash.slice(1));
+      if (!anker) return;
+      const doel = document.getElementById(anker);
+      const sectie = doel?.closest<HTMLElement>('.jd-sectie');
+      if (!doel || !sectie) return;
+      if (bijLaden) {
+        // Binnen een layout-effect: de sectie gaat open vóór het tekenen; scrollen na die render.
+        openSectie(sectie.id);
+        requestAnimationFrame(() => doel.scrollIntoView());
+      } else {
+        flushSync(() => openSectie(sectie.id));
+        doel.scrollIntoView();
+      }
+    }
+    volgAnker(true);
+    const bijWijziging = () => volgAnker(false);
+    window.addEventListener('hashchange', bijWijziging);
+    return () => window.removeEventListener('hashchange', bijWijziging);
+  }, [openSectie]);
+
+  // Afdrukken (ook via Ctrl+P): eerst alles open.
+  useEffect(() => {
+    const voorAfdrukken = () => flushSync(() => setOpen(new Set(alleIds)));
+    window.addEventListener('beforeprint', voorAfdrukken);
+    return () => window.removeEventListener('beforeprint', voorAfdrukken);
+  }, [alleIds]);
+
+  // Dichte secties krijgen hidden="until-found": niet zichtbaar, wel vindbaar met zoeken in de pagina.
+  // React 18 kent die waarde van hidden niet, daarom via de DOM.
+  useLayoutEffect(() => {
+    for (const [sectieId, el] of inhoudRefs.current) {
+      if (open.has(sectieId)) el.removeAttribute('hidden');
+      else el.setAttribute('hidden', 'until-found');
+    }
+  }, [open]);
+
+  useEffect(() => {
+    const kaart = inhoudRefs.current;
+    const luisteraars = [...kaart].map(([sectieId, el]) => {
+      const bijVinden = () => openSectie(sectieId);
+      el.addEventListener('beforematch', bijVinden);
+      return () => el.removeEventListener('beforematch', bijVinden);
+    });
+    return () => luisteraars.forEach((stop) => stop());
+  }, [openSectie]);
+
+  function wissel(sectieId: string) {
+    setOpen((o) => {
+      const nieuw = new Set(o);
+      if (nieuw.has(sectieId)) nieuw.delete(sectieId);
+      else nieuw.add(sectieId);
+      return nieuw;
+    });
+  }
+
+  function afdrukken() {
+    flushSync(() => setOpen(new Set(alleIds)));
+    window.print();
+  }
 
   return (
     <article className="jd" aria-labelledby="jd-titel">
@@ -39,23 +128,66 @@ export function JuridischDocument({ id, intro, secties }: Props) {
         </p>
       </header>
 
+      <section className="jd-kern" id="in-het-kort" aria-labelledby="jd-kern-kop">
+        <h2 id="jd-kern-kop">In het kort</h2>
+        <ul>
+          {kern.map((k, i) => (
+            <li key={i}>{k}</li>
+          ))}
+        </ul>
+      </section>
+
       <nav className="jd-inhoud" aria-labelledby="jd-inhoud-kop">
         <h2 id="jd-inhoud-kop">Op deze pagina</h2>
         <ul>
           {secties.map((s) => (
             <li key={s.id}>
-              <a href={`#${s.id}`}>{s.titel}</a>
+              <a href={`#${s.id}`} onClick={() => openSectie(s.id)}>
+                {s.titel}
+              </a>
             </li>
           ))}
         </ul>
       </nav>
 
-      {secties.map((s) => (
-        <section key={s.id} id={s.id} className="jd-sectie" aria-labelledby={`${s.id}-kop`}>
-          <h2 id={`${s.id}-kop`}>{s.titel}</h2>
-          {s.inhoud}
-        </section>
-      ))}
+      <div className="jd-acties">
+        <button type="button" onClick={() => setOpen(allesOpen ? new Set() : new Set(alleIds))}>
+          {allesOpen ? 'Alles inklappen' : 'Alles uitklappen'}
+        </button>
+        <button type="button" onClick={afdrukken}>
+          Afdrukken of opslaan als pdf
+        </button>
+      </div>
+
+      {secties.map((s) => {
+        const isOpen = open.has(s.id);
+        return (
+          <section key={s.id} id={s.id} className="jd-sectie" aria-labelledby={`${s.id}-kop`}>
+            <h2 id={`${s.id}-kop`}>
+              <button
+                type="button"
+                className="jd-sectie-knop"
+                aria-expanded={isOpen}
+                aria-controls={`${s.id}-inhoud`}
+                onClick={() => wissel(s.id)}
+              >
+                <span>{s.titel}</span>
+                <span className="jd-pijl" aria-hidden="true" />
+              </button>
+            </h2>
+            <div
+              id={`${s.id}-inhoud`}
+              className="jd-sectie-inhoud"
+              ref={(el) => {
+                if (el) inhoudRefs.current.set(s.id, el);
+                else inhoudRefs.current.delete(s.id);
+              }}
+            >
+              {s.inhoud}
+            </div>
+          </section>
+        );
+      })}
 
       <p className="jd-naarboven">
         <a href="#jd-titel">↑ Naar boven</a>
@@ -93,14 +225,17 @@ export function BronRegel({ sleutel, voorvoegsel = 'Bron' }: { sleutel: BronSleu
   );
 }
 
-/** Kader met een punt dat de jurist moet beoordelen. */
+/**
+ * Inklapbaar kader met een punt dat de jurist moet beoordelen. Verdwijnt van alle pagina's zodra
+ * `toetspuntenTonen` in gegevens.ts op false staat (na de toetsing). Niet in de afdruk.
+ */
 export function Toetspunt({ children }: { children: ReactNode }) {
+  if (!toetspuntenTonen) return null;
   return (
-    <div className="jd-kader jd-toetspunt">
-      <p>
-        <strong>Toetspunt voor de jurist:</strong> {children}
-      </p>
-    </div>
+    <details className="jd-toetspunt">
+      <summary>Toetspunt voor de jurist</summary>
+      <p>{children}</p>
+    </details>
   );
 }
 

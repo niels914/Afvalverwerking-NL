@@ -10,6 +10,9 @@ import { BronRegel, ContactBlok, JuridischDocument, Leden, Toetspunt, type Secti
 // Termijnen en prijzen komen uit src/data/lidmaatschap.ts, zodat deze tekst gelijk blijft aan de aanmeldflow.
 
 const v = voorwaarden;
+
+/** Voorstel (Niels beslist): termijn om kosteloos af te zien als de definitieve prijs afwijkt (artikel 3.6). */
+const AFZIEN_DAGEN = 14;
 const maanden = (n: number) => (n === 1 ? '1 maand' : `${n} maanden`);
 
 const secties: Sectie[] = [
@@ -71,18 +74,33 @@ const secties: Sectie[] = [
     id: 'aanmelding',
     titel: '3. Aanmelden en totstandkoming',
     inhoud: (
+      <>
       <Leden artikel={3}>
         {[
           <>
-            Een organisatie meldt zich aan via het <Link to="/lidmaatschap/aanmelden">aanmeldformulier</Link> of vraagt per
-            e-mail een offerte aan. Een offerte is {v.offerteGeldigDagen} dagen geldig, tenzij er een andere termijn in staat.
+            Een organisatie meldt zich aan via het <Link to="/lidmaatschap/aanmelden">aanmeldformulier</Link>, of vraagt via
+            hetzelfde formulier of per e-mail een offerte aan. Een offerte is {v.offerteGeldigDagen} dagen geldig, tenzij er
+            een andere termijn in staat.
           </>,
           'Wie zich aanmeldt, verklaart dat hij bevoegd is om de organisatie te vertegenwoordigen of daarvoor toestemming heeft van iemand die dat wel is.',
           `KplusV controleert de aanmelding en stuurt binnen ${v.bevestigingWerkdagen} werkdagen een orderbevestiging per e-mail. Het lidmaatschap komt tot stand op het moment dat KplusV de orderbevestiging verstuurt.`,
           'KplusV mag een aanmelding weigeren, bijvoorbeeld als de organisatie niet tot de doelgroep hoort of als de opgegeven e-maildomeinen niet van de organisatie zijn. KplusV laat dat dan per e-mail weten, met de reden.',
           `De startdatum staat in de orderbevestiging. Een startdatum ligt hooguit ${maanden(v.maxStartVooruitMaanden)} na de aanmelding.`,
+          ...(prijzenVastgesteld
+            ? []
+            : [
+                `Zolang de prijzen op het platform als concept zijn aangeduid, noemt de orderbevestiging de prijs die geldt. Wijkt die af van de prijs bij de aanmelding, dan kan de organisatie binnen ${AFZIEN_DAGEN} dagen na ontvangst van de orderbevestiging kosteloos afzien van het lidmaatschap, met een e-mail aan KplusV.`,
+              ]),
         ]}
       </Leden>
+      {!prijzenVastgesteld && (
+        <Toetspunt>
+          Artikel 3.6 geldt alleen zolang de prijzen concept zijn. De termijn van {AFZIEN_DAGEN} dagen is een voorstel; KplusV
+          beslist. Het lid vervalt vanzelf uit de tekst zodra de prijzen zijn vastgesteld (prijzenVastgesteld in
+          src/data/lidmaatschap.ts).
+        </Toetspunt>
+      )}
+      </>
     ),
   },
   {
@@ -270,7 +288,12 @@ const secties: Sectie[] = [
               KplusV verwerkt persoonsgegevens van gebruikers en contactpersonen als verwerkingsverantwoordelijke, zoals
               beschreven in de <Link to="/privacy">privacyverklaring</Link>.
             </>,
-            'Wat een gebruiker invult in de rekentools, blijft in zijn browser en gaat niet naar KplusV. Dat is anders als de gebruiker zelf een deellink maakt: die link bevat de invoer, en wie de link opent, stuurt het webadres met die invoer naar de server van het platform.',
+            <>
+              Wat een gebruiker invult in de rekentools, slaat KplusV niet op. De rekentools zetten de invoer wel in het
+              webadres van de pagina. Daardoor staat de invoer in de browsergeschiedenis van de gebruiker en in elke link of
+              bladwijzer die hij maakt, en komt het adres in het serverlogboek van de hosting als iemand het laadt. Zie de{' '}
+              <Link to="/cookies#overzicht">cookieverklaring</Link>.
+            </>,
             'Het platform is niet bedoeld om persoonsgegevens van burgers in te voeren. De organisatie zorgt dat haar medewerkers dat niet doen.',
           ]}
         </Leden>
@@ -349,10 +372,20 @@ const secties: Sectie[] = [
   },
 ];
 
+const kern = [
+  `Een lidmaatschap is een jaarabonnement per organisatie: ${maanden(v.looptijdMaanden)}, daarna steeds stilzwijgend ${maanden(v.verlengingMaanden)} erbij (artikel 5).`,
+  `Opzeggen kan per e-mail tot ${maanden(v.opzegtermijnMaanden)} voor de einddatum (artikel 5.3).`,
+  `Betalen op factuur, binnen ${v.betaaltermijnDagen} dagen. Prijzen zijn exclusief btw en staan vast per contractjaar (artikel 6).`,
+  'Toegang via het e-maildomein van uw organisatie, voor een onbeperkt aantal medewerkers (artikel 7).',
+  'Rekentools geven een indicatie, geen advies. De aansprakelijkheid van KplusV is beperkt tot het jaarbedrag (artikel 9 en 11).',
+  `Bij een geschil: Nederlands recht, ${aanbieder.rechtbank} (artikel 16).`,
+];
+
 export function AlgemeneVoorwaarden() {
   return (
     <JuridischDocument
       id="algemene-voorwaarden"
+      kern={kern}
       intro={
         <>
           Deze voorwaarden gelden voor het gebruik van het {platform.korteNaam} en voor het lidmaatschap: een jaarabonnement

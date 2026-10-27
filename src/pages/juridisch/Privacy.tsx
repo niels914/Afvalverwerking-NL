@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { platform } from '../../data/site';
-import { aanbieder, bronnen, externeDiensten, supabaseGebruik } from './gegevens';
+import { achtergrondprocessen, aanbieder, bronnen, domeincontroleBijAanmaken, externeDiensten, supabaseGebruik } from './gegevens';
 import { BronRegel, ContactBlok, JuridischDocument, Toetspunt, type Sectie } from './JuridischDocument';
 
 // Privacyverklaring. De lijsten met diensten en databasefuncties komen uit gegevens.ts;
@@ -22,11 +22,13 @@ const verwerkingen: Verwerking[] = [
     titel: 'Account en inloggen',
     gegevens:
       'E-mailadres, een versleuteld wachtwoord als u dat instelt, tijdstippen van aanmaken, bevestigen en laatste inlog. Bij elke inlog legt Supabase technische gegevens vast: IP-adres, tijdstip en browsertype.',
-    doel: 'U laten inloggen en vaststellen of uw organisatie lid is. Dat gebeurt aan de hand van het domein van uw bevestigde e-mailadres.',
+    doel: domeincontroleBijAanmaken
+      ? 'U laten inloggen en vaststellen of uw organisatie lid is. Dat gebeurt aan de hand van het domein van uw bevestigde e-mailadres. Een nieuw account wordt alleen aangemaakt als dat domein hoort bij een organisatie die bij KplusV bekend is; voor andere adressen verstuurt het platform geen inloglink.'
+      : 'U laten inloggen en vaststellen of uw organisatie lid is. Dat gebeurt aan de hand van het domein van uw bevestigde e-mailadres. Een account aanmaken kan met elk e-mailadres; toegang tot de ledenonderdelen krijgt alleen een adres op een domein van een lid.',
     grondslag:
       'Gerechtvaardigd belang van KplusV en uw organisatie om het lidmaatschap uit te voeren (artikel 6 lid 1 onder f AVG). U bent zelf geen partij bij het lidmaatschap; uw organisatie wel.',
     bewaartermijn:
-      'Zolang uw account bestaat. U kunt uw account altijd laten verwijderen. Een vaste termijn voor het opruimen van ongebruikte accounts wordt nog vastgesteld (voorstel: 24 maanden na de laatste inlog). Technische logboeken bewaart Supabase volgens de termijnen van het abonnement van KplusV.',
+      'Zolang uw account bestaat. U kunt uw account altijd laten verwijderen. Voornemen: ongebruikte accounts verwijderen 24 maanden na de laatste inlog; dat opruimen is nog niet ingericht. Technische logboeken bewaart Supabase volgens de termijnen van het abonnement van KplusV.',
     wie: 'De beheerder van het platform bij KplusV en Supabase als verwerker.',
   },
   {
@@ -48,7 +50,7 @@ const verwerkingen: Verwerking[] = [
     grondslag:
       'Uitvoering van de overeenkomst met uw organisatie en het gerechtvaardigd belang om met de contactpersoon te communiceren. Voor de factuurgegevens: de wettelijke bewaarplicht (artikel 6 lid 1 onder c AVG).',
     bewaartermijn:
-      'Factuurgegevens zeven jaar, vanwege de fiscale bewaarplicht. Contactgegevens tot twee jaar na het einde van het lidmaatschap. Een aanmelding die niet tot een lidmaatschap leidt, verwijdert KplusV binnen drie maanden. De kopie bij Netlify verwijdert KplusV nadat de aanmelding in de eigen administratie staat.',
+      'Factuurgegevens zeven jaar, vanwege de fiscale bewaarplicht. Voornemen voor de rest: contactgegevens tot twee jaar na het einde van het lidmaatschap; een aanmelding die niet tot een lidmaatschap leidt binnen drie maanden verwijderen; de kopie bij Netlify verwijderen zodra de aanmelding in de eigen administratie staat. Dat gebeurt nu met de hand; vaste afspraken en een opruimroutine volgen.',
     wie: 'Medewerkers van KplusV die het lidmaatschap en de facturering verzorgen, en Netlify als verwerker.',
   },
   {
@@ -58,7 +60,7 @@ const verwerkingen: Verwerking[] = [
       'Uw rol, eventueel de naam van uw organisatie en uw antwoorden. Uw e-mailadres alleen als u aangeeft dat KplusV contact met u mag opnemen.',
     doel: 'Het platform verbeteren en, als u dat wilt, u benaderen met een vervolgvraag.',
     grondslag: 'Toestemming (artikel 6 lid 1 onder a AVG). U kunt die altijd intrekken.',
-    bewaartermijn: 'Twaalf maanden na ontvangst. Daarna bewaart KplusV alleen een samenvatting zonder namen en e-mailadressen.',
+    bewaartermijn: 'Voornemen: twaalf maanden na ontvangst, daarna alleen een samenvatting zonder namen en e-mailadressen. Het opruimen bij Netlify gebeurt nu met de hand.',
     wie: 'Medewerkers van KplusV die aan het platform werken, en Netlify als verwerker.',
   },
   {
@@ -67,13 +69,14 @@ const verwerkingen: Verwerking[] = [
     gegevens: 'Uw naam, e-mailadres of telefoonnummer en de inhoud van uw bericht.',
     doel: 'Uw vraag beantwoorden.',
     grondslag: 'Gerechtvaardigd belang om vragen te beantwoorden.',
-    bewaartermijn: 'Tot twee jaar nadat uw vraag is afgehandeld, tenzij het bericht deel uitmaakt van de administratie van een lidmaatschap.',
+    bewaartermijn: 'Voornemen: tot twee jaar nadat uw vraag is afgehandeld, tenzij het bericht deel uitmaakt van de administratie van een lidmaatschap.',
     wie: 'Medewerkers van KplusV.',
   },
   {
     id: 'bezoek',
     titel: 'Bezoek aan de website',
-    gegevens: 'IP-adres, opgevraagd webadres (bij een deellink van een rekentool inclusief de invoer in die link), tijdstip, browsertype en de pagina waar u vandaan kwam, in de serverlogboeken van Netlify.',
+    gegevens:
+      'IP-adres, opgevraagd webadres, tijdstip, browsertype en de pagina waar u vandaan kwam, in de serverlogboeken van Netlify. Bij de rekentools, de Restafvalkaart en het aanbestedingsarchief staat uw invoer of keuze in het webadres; laadt u zo’n adres (vernieuwen, bladwijzer, gedeelde link), dan komt die invoer in het logboek.',
     doel: 'De website leveren, storingen oplossen en misbruik tegengaan.',
     grondslag: 'Gerechtvaardigd belang om een veilige en werkende website aan te bieden.',
     bewaartermijn: 'Volgens de termijnen van Netlify. KplusV gebruikt deze logboeken niet voor statistieken.',
@@ -82,20 +85,6 @@ const verwerkingen: Verwerking[] = [
 ];
 
 const secties: Sectie[] = [
-  {
-    id: 'in-het-kort',
-    titel: 'In het kort',
-    inhoud: (
-      <ul>
-        <li>KplusV is verantwoordelijk voor de persoonsgegevens op dit platform.</li>
-        <li>Wij verwerken alleen wat nodig is voor inloggen, het lidmaatschap, facturen en uw vragen.</li>
-        <li>Er zijn geen trackers, geen advertenties en geen bezoekersstatistieken.</li>
-        <li>Wat u invult in de rekentools, blijft in uw browser. Het gaat niet naar KplusV, behalve als u zelf een deellink maakt en opent.</li>
-        <li>De database staat in de Europese Unie. Hosting en formulieren lopen via Netlify, een Amerikaans bedrijf.</li>
-        <li>U kunt uw gegevens inzien, laten verbeteren of laten verwijderen. Mail daarvoor naar {aanbieder.contact.email}.</li>
-      </ul>
-    ),
-  },
   {
     id: 'wie',
     titel: 'Wie is verantwoordelijk',
@@ -145,10 +134,15 @@ const secties: Sectie[] = [
             </section>
           ))}
         </div>
+        <p>
+          Alleen de bewaartermijn voor factuurgegevens is een wettelijke plicht. De andere termijnen zijn voornemens van
+          KplusV. Netlify Forms en Supabase verwijderen niets vanzelf; tot er een vaste opruimroutine is, verwijdert KplusV
+          gegevens met de hand, en altijd direct als u daarom vraagt.
+        </p>
         <BronRegel sleutel="bewaarplicht" voorvoegsel="Fiscale bewaarplicht" />
         <Toetspunt>
-          De bewaartermijnen voor contactgegevens, afgewezen aanmeldingen, feedback en e-mail zijn voorstellen. Stel ze vast
-          en richt het opruimen in (Netlify Forms en Supabase verwijderen niets vanzelf).
+          Stel de bewaartermijnen voor accounts, contactgegevens, afgewezen aanmeldingen, feedback en e-mail vast en leg vast
+          wie het opruimen wanneer doet (Netlify Forms, Supabase Auth, mailbox).
         </Toetspunt>
       </>
     ),
@@ -166,9 +160,10 @@ const secties: Sectie[] = [
           wel automatisch of uw e-maildomein toegang geeft. Klopt dat niet, neem dan contact op; dan kijkt een medewerker ernaar.
         </li>
         <li>
-          Geen opslag van wat u invult in de rekentools. Die invoer verdwijnt als u de pagina sluit, tenzij u een deellink
-          maakt. Een deellink bevat uw invoer in het webadres. Wie de link opent, stuurt dat adres naar de server van Netlify,
-          die het in het serverlogboek kan vastleggen. Zet daarom geen persoonsgegevens in een rekentool waarvan u de link deelt.
+          Geen opslag van wat u invult in de rekentools, in de database of in de browseropslag. Let wel: de rekentools zetten
+          uw invoer automatisch in het webadres, zodat u een berekening kunt bewaren of delen. Daardoor staat de invoer in de
+          geschiedenis van uw browser en in elke bladwijzer of link die u maakt. Laadt iemand dat adres, dan komt het in het
+          serverlogboek van Netlify. Vul daarom geen persoonsgegevens in een rekentool in.
         </li>
       </ul>
     ),
@@ -179,19 +174,31 @@ const secties: Sectie[] = [
     inhoud: (
       <>
         <p>
-          Naast het inloggen zelf roept de site deze functies in de database aan. Elke functie geeft alleen gegevens over uw
-          eigen account of organisatie; de database dwingt dat af met beveiliging op rijniveau (Row Level Security).
+          Naast het inloggen zelf vraagt de site twee soorten gegevens op. De database bepaalt met beveiliging op rijniveau
+          (Row Level Security) wie wat mag lezen.
         </p>
-        <dl className="jd-gegevens">
-          {supabaseGebruik.map((s) => (
-            <div key={s.naam} style={{ display: 'contents' }}>
-              <dt>
-                <code>{s.naam}</code> ({s.soort})
-              </dt>
-              <dd>{s.wat}</dd>
-            </div>
-          ))}
-        </dl>
+        <h3>Over uw eigen account en organisatie</h3>
+        <p>Deze functies geven alleen gegevens over uw eigen account en uw eigen organisatie, nooit over anderen.</p>
+        <DatabaseLijst bereik="eigen" />
+        <h3>Gedeelde open gegevens voor alle leden</h3>
+        <p>
+          Het aanbestedingsarchief is voor alle leden hetzelfde. Het bevat openbare aankondigingen van TenderNed en geen
+          persoonsgegevens. Wie niet is ingelogd als lid, kan het niet lezen.
+        </p>
+        <DatabaseLijst bereik="gedeeld" />
+        <h3>Op de achtergrond</h3>
+        {achtergrondprocessen.map((a) => (
+          <dl key={a.naam} className="jd-gegevens">
+            <dt>Wat</dt>
+            <dd>
+              <strong>{a.naam}.</strong> {a.wat}
+            </dd>
+            <dt>Gegevens</dt>
+            <dd>{a.gegevens}</dd>
+            <dt>Beveiliging</dt>
+            <dd>{a.beveiliging}</dd>
+          </dl>
+        ))}
       </>
     ),
   },
@@ -276,7 +283,14 @@ const secties: Sectie[] = [
         <li>Alle verbindingen lopen via https.</li>
         <li>Wachtwoorden slaat Supabase versleuteld op; KplusV kan ze niet inzien.</li>
         <li>Een account geeft pas toegang nadat het e-mailadres is bevestigd via een link in de mailbox.</li>
-        <li>De database geeft elke gebruiker alleen gegevens over het eigen account en de eigen organisatie (Row Level Security).</li>
+        <li>
+          De database geeft elke gebruiker alleen gegevens over het eigen account en de eigen organisatie. Het
+          aanbestedingsarchief, met openbare gegevens van TenderNed, kunnen alle leden lezen. Dit wordt afgedwongen met Row
+          Level Security.
+        </li>
+        {domeincontroleBijAanmaken && (
+          <li>Een nieuw account wordt alleen aangemaakt voor een e-maildomein van een organisatie die bij KplusV bekend is.</li>
+        )}
         <li>Alleen de beheerder van het platform bij KplusV kan de ledenadministratie wijzigen.</li>
         <li>Het lettertype staat op de eigen server. Er gaat geen verbinding naar Google of andere lettertypediensten.</li>
       </ul>
@@ -349,10 +363,39 @@ const secties: Sectie[] = [
   },
 ];
 
+function DatabaseLijst({ bereik }: { bereik: 'eigen' | 'gedeeld' }) {
+  return (
+    <dl className="jd-gegevens">
+      {supabaseGebruik
+        .filter((s) => s.bereik === bereik)
+        .map((s) => (
+          <div key={s.naam} style={{ display: 'contents' }}>
+            <dt>
+              <code>{s.naam}</code> ({s.soort})
+            </dt>
+            <dd>{s.wat}</dd>
+          </div>
+        ))}
+    </dl>
+  );
+}
+
+const kern = [
+  'KplusV is verantwoordelijk voor de persoonsgegevens op dit platform.',
+  'Wij verwerken alleen wat nodig is voor inloggen, het lidmaatschap, facturen en uw vragen. Geen trackers, geen advertenties, geen bezoekersstatistieken.',
+  'Wat u in de rekentools invult, gaat niet naar KplusV. Het staat wel in het webadres van de pagina en dus in uw browsergeschiedenis en in links die u deelt.',
+  'De database staat in de Europese Unie (Frankfurt). Hosting en formulieren lopen via Netlify, een Amerikaans bedrijf.',
+  <>
+    U kunt uw gegevens inzien, laten verbeteren of laten verwijderen. Mail naar{' '}
+    <a href={`mailto:${aanbieder.contact.email}?subject=Privacyverzoek`}>{aanbieder.contact.email}</a>.
+  </>,
+];
+
 export function Privacy() {
   return (
     <JuridischDocument
       id="privacy"
+      kern={kern}
       intro={
         <>
           Hoe KplusV omgaat met persoonsgegevens op het {platform.korteNaam}: welke gegevens, waarvoor, hoe lang, wie ze nog meer

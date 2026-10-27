@@ -228,10 +228,22 @@ const secties: Sectie[] = [
   },
 ];
 
+const kern = [
+  `Status ${status.letter}: ${status.label}.`,
+  `Laatste eigen meting op ${datum(meting.datum)}: axe vond op ${getal(meting.axe.paginasZonderBevindingen)} van de ${getal(meting.axe.aantalPaginas)} pagina’s geen probleem.`,
+  bekendeProblemen.length === 0
+    ? 'Er zijn geen bekende problemen.'
+    : `${bekendeProblemen.length === 1 ? 'Eén bekend probleem' : `${getal(bekendeProblemen.length)} bekende problemen`}: ${bekendeProblemen.map((p) => p.onderdeel.toLowerCase()).join('; ')}.`,
+  <>
+    Loopt u ergens tegenaan? <a href="#melden">Meld het</a>; u krijgt binnen vijf werkdagen een reactie.
+  </>,
+];
+
 export function Toegankelijkheid() {
   return (
     <JuridischDocument
       id="toegankelijkheid"
+      kern={kern}
       intro="Hoe toegankelijk dit platform is, hoe wij dat hebben gemeten, welke problemen bekend zijn en waar u een probleem kunt melden."
       secties={secties}
     />

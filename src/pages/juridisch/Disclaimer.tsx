@@ -24,13 +24,24 @@ const secties: Sectie[] = [
   },
   {
     id: 'voorbeelddata',
-    titel: 'Bèta: voorbeelddata op het platform',
+    titel: 'Bèta: concepten en voorbeelddata',
     inhoud: (
       <>
         <p>
-          Het platform is in opbouw. Een deel van de inhoud is echt en heeft een bron, een ander deel is nog voorbeeld. Wat
-          voorbeeld is, heeft het label <strong>Voorbeeld</strong> of staat zo omschreven in de tekst.
+          Het platform is in opbouw. Een deel van de inhoud is echt en heeft een bron, een ander deel is nog concept of
+          voorbeeld. Wat voorbeeld is, heeft het label <strong>Voorbeeld</strong> of staat zo omschreven in de tekst.
         </p>
+        <h3>Nog concept</h3>
+        <ul>
+          <li>
+            De prijzen van het lidmaatschap. Ze zijn nog niet vastgesteld; de orderbevestiging noemt de prijs die voor uw
+            organisatie geldt (<Link to="/algemene-voorwaarden#aanmelding">artikel 3 van de algemene voorwaarden</Link>).
+          </li>
+          <li>
+            De algemene voorwaarden, de privacyverklaring, de cookieverklaring, de toegankelijkheidsverklaring en deze
+            disclaimer. Ze zijn nog niet getoetst door een jurist; bovenaan elke tekst staan versie en datum.
+          </li>
+        </ul>
         <h3>Nu nog voorbeeld</h3>
         <ul>
           <li>
@@ -97,8 +108,10 @@ const secties: Sectie[] = [
             bekendmakingen. Op wetten en besluiten rust geen auteursrecht.
           </li>
           <li>
-            <strong>TenderNed</strong>: gegevens over aanbestedingen. De officiële tekst van een aankondiging staat altijd op
-            TenderNed. Het aanbestedingsarchief haalt deze gegevens dagelijks op via de openbare webservice van TenderNed (open data, CC-0 via data.overheid.nl); stroom, provincie en status leiden wij daaruit af.
+            <strong>TenderNed</strong>: aankondigingen van overheidsopdrachten, open data onder licentie CC-0 (1.0) volgens
+            data.overheid.nl. Het aanbestedingsarchief haalt ze elke ochtend op via de openbare webservice van TenderNed;
+            afvalstroom, provincie en status leiden wij daaruit af. De officiële tekst van een aankondiging staat altijd op
+            TenderNed; elke aanbesteding in het archief linkt daarnaar.
           </li>
           <li>
             <strong>Andere bronnen</strong>, zoals Rijkswaterstaat, de Nederlandse Emissieautoriteit, PIANOo (MVI-criteria) en
@@ -112,7 +125,7 @@ const secties: Sectie[] = [
         <BronRegel sleutel="cbsLicentie" />
         <BronRegel sleutel="pdokLicentie" />
         <BronRegel sleutel="auteurswet" />
-        <BronRegel sleutel="tenderned" />
+        <BronRegel sleutel="tenderned" voorvoegsel="TenderNed" />
       </>
     ),
   },
@@ -202,10 +215,18 @@ const secties: Sectie[] = [
   },
 ];
 
+const kern = [
+  'Cijfers op het platform hebben een bron en een peildatum. Aan de inhoud kunt u geen rechten ontlenen.',
+  'Het platform is in bèta: prijzen en voorwaarden zijn concept, en sommige waarden zijn nog voorbeeld. Die hebben het label Voorbeeld.',
+  'Rekentools geven een indicatie, geen advies. Controleer belangrijke uitkomsten voordat u er een besluit op baseert.',
+  'Open data van CBS, PDOK en TenderNed blijft onder de licentie van de bron; wij vermelden de bron bij elk gegeven.',
+];
+
 export function Disclaimer() {
   return (
     <JuridischDocument
       id="disclaimer"
+      kern={kern}
       intro="Wat u wel en niet van de informatie op dit platform kunt verwachten, hoe wij met bronnen omgaan en wie het platform maakt."
       secties={secties}
     />

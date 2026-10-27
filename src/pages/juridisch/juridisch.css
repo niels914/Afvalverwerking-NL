@@ -103,9 +103,83 @@
 .jd-sectie > h2 {
   font-size: 20px;
   color: var(--donkerviolet);
-  padding-left: 12px;
   border-left: 4px solid var(--paars);
   margin-bottom: 10px;
+}
+/* De kop is een knop die de sectie in- en uitklapt. Ziet eruit als een kop, met een pijl als vormteken. */
+.jd-sectie-knop {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 4px 6px 12px;
+  min-height: 44px;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 0 var(--radius-klein) var(--radius-klein) 0;
+}
+.jd-sectie-knop:hover {
+  background: var(--kaartvlak);
+}
+.jd-sectie-knop:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.jd-pijl {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-right: 8px;
+  border-right: 2.5px solid currentColor;
+  border-bottom: 2.5px solid currentColor;
+  transform: rotate(45deg) translateY(-3px);
+  transition: transform 0.15s;
+}
+.jd-sectie-knop[aria-expanded='true'] .jd-pijl {
+  transform: rotate(-135deg) translate(-2px, -1px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .jd-pijl {
+    transition: none;
+  }
+}
+.jd-sectie-inhoud {
+  padding-left: 16px;
+}
+
+/* In het kort: altijd open, boven de inhoudsopgave. */
+.jd-kern {
+  margin-top: 20px;
+  background: var(--wit);
+  border: 1px solid var(--rand);
+  border-left: 6px solid var(--paars);
+  border-radius: var(--radius);
+  padding: 14px 18px 16px;
+}
+.jd-kern h2 {
+  font-size: 17px;
+  color: var(--donkerviolet);
+  margin-bottom: 6px;
+}
+.jd-kern ul {
+  margin: 0;
+  padding-left: 20px;
+  max-width: 70ch;
+}
+.jd-kern li + li {
+  margin-top: 4px;
+}
+
+/* Alles in-/uitklappen en afdrukken */
+.jd-acties {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
 }
 .jd-sectie h3 {
   margin-top: 16px;
@@ -211,9 +285,25 @@
 .jd-kader > * + * {
   margin-top: 8px;
 }
+/* Toetspunt voor de jurist: ingeklapt, zodat de tekst voor lezers kort blijft. */
 .jd-toetspunt {
-  border-left-color: var(--waarschuwing-rand);
+  margin-top: 10px;
+  max-width: 70ch;
   background: var(--waarschuwing-bg);
+  border: 1px solid var(--waarschuwing-rand);
+  border-left-width: 4px;
+  border-radius: var(--radius-klein);
+  font-size: 14px;
+}
+.jd-toetspunt summary {
+  cursor: pointer;
+  padding: 8px 12px;
+  min-height: 24px;
+  font-weight: 600;
+  color: var(--waarschuwing-tekst);
+}
+.jd-toetspunt p {
+  padding: 0 12px 10px;
 }
 .jd-bron {
   font-size: 12.5px;
@@ -356,10 +446,39 @@ footer.voet .wrap.voet-raster {
   }
 }
 
+/* Smal scherm: de koppen van de ingeklapte secties zijn zelf de inhoudsopgave. */
+@media (max-width: 759.98px) {
+  .jd-inhoud {
+    display: none;
+  }
+  .jd-sectie {
+    margin-top: 10px;
+  }
+  .jd-sectie > h2 {
+    font-size: 17.5px;
+    margin-bottom: 4px;
+  }
+  .jd-sectie-inhoud {
+    padding-left: 4px;
+  }
+}
+
 @media print {
   .jd-inhoud,
-  .jd-naarboven {
-    display: none;
+  .jd-naarboven,
+  .jd-acties,
+  .jd-toetspunt,
+  .jd-pijl {
+    display: none !important;
+  }
+  /* print.css verbergt alle knoppen; de sectiekop is hier een knop en moet blijven staan. */
+  .jd-sectie > h2 > .jd-sectie-knop {
+    display: inline !important;
+    padding: 0 0 0 10px;
+  }
+  .jd-sectie-inhoud[hidden] {
+    display: block !important;
+    content-visibility: visible !important;
   }
   .jd-sectie {
     break-inside: auto;
