@@ -108,6 +108,8 @@ export interface BodemasBereik {
   aandeelBodemasPct: [number, number];
   ferroPct: [number, number];
   nonFerroPct: [number, number];
+  /** Al het afval dat in een jaar in Nederland wordt verbrand (ton). Meer dan dit geeft een signaal. */
+  verbrandMaxTon?: number;
 }
 
 export interface BodemasControle {
@@ -127,6 +129,10 @@ const pct = (n: number) => `${String(Math.round(n * 10) / 10).replace('.', ',')}
 export function controleerBodemas(i: BodemasInvoer, bereik: BodemasBereik, residuMax: number, marge = 5): BodemasControle {
   const fouten: string[] = [];
   const signalen: string[] = [];
+  if (bereik.verbrandMaxTon !== undefined && i.tonnageVerbrand > bereik.verbrandMaxTon)
+    signalen.push(
+      `${String(Math.round(i.tonnageVerbrand)).replace(/\B(?=(\d{3})+(?!\d))/g, '.')} ton verbrand afval is meer dan alles wat in Nederland in een jaar wordt verbrand (${String(bereik.verbrandMaxTon).replace(/\B(?=(\d{3})+(?!\d))/g, '.')} ton). Controleer de waarde.`,
+    );
   const som = i.ferroPct + i.nonFerroPct + i.residuPct;
   if (som > 100) fouten.push(`Ferro, non-ferro en residu zijn samen ${pct(som)} van de bodemas. Dat kan niet meer dan 100 % zijn; controleer de percentages.`);
   const [bLaag, bHoog] = bereik.aandeelBodemasPct;
@@ -140,6 +146,16 @@ export function controleerBodemas(i: BodemasInvoer, bereik: BodemasBereik, resid
   if (i.residuPct > residuMax) signalen.push(`Residu ${pct(i.residuPct)} ligt boven het maximum van ${pct(residuMax)} van de ruwe bodemas dat mag worden gestort.`);
   if (i.rekenwijze === 'contract' && i.aandeelOpbrengstPct > 100) fouten.push('Uw deel van de metaalopbrengst kan niet meer dan 100 % zijn.');
   return { fouten, signalen };
+}
+
+/**
+ * Mag de tool een stellige uitkomst geven? Alleen met een eigen tarief: bij de rekenwijze "contract" als tarief en
+ * metaalprijzen zijn ingevuld, bij de rekenwijze "kental" als de gebruiker de netto opwerkingskosten heeft aangepast.
+ * Het kental zelf rust op één schatting uit 2021 (zie tools-b-bodemas.ts) en geeft alleen een indicatie.
+ */
+export function bodemasConclusieMogelijk(i: BodemasInvoer, kentalNettoOpwerking: number): boolean {
+  if (i.rekenwijze === 'contract') return ontbrekendeBedragen(i).length === 0;
+  return i.nettoOpwerking !== kentalNettoOpwerking;
 }
 
 /* ---------- Bandbreedte ---------- */
@@ -198,11 +214,15 @@ export function bodemasInstallaties(installaties: Installatie[]) {
 
 export type BodemasParameter = 'tonnageVerbrand' | 'aandeelBodemasPct' | 'ferroPct' | 'nonFerroPct' | 'nettoOpwerking' | 'residuPct' | 'stortkosten' | BedragVeld;
 
-/** Parameters die meetellen in de gevoeligheidsanalyse, per rekenwijze. */
+/**
+ * Parameters die meetellen in de gevoeligheidsanalyse, per rekenwijze. Parameters die precies hetzelfde effect hebben
+ * staan er één keer in: verbrand afval en aandeel bodemas schalen allebei de hele uitkomst (de tool toont dat als
+ * "hoeveelheid bodemas"), en aandeel ferro werkt net als de prijs van ferro (idem non-ferro).
+ */
 export function gevoeligheidsParameters(rekenwijze: Rekenwijze): BodemasParameter[] {
   return rekenwijze === 'kental'
-    ? ['tonnageVerbrand', 'aandeelBodemasPct', 'nettoOpwerking', 'residuPct', 'stortkosten']
-    : ['tonnageVerbrand', 'aandeelBodemasPct', 'ferroPct', 'nonFerroPct', 'verwerkingstarief', 'prijsFerro', 'prijsNonFerro', 'residuPct', 'stortkosten'];
+    ? ['tonnageVerbrand', 'nettoOpwerking', 'residuPct', 'stortkosten']
+    : ['tonnageVerbrand', 'verwerkingstarief', 'prijsFerro', 'prijsNonFerro', 'residuPct', 'stortkosten'];
 }
 
 export interface Gevoeligheid {

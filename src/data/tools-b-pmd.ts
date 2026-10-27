@@ -102,10 +102,33 @@ export const nascheiding = {
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
 /**
- * Kental nascheidingskosten 2026 per ton restafval: (93,47 + 6,79) × 1,1954 = 119,85.
- * Afgeleid door dezelfde inflatiecorrectie toe te passen als het akkoord op de vergoeding doet.
+ * Kental nascheidingskosten 2026: (93,47 + 6,79) × 1,1954 = 119,85, met dezelfde inflatiecorrectie die het akkoord
+ * op de vergoeding toepast.
+ *
+ * LET OP: de eenheid staat niet vast. De bron (par. 7) noemt "gemiddelde kosten voor nascheiding van € 93,47 per ton"
+ * zonder te zeggen per ton wát. Twee lezingen:
+ * - per ton restafval (bovengrens, 119,85). Steun: de opslag van € 6,79 is € 3 mln gedeeld door "de tonnages uit
+ *   het KSO", dus ongeveer 442 kton. Dat past bij nagescheiden restafval en niet bij teruggewonnen PMD.
+ * - per ton teruggewonnen PMD (ondergrens). Omgerekend naar restafval met het PMD-aandeel van 14,4 %: 17,26 per ton
+ *   restafval, precies de vergoeding.
+ * Daarom rekent de tool met beide lezingen en trekt hij pas een conclusie als de gebruiker een eigen tarief invult.
  */
 export const kentalNascheidingskosten = r2((nascheiding.kosten2021 + nascheiding.opslagTransport) * nascheiding.inflatiefactor);
+
+/** De twee lezingen van het kental nascheidingskosten, beide in euro per ton restafval (2026). */
+export const nascheidingskostenLezingen = {
+  perTonRestafval: kentalNascheidingskosten,
+  perTonPmd: r2(kentalNascheidingskosten * nascheiding.pmdAandeel),
+  /** Tonnage waarop de opslag van € 6,79 is gebaseerd: € 3 mln / € 6,79. */
+  tonnageOpslagKton: Math.round(3_000_000 / nascheiding.opslagTransport / 1000),
+};
+
+/** Bandbreedte nascheidingskosten (euro per ton restafval): de twee lezingen. Midden = het kental in het veld. */
+export const nascheidingskostenBand = {
+  laag: nascheidingskostenLezingen.perTonPmd,
+  midden: kentalNascheidingskosten,
+  hoog: kentalNascheidingskosten,
+};
 
 /** Poorttarief verbranding gemeentelijk restafval bij aanbesteding volgens Strategy& (2025), bron ACM 2023. */
 export const poorttariefBandbreedte = { laag: 55, hoog: 70 };
@@ -151,7 +174,7 @@ export const verbrandingstariefBand = {
   hoog: r2(poorttariefBandbreedte.hoog + asb2026),
 };
 
-export const pmdVarianten = { teruggewonnenNa: nascheidingRendement, verbrandingstarief: verbrandingstariefBand };
+export const pmdVarianten = { teruggewonnenNa: nascheidingRendement, verbrandingstarief: verbrandingstariefBand, nascheidingskosten: nascheidingskostenBand };
 
 /** Grenzen voor de plausibiliteitscontrole. */
 export const pmdGrenzen = {

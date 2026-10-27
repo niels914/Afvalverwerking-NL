@@ -182,22 +182,68 @@ export function controleerPmd(i: PmdInvoer, g: PmdGrenzen): PmdControle {
 
 /* ---------- Bandbreedte ---------- */
 
-export type PmdVariant = 'teruggewonnenNa' | 'verbrandingstarief';
+export type PmdVariant = 'teruggewonnenNa' | 'verbrandingstarief' | 'nascheidingskosten';
+export type PmdVarianten = Partial<Record<PmdVariant, { laag: number; midden: number; hoog: number }>>;
+
+/** Velden die gelijk zijn aan de middelste waarde van hun variant (dus niet door de gebruiker aangepast). */
+export function volgendeVarianten(i: PmdInvoer, varianten: PmdVarianten): PmdVariant[] {
+  return (Object.keys(varianten) as PmdVariant[]).filter((k) => i[k] === varianten[k]!.midden);
+}
+
+/** Alle combinaties van laag en hoog voor de velden die hun variant volgen. */
+export function pmdCombinaties(i: PmdInvoer, varianten: PmdVarianten): PmdInvoer[] {
+  let combinaties: PmdInvoer[] = [i];
+  for (const k of volgendeVarianten(i, varianten)) {
+    const v = varianten[k]!;
+    combinaties = combinaties.flatMap((c) => [{ ...c, [k]: v.laag }, { ...c, [k]: v.hoog }]);
+  }
+  return combinaties;
+}
 
 /**
- * Bandbreedte van de netto kosten per route en van het verschil, als de kentallen tussen laag en hoog variëren.
- * Alleen velden die gelijk zijn aan de middelste waarde (dus niet door de gebruiker aangepast) variëren mee.
- * Rekent alle combinaties van laag en hoog door en geeft per uitkomst het minimum en maximum.
+ * Bandbreedte van de netto kosten per route, van het verschil en van het omslagpunt in nascheidingstarief, als de
+ * kentallen tussen laag en hoog variëren. Alleen velden die gelijk zijn aan de middelste waarde (dus niet door de
+ * gebruiker aangepast) variëren mee. Rekent alle combinaties van laag en hoog door en geeft per uitkomst het minimum
+ * en maximum.
  */
-export function pmdBandbreedte(i: PmdInvoer, varianten: Record<PmdVariant, { laag: number; midden: number; hoog: number }>) {
-  const volgt = (Object.keys(varianten) as PmdVariant[]).filter((k) => i[k] === varianten[k].midden);
+export function pmdBandbreedte(i: PmdInvoer, varianten: PmdVarianten) {
+  const volgt = volgendeVarianten(i, varianten);
   if (volgt.length === 0) return null;
-  let combinaties: PmdInvoer[] = [i];
-  for (const k of volgt) combinaties = combinaties.flatMap((c) => [{ ...c, [k]: varianten[k].laag }, { ...c, [k]: varianten[k].hoog }]);
+  const combinaties = pmdCombinaties(i, varianten);
   const uitkomsten = combinaties.map(pmdVergelijking);
-  const bereik = (f: (v: PmdVergelijking) => number | null) => {
-    const w = uitkomsten.map(f).filter((x): x is number => x !== null);
-    return w.length ? { laag: Math.min(...w), hoog: Math.max(...w) } : null;
+  const bereik = (w: (number | null)[]) => {
+    const x = w.filter((n): n is number => n !== null && Number.isFinite(n));
+    return x.length ? { laag: Math.min(...x), hoog: Math.max(...x) } : null;
   };
-  return { volgt, bron: bereik((v) => v.bron.netto), na: bereik((v) => v.na.netto), verschil: bereik((v) => v.verschil) };
+  return {
+    volgt,
+    bron: bereik(uitkomsten.map((v) => v.bron.netto)),
+    na: bereik(uitkomsten.map((v) => v.na.netto)),
+    verschil: bereik(uitkomsten.map((v) => v.verschil)),
+    omslagTarief: bereik(combinaties.map(omslagNascheidingskosten)),
+  };
+}
+
+/**
+ * Nascheidingstarief (€ per ton restafval) waarbij nascheiding even duur is als bronscheiding. Ligt het tarief van de
+ * nascheider lager, dan is nascheiding goedkoper. null als het niet te berekenen is (geen restafval of teruggewonnen
+ * PMD onbekend).
+ *   restafval × (k − vergoeding) − PMD terug × verbrandingstarief = netto bronscheiding
+ *   k = (netto bronscheiding + PMD terug × verbrandingstarief) / restafval + vergoeding
+ */
+export function omslagNascheidingskosten(i: PmdInvoer): number | null {
+  const restTon = (i.inwoners * i.restafvalNa) / 1000;
+  if (restTon <= 0 || i.teruggewonnenNa === null || !Number.isFinite(i.teruggewonnenNa)) return null;
+  const pmdNaTon = (i.inwoners * i.teruggewonnenNa) / 1000;
+  const bron = routeBron(i).netto as number;
+  return (bron + pmdNaTon * i.verbrandingstarief) / restTon + i.vergoedingNa;
+}
+
+/**
+ * Mag de tool een conclusie trekken over welke route goedkoper is? Alleen als de gebruiker een eigen
+ * nascheidingstarief heeft ingevuld: het kental heeft in de bron geen vaste eenheid (zie tools-b-pmd.ts).
+ * Een eigen waarde is elke waarde die afwijkt van het kental.
+ */
+export function pmdConclusieMogelijk(i: PmdInvoer, kentalNascheidingskosten: number): boolean {
+  return i.nascheidingskosten !== kentalNascheidingskosten;
 }

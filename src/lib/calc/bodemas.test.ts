@@ -16,6 +16,7 @@ import {
 import {
   bandbreedte,
   bodemas,
+  bodemasConclusieMogelijk,
   bodemasInstallaties,
   bodemasNaarParams,
   bodemasUitParams,
@@ -264,14 +265,18 @@ describe('meerdere installaties (Pro)', () => {
 
 describe('gevoeligheid', () => {
   it('kiest de parameters bij de rekenwijze', () => {
-    expect(gevoeligheidsParameters('kental')).toEqual(['tonnageVerbrand', 'aandeelBodemasPct', 'nettoOpwerking', 'residuPct', 'stortkosten']);
+    expect(gevoeligheidsParameters('kental')).toEqual(['tonnageVerbrand', 'nettoOpwerking', 'residuPct', 'stortkosten']);
     expect(gevoeligheidsParameters('contract')).toContain('prijsNonFerro');
+    // geen dubbele balken: parameters met hetzelfde effect staan er één keer in
+    expect(gevoeligheidsParameters('contract')).not.toContain('aandeelBodemasPct');
+    expect(gevoeligheidsParameters('contract')).not.toContain('ferroPct');
+    expect(gevoeligheidsParameters('contract')).not.toContain('nonFerroPct');
   });
 
   it('varieert elke parameter en sorteert op invloed', () => {
     const g = gevoeligheid(kental, 0.2);
-    expect(g).toHaveLength(5);
-    // tonnage en aandeel bodemas werken op het hele bedrag (275.000 × 0,4 = 110.000)
+    expect(g).toHaveLength(4);
+    // de hoeveelheid bodemas werkt op het hele bedrag (275.000 × 0,4 = 110.000)
     expect(Math.abs(g[0].bandbreedte)).toBeCloseTo(110000, 6);
     const opw = g.find((x) => x.parameter === 'nettoOpwerking')!;
     expect(opw.hoog - opw.laag).toBeCloseTo(80000, 6);
@@ -309,5 +314,21 @@ describe('deellink', () => {
     const uit = bodemasUitParams(new URLSearchParams('ton=100000&tarief=30&pfe=150&pnf=900'), bodemasStandaard);
     expect(uit.rekenwijze).toBe('contract');
     expect(uit.verwerkingstarief).toBe(30);
+  });
+});
+
+describe('stellige uitkomst alleen met eigen tarief (ronde 3)', () => {
+  it('geeft bij het kental voor opwerking alleen een indicatie', () => {
+    expect(bodemasConclusieMogelijk(bodemasStandaard, kentalNettoOpwerking)).toBe(false);
+    expect(bodemasConclusieMogelijk({ ...bodemasStandaard, nettoOpwerking: 18 }, kentalNettoOpwerking)).toBe(true);
+  });
+  it('geeft bij de rekenwijze contract pas een uitkomst als tarief en prijzen zijn ingevuld', () => {
+    expect(bodemasConclusieMogelijk(contract, kentalNettoOpwerking)).toBe(true);
+    expect(bodemasConclusieMogelijk({ ...contract, verwerkingstarief: null }, kentalNettoOpwerking)).toBe(false);
+  });
+  it('signaleert meer verbrand afval dan heel Nederland', () => {
+    const bereik = { ...bodemasBereik, verbrandMaxTon: 6_422_000 };
+    expect(controleerBodemas({ ...bodemasStandaard, tonnageVerbrand: 99_000_000_000 }, bereik, 15).signalen[0]).toContain('meer dan alles wat in Nederland');
+    expect(controleerBodemas({ ...bodemasStandaard, tonnageVerbrand: 6_422_000 }, bereik, 15).signalen).toEqual([]);
   });
 });

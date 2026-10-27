@@ -566,3 +566,74 @@ details.ab-meer > summary {
 details.ab-meer[open] > summary {
   margin-bottom: 2px;
 }
+
+/* Bron direct onder de uitkomst. */
+.tb-uitkomstbron {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Tabel die op smalle schermen per rij stapelt: de post als kop, daaronder de routes naast elkaar met label. */
+.tb-stapeltabel th[scope='row'] {
+  font-weight: 500;
+}
+@media (max-width: 640px) {
+  .tb-uitkomst .tegel:not(.hero) .tegel-waarde {
+    font-size: 17px;
+  }
+  .tb-stapeltabel {
+    overflow: visible;
+  }
+  .tb-stapeltabel table,
+  .tb-stapeltabel tbody {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+  .tb-stapeltabel caption {
+    display: block;
+    text-align: left;
+  }
+  .tb-stapeltabel thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .tb-stapeltabel tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--rand);
+  }
+  .tb-stapeltabel th[scope='row'] {
+    grid-column: 1 / -1;
+    padding: 0;
+    border: 0;
+    font-weight: 600;
+  }
+  .tb-stapeltabel td {
+    display: block;
+    padding: 0;
+    border: 0;
+    text-align: left;
+    white-space: normal;
+  }
+  .tb-stapeltabel td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 12px;
+    color: var(--tekst-secundair);
+    font-weight: 400;
+  }
+}
+
+/* Grafiek alleen op brede schermen; op smalle schermen staat dezelfde informatie in de tabel eronder. */
+@media (max-width: 640px) {
+  .tb-alleen-breed {
+    display: none;
+  }
+}

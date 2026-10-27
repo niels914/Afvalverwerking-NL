@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Vergrendeld } from '../../components/betaalmuur/Vergrendeld';
 import { BandGrafiek } from '../../components/grafiek/Grafieken';
 import type { BronRegel } from '../../components/rekenen/Bronnen';
 import type { CsvCel } from '../../components/rekenen/export';
 import { RapportKnop, RapportKop, RapportVoet } from '../../components/rekenen/Uitkomst';
-import { Ankers, Bandbreedte, Meldingen, Uitklap, useUitklapBijPrint, useVeldFouten } from '../../components/rekenen/b/Blokken';
+import { Ankers, Bandbreedte, Meldingen, UitkomstBronnen, Uitklap, useUitklapBijPrint, useVeldFouten } from '../../components/rekenen/b/Blokken';
 import { BronVeld } from '../../components/rekenen/b/BronVeld';
 import { CelGetal } from '../../components/rekenen/b/CelGetal';
 import { BronLijst, Delen } from '../../components/rekenen/b/Delen';
 import { Ontbreekt } from '../../components/rekenen/b/Knoppen';
+import { euroRond, kostBand, kostRond, rond } from '../../components/rekenen/b/opmaak';
 import { Badge, GetalVeld, Kaart, KeuzeVeld, PaginaKop, Tegel } from '../../components/ui';
 import { bodemasStandaard } from '../../data/standaardwaarden';
 import {
@@ -34,6 +35,7 @@ import { cbsGemeenten, cbsPmd } from '../../data/tools-b-pmd';
 import {
   bandbreedte,
   bodemas,
+  bodemasConclusieMogelijk,
   bodemasInstallaties,
   bodemasNaarParams,
   bodemasUitParams,
@@ -66,7 +68,7 @@ const FORMULE_CONTRACT = [
 const formule = (w: Rekenwijze) => (w === 'kental' ? FORMULE_KENTAL : FORMULE_CONTRACT);
 
 const parameterLabel: Record<BodemasParameter, string> = {
-  tonnageVerbrand: 'Verbrand afval',
+  tonnageVerbrand: 'Hoeveelheid bodemas (verbrand afval of aandeel bodemas)',
   aandeelBodemasPct: 'Aandeel bodemas',
   ferroPct: 'Aandeel ferro',
   nonFerroPct: 'Aandeel non-ferro',
@@ -74,8 +76,8 @@ const parameterLabel: Record<BodemasParameter, string> = {
   residuPct: 'Aandeel residu',
   stortkosten: 'Stortkosten residu',
   verwerkingstarief: 'Verwerkingstarief',
-  prijsFerro: 'Prijs ferro',
-  prijsNonFerro: 'Prijs non-ferro',
+  prijsFerro: 'Opbrengst ferro (prijs of aandeel)',
+  prijsNonFerro: 'Opbrengst non-ferro (prijs of aandeel)',
 };
 
 const bedragLabel: Record<BedragVeld, string> = {
@@ -97,6 +99,7 @@ function tonnageVanGemeente(code: string): number | null {
 
 /** Kosten of opbrengst in woorden, zodat een min-teken niet de enige aanwijzing is. */
 const kostTekst = (n: number, d = 0) => (n < 0 ? `${euro(-n, d)} opbrengst` : `${euro(n, d)} kosten`);
+const rnd = (n: number | null) => (n === null ? null : rond(n));
 
 export function Bodemassencalculator() {
   useUitklapBijPrint();
@@ -152,42 +155,61 @@ export function Bodemassencalculator() {
     }
   };
 
+  const conclusie = bodemasConclusieMogelijk(i, kentalNettoOpwerking);
+  /** Status van een invoerwaarde voor de CSV. */
+  const status = (k: keyof BodemasInvoer): string => {
+    const h = herkomst(k);
+    if (h === 'eigen waarde' || h === 'niet ingevuld') return h;
+    if (k === 'nettoOpwerking') return 'kental, indicatief (één schatting uit 2021)';
+    if (k === 'stortbelasting' || (k === 'tonnageVerbrand' && g)) return 'officieel';
+    return 'kental';
+  };
+
   const csv = (): CsvCel[][] => [
     ['Bodemassencalculator', 'KplusV'],
     ['Peildatum bronnen', PEILDATUM],
     ['Rekenwijze', i.rekenwijze === 'kental' ? 'kentallen uit openbare bronnen' : 'eigen contract: tarief en metaalprijzen'],
     ['Gebied', g ? g.naam : 'gemiddelde AVI in Nederland'],
+    [
+      'Uitkomst',
+      conclusie
+        ? 'met uw eigen tarief'
+        : u.nettoKosten === null
+          ? 'niet berekend: tarief en metaalprijzen ontbreken'
+          : 'indicatief: de opwerkingskosten rusten op één schatting in de nota van toelichting bij Staatsblad 2021, 235 (geen markttarief); gebruik de bandbreedte',
+    ],
+    ['Afronding', 'Bedragen in de uitkomst afgerond naar grootte (tientallen, honderdtallen of duizendtallen); tonnen op hele tonnen; invoer niet afgerond'],
     [],
-    ['Invoer', 'Waarde', 'Herkomst'],
-    ['Verbrand afval (ton per jaar)', i.tonnageVerbrand, herkomst('tonnageVerbrand')],
-    ['Aandeel ruwe bodemas (% van verbrand)', i.aandeelBodemasPct, herkomst('aandeelBodemasPct')],
-    ['Aandeel ferro (% van ruwe bodemas)', i.ferroPct, herkomst('ferroPct')],
-    ['Aandeel non-ferro (% van ruwe bodemas)', i.nonFerroPct, herkomst('nonFerroPct')],
-    ['Aandeel residu gestort (% van ruwe bodemas)', i.residuPct, herkomst('residuPct')],
-    ['Stortkosten residu (euro per ton, excl. belasting)', i.stortkosten, herkomst('stortkosten')],
-    ['Stortbelasting (euro per ton)', i.stortbelasting, herkomst('stortbelasting')],
+    ['Invoer', 'Waarde', 'Status', 'Herkomst'],
+    ['Verbrand afval (ton per jaar)', i.tonnageVerbrand, status('tonnageVerbrand'), herkomst('tonnageVerbrand')],
+    ['Aandeel ruwe bodemas (% van verbrand)', i.aandeelBodemasPct, status('aandeelBodemasPct'), herkomst('aandeelBodemasPct')],
+    ['Aandeel ferro (% van ruwe bodemas)', i.ferroPct, status('ferroPct'), herkomst('ferroPct')],
+    ['Aandeel non-ferro (% van ruwe bodemas)', i.nonFerroPct, status('nonFerroPct'), herkomst('nonFerroPct')],
+    ['Aandeel residu gestort (% van ruwe bodemas)', i.residuPct, status('residuPct'), herkomst('residuPct')],
+    ['Stortkosten residu (euro per ton, excl. belasting)', i.stortkosten, status('stortkosten'), herkomst('stortkosten')],
+    ['Stortbelasting (euro per ton)', i.stortbelasting, status('stortbelasting'), herkomst('stortbelasting')],
     ...(i.rekenwijze === 'kental'
-      ? ([['Netto opwerkingskosten (euro per ton ruwe bodemas, metalen verrekend)', i.nettoOpwerking, herkomst('nettoOpwerking')]] as CsvCel[][])
+      ? ([['Netto opwerkingskosten (euro per ton ruwe bodemas, metalen verrekend)', i.nettoOpwerking, status('nettoOpwerking'), herkomst('nettoOpwerking')]] as CsvCel[][])
       : ([
-          ['Verwerkingstarief (euro per ton ruwe bodemas)', i.verwerkingstarief, herkomst('verwerkingstarief')],
-          ['Opbrengst ferro (euro per ton)', i.prijsFerro, herkomst('prijsFerro')],
-          ['Opbrengst non-ferro (euro per ton)', i.prijsNonFerro, herkomst('prijsNonFerro')],
-          ['Deel metaalopbrengst voor opdrachtgever (%)', i.aandeelOpbrengstPct, 'rekenkeuze gebruiker'],
+          ['Verwerkingstarief (euro per ton ruwe bodemas)', i.verwerkingstarief, status('verwerkingstarief'), 'uw contract'],
+          ['Opbrengst ferro (euro per ton)', i.prijsFerro, status('prijsFerro'), 'uw contract'],
+          ['Opbrengst non-ferro (euro per ton)', i.prijsNonFerro, status('prijsNonFerro'), 'uw contract'],
+          ['Deel metaalopbrengst voor opdrachtgever (%)', i.aandeelOpbrengstPct, 'rekenkeuze gebruiker', ''],
         ] as CsvCel[][])),
     [],
-    ['Uitkomst', 'Waarde'],
-    ['Ruwe bodemas (ton)', u.bodemasTon],
-    ['Ferro (ton)', u.ferroTon],
-    ['Non-ferro (ton)', u.nonFerroTon],
-    ['Residu gestort (ton)', u.residuTon],
-    ['Overig, vooral mineralen (ton)', u.overigTon],
-    ['Kosten opwerking (euro)', u.brutoKosten],
-    ['Opbrengst metalen (euro)', i.rekenwijze === 'kental' ? 'verrekend in de netto opwerkingskosten' : u.opbrengst],
-    ['Kosten storten residu (euro)', u.kostenStorten],
-    ['Netto kosten (euro per jaar, negatief = opbrengst)', u.nettoKosten],
-    ['Netto per ton verbrand (euro)', u.perTonVerbrand],
-    ['Netto per ton ruwe bodemas (euro)', u.perTonBodemas],
-    ...(band ? ([['Bandbreedte netto kosten laag (euro)', band.laag], ['Bandbreedte netto kosten hoog (euro)', band.hoog]] as CsvCel[][]) : []),
+    ['Uitkomst (afgerond)', 'Waarde'],
+    ['Ruwe bodemas (ton)', Math.round(u.bodemasTon)],
+    ['Ferro (ton)', Math.round(u.ferroTon)],
+    ['Non-ferro (ton)', Math.round(u.nonFerroTon)],
+    ['Residu gestort (ton)', Math.round(u.residuTon)],
+    ['Overig, vooral mineralen (ton)', Math.round(u.overigTon)],
+    ['Kosten opwerking (euro)', rnd(u.brutoKosten)],
+    ['Opbrengst metalen (euro)', i.rekenwijze === 'kental' ? 'verrekend in de netto opwerkingskosten' : rnd(u.opbrengst)],
+    ['Kosten storten residu (euro)', rnd(u.kostenStorten)],
+    ['Netto kosten (euro per jaar, negatief = opbrengst)', rnd(u.nettoKosten), conclusie ? '' : 'indicatief, zie bandbreedte'],
+    ['Netto per ton verbrand (euro)', u.perTonVerbrand === null ? null : Math.round(u.perTonVerbrand * 10) / 10],
+    ['Netto per ton ruwe bodemas (euro)', u.perTonBodemas === null ? null : Math.round(u.perTonBodemas * 10) / 10],
+    ...(band ? ([['Bandbreedte netto kosten laag (euro)', rnd(band.laag)], ['Bandbreedte netto kosten hoog (euro)', rnd(band.hoog)]] as CsvCel[][]) : []),
     ...(u.ontbrekend.length ? [['Niet berekend', `ontbreekt: ${u.ontbrekend.map((v) => bedragLabel[v]).join(', ')}`] as CsvCel[]] : []),
     ...controle.fouten.map((f): CsvCel[] => ['Fout in invoer', f]),
     ...controle.signalen.map((f): CsvCel[] => ['Let op', f]),
@@ -272,12 +294,53 @@ export function Bodemassencalculator() {
 
   const metalenTon = u.ferroTon + u.nonFerroTon;
   const fouten = [...(melding ? [melding] : []), ...controle.fouten];
-  const kern =
-    u.nettoKosten === null
-      ? 'Vul het verwerkingstarief en de metaalprijzen uit uw contract in om de netto kosten te zien.'
-      : u.nettoKosten < 0
-        ? `Opwerken levert met deze invoer netto ${euro(-u.nettoKosten)} per jaar op: ${euro(-(u.perTonVerbrand ?? 0), 2)} per ton verbrand afval.`
-        : `Opwerken en het storten van residu kosten netto ongeveer ${euro(u.nettoKosten)} per jaar: ${euro(u.perTonVerbrand ?? 0, 2)} per ton verbrand afval.`;
+  const toonBand = band !== null && band.volgtScenario.length > 0 && band.hoog - band.laag > 0.5;
+  const perTon = (n: number) => (i.tonnageVerbrand > 0 ? n / i.tonnageVerbrand : 0);
+  const perTonTekst = (n: number) => euro(perTon(n), 2);
+  const opwerkingVolgtKental = i.rekenwijze === 'kental' && !conclusie;
+
+  let kern: ReactNode;
+  if (u.nettoKosten === null) {
+    kern = <strong>Vul het verwerkingstarief en de metaalprijzen uit uw contract in om de netto kosten te zien.</strong>;
+  } else if (!conclusie) {
+    kern = (
+      <>
+        <strong>
+          Indicatief, op basis van één kostenschatting uit de nota van toelichting bij het Besluit vrijstellingen stortverbod (2021): opwerken en
+          residu storten kosten naar schatting {toonBand ? kostBand(band!.laag, band!.hoog) : kostRond(u.nettoKosten)} per jaar
+          {toonBand ? ` (${perTonTekst(band!.laag)} tot ${perTonTekst(band!.hoog)} per ton verbrand afval)` : ''}.
+        </strong>{' '}
+        De schatting vergelijkt in 2021 de kosten voor de AVI en is geen markttarief; uw contract kan er ver van afliggen. Vul hieronder uw eigen
+        tarief in voor een uitkomst die u kunt gebruiken.
+      </>
+    );
+  } else {
+    kern = (
+      <>
+        <strong>
+          {u.nettoKosten < 0
+            ? `Met uw tarief levert opwerken netto ongeveer ${euroRond(-u.nettoKosten)} per jaar op: ${euro(-(u.perTonVerbrand ?? 0), 2)} per ton verbrand afval.`
+            : `Met uw tarief kosten opwerken en residu storten netto ongeveer ${euroRond(u.nettoKosten)} per jaar: ${euro(u.perTonVerbrand ?? 0, 2)} per ton verbrand afval.`}
+        </strong>
+      </>
+    );
+  }
+
+  const opwerkingVeld = (
+    <BronVeld
+      label="Uw netto opwerkingskosten (tarief min metaalopbrengst)"
+      eenheid="€/t bodemas"
+      waarde={i.nettoOpwerking}
+      onChange={(n) => zet('nettoOpwerking')(n ?? 0)}
+      onFout={melder('netto opwerkingskosten')}
+      status="kental"
+      statusTekst="Kental uit 2021, indicatief: vul eigen tarief in"
+      bronwaarde={kentalNettoOpwerking}
+      bronwaardeTekst={euro(kentalNettoOpwerking, 2)}
+      bron={besluit}
+      toelichting={`Wat u per ton ruwe bodemas betaalt, min wat u terugkrijgt voor metalen. Het kental is € ${bodemasKostenBron.opwerkingNetto2021} per ton uit de nota van toelichting (2021), omgerekend naar 2025. Hebt u tarief en metaalprijzen apart? Kies dan bij Invoer "Met mijn contract".`}
+    />
+  );
 
   return (
     <>
@@ -286,8 +349,9 @@ export function Bodemassencalculator() {
         ondertitel={`Kentallen Rijkswaterstaat ${bodemasKental.jaar}, Staatsblad 2021, 235 en Belastingdienst; peildatum ${datum(PEILDATUM)}`}
       />
       <PaginaKop titel="Bodemassencalculator" badges={<Badge soort="pro">Gratis deel + Pro voor leden</Badge>}>
-        Hoeveel bodemas en metalen komen vrij bij de verbranding van uw afval, en wat kost het opwerken? De calculator rekent
-        met openbare cijfers van Rijkswaterstaat, de overheid en CBS. Elk getal kunt u vervangen door uw eigen waarde.
+        Hoeveel bodemas en metalen komen vrij bij de verbranding van uw afval, en wat kost het opwerken? De hoeveelheden komen uit
+        openbare cijfers van Rijkswaterstaat en CBS. Voor de kosten is er één openbare schatting; met uw eigen tarief wordt de uitkomst
+        bruikbaar.
       </PaginaKop>
       <Ankers
         links={[
@@ -300,54 +364,112 @@ export function Bodemassencalculator() {
       />
 
       <div className="tb-tool">
-        <Kaart titel="Uitkomst" id="uitkomst" className="tb-uitkomst" actie={<Badge soort="status-gegund">Openbare bronnen, peildatum {datum(PEILDATUM)}</Badge>}>
+        <Kaart
+          titel="Uitkomst"
+          id="uitkomst"
+          className="tb-uitkomst"
+          actie={<Badge soort={conclusie ? 'status-gegund' : 'voorbeeld'}>{conclusie ? 'Met uw tarief' : 'Indicatief'}</Badge>}
+        >
           <div className="stapel" aria-live="polite">
             <Meldingen fouten={fouten} signalen={controle.signalen} />
             <p className="tb-kern">
-              Bij {metEenheid(i.tonnageVerbrand, 'ton')} verbrand afval komt ongeveer <strong>{metEenheid(u.bodemasTon, 'ton')} ruwe bodemas</strong> vrij, met{' '}
-              {metEenheid(u.ferroTon, 'ton')} ferro en {metEenheid(u.nonFerroTon, 'ton')} non-ferro. {kern}
+              Bij {metEenheid(i.tonnageVerbrand, 'ton')} verbrand afval komt ongeveer <strong>{metEenheid(rond(u.bodemasTon), 'ton')} ruwe bodemas</strong> vrij,
+              met {metEenheid(rond(u.ferroTon), 'ton')} ferro en {metEenheid(rond(u.nonFerroTon), 'ton')} non-ferro (Rijkswaterstaat {bodemasKental.jaar}). {kern}
             </p>
             <div className={`tegels${melding ? ' tb-verouderd' : ''}`}>
-              <Tegel
-                label={u.nettoKosten !== null && u.nettoKosten < 0 ? 'Netto opbrengst per jaar' : 'Netto kosten per jaar'}
-                waarde={u.nettoKosten === null ? '–' : euro(Math.abs(u.nettoKosten))}
-                toelichting={u.nettoKosten === null ? 'vul tarief en prijzen in' : `${kostTekst(u.perTonVerbrand ?? 0, 2)} per ton verbrand`}
-                hero
-              />
-              <Tegel label="Ruwe bodemas" waarde={metEenheid(u.bodemasTon, 'ton')} toelichting="per jaar" />
-              <Tegel label="Metalen" waarde={metEenheid(metalenTon, 'ton')} toelichting={`ferro ${getal(u.ferroTon)} t, non-ferro ${getal(u.nonFerroTon)} t`} />
+              {u.nettoKosten !== null && !conclusie && toonBand ? (
+                <Tegel
+                  label="Netto kosten per jaar (indicatief)"
+                  waarde={`${euroRond(band!.laag)} tot ${euroRond(band!.hoog)}`}
+                  toelichting={`${perTonTekst(band!.laag)} tot ${perTonTekst(band!.hoog)} per ton verbrand`}
+                  hero
+                />
+              ) : (
+                <Tegel
+                  label={u.nettoKosten !== null && u.nettoKosten < 0 ? 'Netto opbrengst per jaar' : conclusie ? 'Netto kosten per jaar' : 'Netto kosten per jaar (indicatief)'}
+                  waarde={u.nettoKosten === null ? '–' : euroRond(Math.abs(u.nettoKosten))}
+                  toelichting={u.nettoKosten === null ? 'vul tarief en prijzen in' : `${kostTekst(u.perTonVerbrand ?? 0, 2)} per ton verbrand`}
+                  hero
+                />
+              )}
+              <Tegel label="Ruwe bodemas" waarde={metEenheid(rond(u.bodemasTon), 'ton')} toelichting="per jaar" />
+              <Tegel label="Metalen" waarde={metEenheid(rond(metalenTon), 'ton')} toelichting={`ferro ${getal(rond(u.ferroTon))} t, non-ferro ${getal(rond(u.nonFerroTon))} t`} />
             </div>
-            {band && band.volgtScenario.length > 0 && band.hoog - band.laag > 0.5 && (
+            {i.rekenwijze === 'kental' && opwerkingVeld}
+            {conclusie && toonBand && (
               <Bandbreedte
-                laag={band.laag}
-                hoog={band.hoog}
-                toelichting={`per jaar, als ${band.volgtScenario.map((k) => parameterLabel[k as BodemasParameter].toLowerCase()).join(', ')} binnen de bronwaarden variëren.`}
+                laag={rond(band!.laag)}
+                hoog={rond(band!.hoog)}
+                toelichting={`per jaar, als ${band!.volgtScenario.map((k) => parameterLabel[k as BodemasParameter].toLowerCase()).join(' en ')} binnen de bronwaarden variëren.`}
               />
+            )}
+            {u.nettoKosten !== null && (
+              <Uitklap titel="Waarom een bandbreedte?" sub="opwerking, residu en storten" kopNiveau={3} open={false}>
+                <ul className="opsomming klein" style={{ margin: 0 }}>
+                  {opwerkingVolgtKental && (
+                    <li>
+                      Opwerking: de nota van toelichting noemt per saldo ongeveer € {bodemasKostenBron.opwerkingNetto2021} per ton bodemas voor de AVI in
+                      2021. Dat is één schatting, geen gemeten markttarief. De bandbreedte loopt van € {bodemasKostenBron.opwerkingNetto2021} (prijspeil 2021)
+                      tot {euro(kentalNettoOpwerking, 2)} (omgerekend naar 2025 met de CBS-prijsindex); werkelijke tarieven kunnen verder afwijken.
+                    </li>
+                  )}
+                  <li>
+                    Residu: de calculator rekent met {pctTekst(bodemasScenario.midden.residuPct)}, het deel van de ruwe bodemas dat in {bodemasKental.jaar}{' '}
+                    werkelijk is gestort (Rijkswaterstaat). De nota gaat bij wassen tot vrij toepasbare bouwstof uit van ongeveer{' '}
+                    {bodemasKostenBron.residuVolgensBesluitPct} % residu; daar loopt de bovenkant van de bandbreedte naartoe.
+                  </li>
+                  <li>
+                    Storten: € {bodemasKostenBron.stortkostenLaag2021} tot € {bodemasKostenBron.stortkostenHoog2021} per ton (2021) plus{' '}
+                    {euro(stortbelasting2026, 2)} afvalstoffenbelasting (2026).
+                  </li>
+                </ul>
+              </Uitklap>
             )}
             <Ontbreekt
               velden={u.ontbrekend.map((v) => bedragLabel[v])}
               uitleg="Hiervoor bestaat geen openbare bron. Vul de bedragen uit uw contract in, of kies de rekenwijze met kentallen."
             />
+            {!conclusie && u.nettoKosten !== null && (
+              <p className="klein muted" style={{ margin: 0 }}>
+                Opbouw bij de middenwaarde van de kentallen:
+              </p>
+            )}
             <dl className="invoerlijst">
               <dt>{i.rekenwijze === 'kental' ? 'Opwerking (metalen verrekend)' : 'Kosten opwerking'}</dt>
-              <dd>{u.brutoKosten === null ? '–' : euro(u.brutoKosten)}</dd>
+              <dd>{u.brutoKosten === null ? '–' : euroRond(u.brutoKosten)}</dd>
               {i.rekenwijze === 'contract' && (
                 <>
                   <dt>Opbrengst metalen voor u</dt>
-                  <dd>{u.opbrengst === null ? '–' : `− ${euro(u.opbrengst)}`}</dd>
+                  <dd>{u.opbrengst === null ? '–' : `− ${euroRond(u.opbrengst)}`}</dd>
                 </>
               )}
-              <dt>Storten residu ({metEenheid(u.residuTon, 'ton')})</dt>
-              <dd>{euro(u.kostenStorten)}</dd>
+              <dt>Storten residu ({metEenheid(rond(u.residuTon), 'ton')})</dt>
+              <dd>{euroRond(u.kostenStorten)}</dd>
               <dt>Netto per ton ruwe bodemas</dt>
-              <dd>{u.perTonBodemas === null ? '–' : kostTekst(u.perTonBodemas, 2)}</dd>
+              <dd>
+                {u.perTonBodemas === null
+                  ? '–'
+                  : !conclusie && toonBand && u.bodemasTon > 0
+                    ? `${euro(band!.laag / u.bodemasTon, 2)} tot ${euro(band!.hoog / u.bodemasTon, 2)}`
+                    : kostTekst(u.perTonBodemas, 2)}
+              </dd>
             </dl>
+            <UitkomstBronnen
+              peildatum={PEILDATUM}
+              bronnen={[
+                { titel: `Rijkswaterstaat, Afvalverwerking in Nederland ${bodemasKental.jaar}`, url: bodemasBron.url },
+                { titel: 'nota van toelichting, Staatsblad 2021, 235', url: bodemasKostenBronnen.besluit.url },
+                { titel: 'CBS-prijsindex', url: bodemasKostenBronnen.cpi.url },
+                { titel: 'Belastingdienst, afvalstoffenbelasting 2026', url: bodemasKostenBronnen.asb.url },
+                ...(g ? [{ titel: `CBS ${cbsPmd.jaar}, ${g.naam}`, url: cbsPmd.bronnen.gemeente.url }] : []),
+              ]}
+            />
             <Delen
               naam="Bodemassencalculator"
               csvRijen={csv}
               params={deelParams}
               pad={PAD}
-              toelichting="De link bewaart uw invoer, ook de bedragen. Lokaal getest toont hij het adres van uw eigen computer."
+              toelichting="De link bewaart uw invoer, ook de bedragen. De CSV bevat invoer met status en herkomst, de afgeronde uitkomst, de bandbreedte en de bronnen."
               extra={
                 <button type="button" onClick={() => window.print()}>
                   Printen of opslaan als PDF
@@ -459,18 +581,9 @@ export function Bodemassencalculator() {
               kopNiveau={3}
             >
               {i.rekenwijze === 'kental' && (
-                <BronVeld
-                  label="Netto opwerkingskosten"
-                  eenheid="€/t bodemas"
-                  waarde={i.nettoOpwerking}
-                  onChange={(n) => zet('nettoOpwerking')(n ?? 0)}
-                  onFout={melder('netto opwerkingskosten')}
-                  status="kental"
-                  bronwaarde={kentalNettoOpwerking}
-                  bronwaardeTekst={euro(kentalNettoOpwerking, 2)}
-                  bron={besluit}
-                  toelichting={`De metaalopbrengst is al verrekend. € ${bodemasKostenBron.opwerkingNetto2021} per ton in 2021, omgerekend naar 2025.`}
-                />
+                <p className="klein muted" style={{ margin: 0 }}>
+                  De netto opwerkingskosten vult u in bij de uitkomst: daar hangt de uitkomst het meest van af.
+                </p>
               )}
               <BronVeld
                 label="Residu dat wordt gestort"
@@ -692,6 +805,7 @@ function BodemasPro({ basis }: { basis: BodemasInvoer }) {
   const analyseVan = installaties.find((x) => x.id === gekozen) ?? installaties[0];
   const analyse = analyseVan ? gevoeligheid(analyseVan, variatie / 100) : [];
   const basisNetto = analyseVan ? bodemas(analyseVan).nettoKosten : null;
+  const indicatief = installaties.filter((x) => !bodemasConclusieMogelijk(x, kentalNettoOpwerking)).map((x) => x.naam);
 
   function wijzig(id: string, sleutel: keyof Installatie, w: string | number | null) {
     setInstallaties((l) => l.map((x) => (x.id === id ? { ...x, [sleutel]: w } : x)));
@@ -846,9 +960,9 @@ function BodemasPro({ basis }: { basis: BodemasInvoer }) {
                     </th>
                     <td className="num">{getal(r.bodemasTon)}</td>
                     <td className="num">{getal(r.ferroTon + r.nonFerroTon)}</td>
-                    <td className="num">{r.brutoKosten === null ? '–' : euro(r.brutoKosten - (r.opbrengst ?? 0))}</td>
-                    <td className="num">{euro(r.kostenStorten)}</td>
-                    <td className="num">{r.nettoKosten === null ? 'onvolledig' : euro(r.nettoKosten)}</td>
+                    <td className="num">{r.brutoKosten === null ? '–' : euroRond(r.brutoKosten - (r.opbrengst ?? 0))}</td>
+                    <td className="num">{euroRond(r.kostenStorten)}</td>
+                    <td className="num">{r.nettoKosten === null ? 'onvolledig' : euroRond(r.nettoKosten)}</td>
                   </tr>
                 ))}
                 <tr>
@@ -873,7 +987,9 @@ function BodemasPro({ basis }: { basis: BodemasInvoer }) {
             </table>
           </div>
           <p className="klein muted" style={{ margin: 0 }}>
-            Opwerking is na aftrek van de metaalopbrengst. Een negatief bedrag is een netto opbrengst.
+            Opwerking is na aftrek van de metaalopbrengst. Een negatief bedrag is een netto opbrengst. Bedragen afgerond.
+            {indicatief.length > 0 &&
+              ` Indicatief voor ${indicatief.join(', ')}: die rekenen met het kental voor opwerking uit 2021. Vul in de kolom Opwerking uw eigen tarief in.`}
           </p>
 
           {analyseVan && (
@@ -892,12 +1008,14 @@ function BodemasPro({ basis }: { basis: BodemasInvoer }) {
                   <p className="klein muted">
                     Netto kosten van {analyseVan.naam} als één parameter {procent(variatie, 0)} lager of hoger is. Grootste invloed bovenaan.
                   </p>
-                  <BandGrafiek
-                    titel={`Gevoeligheid netto kosten ${analyseVan.naam}`}
-                    basis={basisNetto}
-                    banden={analyse.map((a) => ({ label: parameterLabel[a.parameter], laag: a.laag, hoog: a.hoog }))}
-                    formatX={(n) => euro(n)}
-                  />
+                  <div className="tb-alleen-breed">
+                    <BandGrafiek
+                      titel={`Gevoeligheid netto kosten ${analyseVan.naam}`}
+                      basis={basisNetto}
+                      banden={analyse.map((a) => ({ label: parameterLabel[a.parameter], laag: a.laag, hoog: a.hoog }))}
+                      formatX={(n) => euroRond(n)}
+                    />
+                  </div>
                   <div className="tabel-container" tabIndex={0} role="region" aria-label="Tabel gevoeligheidsanalyse">
                     <table>
                       <thead>
@@ -917,8 +1035,8 @@ function BodemasPro({ basis }: { basis: BodemasInvoer }) {
                             <th scope="row" style={{ fontWeight: 500 }}>
                               {parameterLabel[a.parameter]}
                             </th>
-                            <td className="num">{euro(a.laag)}</td>
-                            <td className="num">{euro(a.hoog)}</td>
+                            <td className="num">{euroRond(a.laag)}</td>
+                            <td className="num">{euroRond(a.hoog)}</td>
                           </tr>
                         ))}
                       </tbody>

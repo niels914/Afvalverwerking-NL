@@ -8,13 +8,28 @@ import {
   kostenbasisBron,
   nascheiding,
   nascheidingRendement,
+  nascheidingskostenBand,
+  nascheidingskostenLezingen,
   pmdGrenzen,
   pmdVarianten,
   staffel,
   staffelPerCategorie,
 } from '../../data/tools-b-pmd';
 import { pmdStandaard } from '../../data/standaardwaarden';
-import { breakEvenTeruggewonnen, controleerPmd, pmdBandbreedte, pmdNaarParams, pmdUitParams, pmdVergelijking, routeBron, routeNa, type PmdInvoer } from './pmd';
+import {
+  breakEvenTeruggewonnen,
+  controleerPmd,
+  omslagNascheidingskosten,
+  pmdBandbreedte,
+  pmdCombinaties,
+  pmdConclusieMogelijk,
+  pmdNaarParams,
+  pmdUitParams,
+  pmdVergelijking,
+  routeBron,
+  routeNa,
+  type PmdInvoer,
+} from './pmd';
 
 const invoer: PmdInvoer = {
   inwoners: 100000,
@@ -204,5 +219,68 @@ describe('bandbreedte', () => {
     const b = pmdBandbreedte({ ...invoer, verbrandingstarief: 123 }, varianten)!;
     expect(b.volgt).toEqual(['teruggewonnenNa']);
     expect(pmdBandbreedte({ ...invoer, verbrandingstarief: 123, teruggewonnenNa: 11 }, varianten)).toBeNull();
+  });
+});
+
+describe('nascheidingskosten: eenheid onzeker (ronde 3)', () => {
+  it('kent twee lezingen van het kental: per ton restafval en per ton PMD', () => {
+    expect(nascheidingskostenLezingen.perTonRestafval).toBe(119.85);
+    // 119,85 × 14,4 % = 17,26: precies de vergoeding, want die dekt het PMD-deel van de kosten
+    expect(nascheidingskostenLezingen.perTonPmd).toBe(17.26);
+    expect(nascheidingskostenLezingen.perTonPmd).toBe(nascheiding.vergoeding2026);
+    // € 3 mln opslag / € 6,79 per ton ≈ 442 kton: past bij nagescheiden restafval
+    expect(nascheidingskostenLezingen.tonnageOpslagKton).toBe(442);
+    expect(nascheidingskostenBand).toEqual({ laag: 17.26, midden: 119.85, hoog: 119.85 });
+    expect(pmdVarianten.nascheidingskosten).toBe(nascheidingskostenBand);
+  });
+
+  it('trekt alleen een conclusie met een eigen nascheidingstarief', () => {
+    expect(pmdConclusieMogelijk(pmdStandaard, kentalNascheidingskosten)).toBe(false);
+    expect(pmdConclusieMogelijk({ ...pmdStandaard, nascheidingskosten: 45 }, kentalNascheidingskosten)).toBe(true);
+    expect(pmdConclusieMogelijk({ ...pmdStandaard, nascheidingskosten: 0 }, kentalNascheidingskosten)).toBe(true);
+  });
+
+  it('laat de standaarduitkomst omslaan tussen de twee lezingen', () => {
+    const b = pmdBandbreedte(pmdStandaard, pmdVarianten)!;
+    expect(b.volgt).toContain('nascheidingskosten');
+    // per ton PMD: nascheiding goedkoper; per ton restafval: bronscheiding goedkoper
+    expect(b.verschil!.laag).toBeLessThan(0);
+    expect(b.verschil!.hoog).toBeGreaterThan(0);
+    const laag = pmdVergelijking({ ...pmdStandaard, nascheidingskosten: 17.26 });
+    const hoog = pmdVergelijking({ ...pmdStandaard, nascheidingskosten: 119.85 });
+    expect(b.na!.laag).toBeLessThanOrEqual(laag.na.netto as number);
+    expect(b.na!.hoog).toBeGreaterThanOrEqual(hoog.na.netto as number);
+  });
+
+  it('variëert een eigen nascheidingstarief niet mee', () => {
+    const b = pmdBandbreedte({ ...pmdStandaard, nascheidingskosten: 40 }, pmdVarianten)!;
+    expect(b.volgt).toEqual(['teruggewonnenNa', 'verbrandingstarief']);
+    expect(pmdCombinaties({ ...pmdStandaard, nascheidingskosten: 40 }, pmdVarianten)).toHaveLength(4);
+    expect(pmdCombinaties(pmdStandaard, pmdVarianten)).toHaveLength(8);
+  });
+
+  it('berekent het omslagpunt in nascheidingstarief', () => {
+    // bron: 2.000 t × (325 − 228 − 100) = −6.000 ; PMD terug 1.000 t × 100 = 100.000 ; restafval 17.000 t
+    // k = (−6.000 + 100.000) / 17.000 + 17 = 22,529…
+    const k = omslagNascheidingskosten(invoer)!;
+    expect(k).toBeCloseTo(94000 / 17000 + 17, 6);
+    // bij dat tarief zijn beide routes even duur
+    const v = pmdVergelijking({ ...invoer, nascheidingskosten: k });
+    expect(v.verschil!).toBeCloseTo(0, 6);
+    // lager tarief: nascheiding goedkoper (verschil negatief)
+    expect(pmdVergelijking({ ...invoer, nascheidingskosten: k - 1 }).verschil!).toBeLessThan(0);
+  });
+
+  it('geeft geen omslagpunt zonder restafval of teruggewonnen PMD', () => {
+    expect(omslagNascheidingskosten({ ...invoer, restafvalNa: 0 })).toBeNull();
+    expect(omslagNascheidingskosten({ ...invoer, teruggewonnenNa: null })).toBeNull();
+  });
+
+  it('geeft een bandbreedte van het omslagpunt bij de standaard', () => {
+    const b = pmdBandbreedte(pmdStandaard, pmdVarianten)!;
+    expect(b.omslagTarief!.laag).toBeLessThan(b.omslagTarief!.hoog);
+    const midden = omslagNascheidingskosten(pmdStandaard)!;
+    expect(midden).toBeGreaterThan(b.omslagTarief!.laag);
+    expect(midden).toBeLessThan(b.omslagTarief!.hoog);
   });
 });

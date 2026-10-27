@@ -113,6 +113,8 @@ export const bodemasBereik = {
   aandeelBodemasPct: [Math.min(...bodemasKentallenPerJaar.map((k) => k.aandeelBodemasPct)), Math.max(...bodemasKentallenPerJaar.map((k) => k.aandeelBodemasPct))] as [number, number],
   ferroPct: [Math.min(...bodemasKentallenPerJaar.map((k) => k.ferroPct)), Math.max(...bodemasKentallenPerJaar.map((k) => k.ferroPct))] as [number, number],
   nonFerroPct: [Math.min(...bodemasKentallenPerJaar.map((k) => k.nonFerroPct)), Math.max(...bodemasKentallenPerJaar.map((k) => k.nonFerroPct))] as [number, number],
+  /** Hoogste landelijk verbrande hoeveelheid in 2022–2024, in ton. */
+  verbrandMaxTon: Math.max(...bodemasJaren.map((j) => j.verbrandKton)) * 1000,
 };
 
 export const bodemasKostenBronnen = { besluit: bronnen.stb2021bodemas, cpi: bronnen.cbsCpi, asb: bronnen.asb };

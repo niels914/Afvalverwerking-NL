@@ -26,13 +26,15 @@ interface Props {
   voorbeeld?: number;
   /** Meldt of het veld een ongeldige waarde bevat; de tool kan dan zeggen dat de uitkomst niet is bijgewerkt. */
   onFout?: (fout: boolean) => void;
+  /** Eigen tekst voor het herkomstlabel zolang de waarde gelijk is aan de bronwaarde (bijv. bij een onzeker kental). */
+  statusTekst?: string;
 }
 
 /**
  * Getalveld dat laat zien waar de standaardwaarde vandaan komt: officiële bron, kental of eigen invoer.
  * Accepteert komma en punt. Een leeg veld is toegestaan als `magLeeg`; de tool toont dan wat er nog ontbreekt.
  */
-export function BronVeld({ label, waarde, onChange, eenheid, status, bronwaarde, bronwaardeTekst, bron, peildatum, toelichting, min = 0, max, magLeeg, voorbeeld, onFout }: Props) {
+export function BronVeld({ label, waarde, onChange, eenheid, status, bronwaarde, bronwaardeTekst, bron, peildatum, toelichting, min = 0, max, magLeeg, voorbeeld, onFout, statusTekst }: Props) {
   const id = useId();
   const leegToegestaan = magLeeg ?? status === 'aanname';
   const [tekst, setTekst] = useState(waarde === null ? '' : toonInInvoer(waarde));
@@ -98,6 +100,8 @@ export function BronVeld({ label, waarde, onChange, eenheid, status, bronwaarde,
           <span className="badge">Eigen waarde</span>
         ) : voorbeeld !== undefined && waarde === voorbeeld ? (
           <span className="badge voorbeeld">Voorbeeld, vul eigen waarde in</span>
+        ) : statusTekst && waarde !== null ? (
+          <span className="badge voorbeeld">{statusTekst}</span>
         ) : status === 'aanname' && waarde !== null ? (
           <span className="badge">Eigen waarde</span>
         ) : (

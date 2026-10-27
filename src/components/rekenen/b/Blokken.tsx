@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { euro } from '../../../lib/format';
+import { datum, euro } from '../../../lib/format';
 import './tools-b.css';
 
 // Bouwstenen om de tools van tools-b op mobiel kort te houden: uitkomst bovenaan, details inklapbaar.
@@ -140,4 +140,25 @@ export function useVeldFouten() {
     ? `De uitkomst is niet bijgewerkt: ${lijst.join(', ')} ${lijst.length === 1 ? 'heeft' : 'hebben'} een ongeldige waarde. Hij hoort nog bij de laatste geldige invoer.`
     : null;
   return { lijst, melder, melding };
+}
+
+/** Korte bronregel direct onder een uitkomst, met links en peildatum, en een verwijzing naar de volledige lijst. */
+export function UitkomstBronnen({ bronnen, peildatum, lijstId = 'bronnen' }: { bronnen: { titel: string; url: string }[]; peildatum: string; lijstId?: string }) {
+  return (
+    <p className="klein muted tb-uitkomstbron">
+      Bronnen:{' '}
+      {bronnen.map((b, n) => (
+        <span key={b.url + b.titel}>
+          {n > 0 && '; '}
+          <a href={b.url} target="_blank" rel="noopener noreferrer">
+            {b.titel}
+          </a>
+        </span>
+      ))}
+      . Peildatum {datum(peildatum)}.{' '}
+      <a href={`#${lijstId}`} onClick={() => openDoel(lijstId)}>
+        Alle bronnen en kentallen
+      </a>
+    </p>
+  );
 }
