@@ -141,7 +141,14 @@ const secties: Sectie[] = [
     titel: 'Bekende problemen',
     inhoud:
       bekendeProblemen.length === 0 ? (
-        <p>Bij de laatste meting zijn geen problemen gevonden. Merkt u toch iets, meld het ons dan.</p>
+        <>
+          <p>Bij de laatste meting zijn geen problemen gevonden. Merkt u toch iets, meld het ons dan.</p>
+          <p>
+            Sinds de meting van 20 oktober 2026 zijn opgelost: het contrast van blauwe links, van grijze hulptekst op
+            lichtpaarse vlakken en van de tekst in de paarse kerncijfertegel, de te kleine links naar nieuwsbronnen en het
+            contrast van de rand van invoervelden.
+          </p>
+        </>
       ) : (
         <>
           <p>

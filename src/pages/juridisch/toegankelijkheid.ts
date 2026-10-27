@@ -54,7 +54,7 @@ export const meting = {
   /** Handmatige controles, uitgevoerd op de meetdatum met een script dat met de Tab-toets door de pagina's loopt. */
   handmatig: [
     'De eerste Tab op elke pagina geeft de link "Naar de inhoud"; die wordt zichtbaar zodra hij focus krijgt.',
-    'Links en knoppen krijgen bij focus een paarse rand van 3 pixels. Invoervelden krijgen een dunne paarse rand; zie Bekende problemen.',
+    'Links en knoppen krijgen bij focus een paarse rand van 3 pixels. Invoervelden hebben een rand van 3,3:1 en krijgen bij focus een paarse rand van 3 pixels in totaal.',
     'Op 400 en 1.280 pixels breed hoeft u op geen van de 22 pagina’s horizontaal te scrollen.',
     'Status en labels (lid, concept, voorbeeld, bèta) staan in tekst, niet alleen in kleur.',
     'De onderdelen van de juridische pagina’s klappen open en dicht met Enter of de spatiebalk; de knop meldt of het onderdeel open of dicht is. Zoeken in de pagina vindt ook tekst in een dicht onderdeel.',
@@ -71,21 +71,11 @@ export const meting = {
 };
 
 /**
- * Opgelost sinds de meting van 20 oktober 2026 (niet meer gevonden op 27 oktober): contrast van blauwe links,
- * grijze hulptekst op lichtpaarse vlakken, tekst in de paarse kerncijfertegel en de kleine links naar nieuwsbronnen.
+ * Opgelost sinds de meting van 20 oktober 2026: contrast van blauwe links, grijze hulptekst op lichtpaarse vlakken,
+ * tekst in de paarse kerncijfertegel, de kleine links naar nieuwsbronnen en (27 oktober) de rand van invoervelden:
+ * die is nu #878c9e (3,3:1 op wit) met bij focus een paarse rand van 2 pixels extra.
  */
-export const bekendeProblemen: BekendProbleem[] = [
-  {
-    id: 'invoerrand',
-    onderdeel: 'Rand van invoervelden',
-    paginas: ['Aanmelden', 'alle rekentools', 'Tools', 'Restafvalkaart', 'Nieuws', 'Kennisbank', 'Aanbestedingsarchief', 'Over het platform (feedbackformulier)', 'Inloggen'],
-    probleem:
-      'De rand van invoervelden heeft een contrast van 1,31:1 met de witte achtergrond, waar 3:1 nodig is. Bij focus wordt de rand paars (4,61:1), maar blijft één pixel dik; de lichte gloed eromheen valt nauwelijks op.',
-    criterium: '1.4.11 Contrast van niet-tekstuele content',
-    gevolg: 'Bij slecht zien is moeilijk te zien waar een invoerveld begint en welk veld focus heeft.',
-    aanpak: 'Een donkerder rand voor invoervelden en een duidelijker focusrand, gelijk aan die van links en knoppen.',
-  },
-];
+export const bekendeProblemen: BekendProbleem[] = [];
 
 /**
  * Status volgens de indeling van de Rijksoverheid (zie bronnen.statussen in gegevens.ts).
