@@ -1,4 +1,6 @@
-/** Korte inhoudsopgave met ankers bovenaan een rekentool. Verdwijnt in de printweergave. */
+import { openAnkerDoel } from './Inklap';
+
+/** Korte inhoudsopgave met ankers bovenaan een rekentool. Verdwijnt in de printweergave. Opent ingeklapte doelen. */
 export function OpDezePagina({ links }: { links: { id: string; label: string }[] }) {
   return (
     <nav aria-label="Op deze pagina" className="geen-print" style={{ margin: '0 0 20px' }}>
@@ -8,7 +10,7 @@ export function OpDezePagina({ links }: { links: { id: string; label: string }[]
       <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexWrap: 'wrap', gap: '6px 18px' }}>
         {links.map((l) => (
           <li key={l.id}>
-            <a href={`#${l.id}`} className="klein">
+            <a href={`#${l.id}`} className="klein" onClick={() => openAnkerDoel(l.id)}>
               {l.label}
             </a>
           </li>

@@ -1,26 +1,33 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useRol } from '../../components/betaalmuur/RolContext';
 import { Vergrendeld } from '../../components/betaalmuur/Vergrendeld';
 import { LijnGrafiek } from '../../components/grafiek/Grafieken';
-import { Bronnenlijst, type BronRegel } from '../../components/rekenen/Bronnen';
+import { BronRegels, type BronRegel } from '../../components/rekenen/Bronnen';
 import { ExportKnoppen } from '../../components/rekenen/Export';
+import { Inklapbaar, Kern, useInklapBijPrintEnAnker } from '../../components/rekenen/Inklap';
 import { OpDezePagina } from '../../components/rekenen/OpDezePagina';
 import type { CsvCel } from '../../components/rekenen/export';
 import { RapportKnop, RapportKop, RapportVoet, Uitkomst } from '../../components/rekenen/Uitkomst';
 import { Badge, GetalVeld, Kaart, KeuzeVeld, PaginaKop, Tegel } from '../../components/ui';
 import { indexbron, indexreeksen, indexStandaardInvoer, isVoorlopig, reeksMetId, type CbsReeks } from '../../data/indexreeksen';
 import {
+  afrondingTekst,
   factorTussen,
   gemeenschappelijkePerioden,
   indexInvoerNaarParams,
   indexInvoerUitParams,
   kiesPeriode,
+  MAX_BASISTARIEF,
   periodeBereik,
   periodeLabel,
   periodenVan,
+  rondAf,
+  rondTarief,
   tariefPerContractjaar,
   vergelijkJaren,
   waardeOp,
+  type Afronding,
   type GewogenReeks,
   type IndexInvoer,
   type Periode,
@@ -36,21 +43,31 @@ const FORMULE_GRENS =
 const MAANDNAMEN = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
 
 /** Indexcijfer of prijs leesbaar maken (pompprijs is euro per liter, geen index). */
-function toonWaarde(r: CbsReeks, v: number | undefined): string {
+function toonWaarde(r: CbsReeks, v: number | undefined, afronding?: Afronding): string {
   if (v === undefined) return '–';
-  return r.eenheid === 'index' ? getal(v, 2) : `${euro(v, 3)} per liter`;
+  if (r.eenheid !== 'index') return `${euro(rondAf(v, afronding?.indexDecimalen ?? null), 3)} per liter`;
+  const d = afronding?.indexDecimalen;
+  return getal(rondAf(v, d), d ?? 2);
 }
 
 function voorlopigTekst(r: CbsReeks, ...perioden: Periode[]): string {
   return perioden.some((p) => isVoorlopig(r, p)) ? ' (voorlopig)' : '';
 }
 
+/** Aantal decimalen om een factor te tonen: zoals afgerond, anders 4. */
+function factorDecimalen(a: Afronding): number {
+  return a.factorDecimalen ?? 4;
+}
+
 const geldigeIds = indexreeksen.map((r) => r.id);
 
 export function Indexcalculator() {
+  useInklapBijPrintEnAnker();
+  const { laden } = useRol();
   const [params, setParams] = useSearchParams();
   const [invoer, setInvoer] = useState<IndexInvoer>(() => indexInvoerUitParams(params, indexStandaardInvoer, geldigeIds));
   const zet = <K extends keyof IndexInvoer>(k: K, v: IndexInvoer[K]) => setInvoer((i) => ({ ...i, [k]: v }));
+  const afr = invoer.afronding;
 
   // Gratis deel: één reeks.
   const reeks = reeksMetId(invoer.reeks) ?? indexreeksen[0];
@@ -60,8 +77,9 @@ export function Indexcalculator() {
   const peil = kiesPeriode(peilOpties.length ? peilOpties : [basis], invoer.peilperiode)!;
   const basisWaarde = waardeOp(reeks, invoer.soort, basis);
   const peilWaarde = waardeOp(reeks, invoer.soort, peil);
-  const factor = factorTussen([{ naam: reeks.kort, weging: 1, reeks }], invoer.soort, basis, peil) ?? 1;
-  const tarief = invoer.basistarief * factor;
+  const factor = factorTussen([{ naam: reeks.kort, weging: 1, reeks }], invoer.soort, basis, peil, 0, afr) ?? 1;
+  const tarief = rondTarief(invoer.basistarief * factor, afr);
+  const stijgingPct = invoer.basistarief > 0 ? (tarief / invoer.basistarief - 1) * 100 : (factor - 1) * 100;
   const voorlopig = isVoorlopig(reeks, basis) || isVoorlopig(reeks, peil);
 
   // Effectieve invoer in de URL, zodat de adresbalk altijd een deelbare link is.
@@ -77,8 +95,9 @@ export function Indexcalculator() {
     { label: 'Soort indexcijfers', waarde: invoer.soort === 'jaar' ? 'Jaarcijfers (jaargemiddelde CBS)' : 'Maandcijfers' },
     { label: 'Basistarief', waarde: `${euro(invoer.basistarief, 2)} per ton` },
     { label: 'Indexreeks', waarde: `${reeks.kort} (CBS ${reeks.tabelId}, ${reeks.basisjaar})` },
-    { label: `Basisperiode ${periodeLabel(basis)}`, waarde: toonWaarde(reeks, basisWaarde) + voorlopigTekst(reeks, basis) },
-    { label: `Peilperiode ${periodeLabel(peil)}`, waarde: toonWaarde(reeks, peilWaarde) + voorlopigTekst(reeks, peil) },
+    { label: `Basisperiode ${periodeLabel(basis)}`, waarde: toonWaarde(reeks, basisWaarde, afr) + voorlopigTekst(reeks, basis) },
+    { label: `Peilperiode ${periodeLabel(peil)}`, waarde: toonWaarde(reeks, peilWaarde, afr) + voorlopigTekst(reeks, peil) },
+    { label: 'Afronding', waarde: afrondingTekst(afr) },
   ];
 
   const csvGratis = (): CsvCel[][] => [
@@ -93,15 +112,16 @@ export function Indexcalculator() {
     ['Indexreeks', reeks.naam],
     ['Basisjaar reeks', reeks.basisjaar],
     ['Basisperiode', periodeLabel(basis)],
-    ['Indexcijfer basisperiode', basisWaarde ?? null],
+    ['Indexcijfer basisperiode (CBS)', basisWaarde ?? null],
     ['Peilperiode', periodeLabel(peil)],
-    ['Indexcijfer peilperiode', peilWaarde ?? null],
+    ['Indexcijfer peilperiode (CBS)', peilWaarde ?? null],
     ['Voorlopige cijfers gebruikt', voorlopig ? 'ja' : 'nee'],
+    ['Afronding', afrondingTekst(afr)],
     [],
     ['Uitkomst', 'Waarde'],
     ['Indexfactor', factor],
     ['Nieuw tarief (euro per ton)', tarief],
-    ['Stijging (%)', (factor - 1) * 100],
+    ['Stijging (%)', stijgingPct],
     ['Formule', FORMULE],
   ];
 
@@ -123,13 +143,28 @@ export function Indexcalculator() {
   }));
 
   return (
-    <>
+    <div className="ta-tool">
       <RapportKop titel="Indexcalculator" ondertitel={`CBS-indexcijfers, opgehaald op ${datum(indexbron.peildatum)}`} />
       <PaginaKop titel="Indexcalculator" badges={<Badge soort="pro">Gratis deel + Pro voor leden</Badge>}>
-        Reken uit hoe een tarief meebeweegt met indexcijfers van het CBS: cao-lonen, consumentenprijzen, energie en
-        diesel. Kies jaar- of maandcijfers zoals in uw contract staat. Leden rekenen met een eigen weging en zien het
-        tarief per contractjaar.
+        Reken uit hoe een tarief meebeweegt met indexcijfers van het CBS: cao-lonen, consumentenprijzen, energie en diesel.
+        Jaar- of maandcijfers, met de afronding uit uw contract.
       </PaginaKop>
+
+      <Kern>
+        <p className="ta-kern-zin">
+          Een tarief van <strong>{euro(invoer.basistarief, 2)}</strong> in {periodeLabel(basis)} wordt <strong>{euro(tarief, 2)}</strong> in{' '}
+          {periodeLabel(peil)} met de {reeks.kort}: <strong>{stijgingPct >= 0 ? '+' : ''}{procent(stijgingPct)}</strong>.
+        </p>
+        <ul>
+          <li>
+            Bron: CBS-tabel {reeks.tabelId} ({reeks.basisjaar}), opgehaald op {datum(indexbron.peildatum)}
+            {voorlopig ? '. Let op: een van de cijfers is nog voorlopig' : ''}.
+          </li>
+          <li>Afronding: {afrondingTekst(afr)}.</li>
+          <li>Eigen weging over meerdere reeksen en een tarief per contractjaar: zie Pro voor leden.</li>
+        </ul>
+      </Kern>
+
       <OpDezePagina
         links={[
           { id: 'gratis', label: 'Indexeren met één reeks' },
@@ -139,141 +174,207 @@ export function Indexcalculator() {
         ]}
       />
 
-      <h2 className="sectie" id="gratis" style={{ marginBottom: 12 }}>
-        Gratis: indexeren met één reeks
-      </h2>
-      <div className="raster raster-tool">
-        <Kaart titel="Invoer" className="invoerkaart">
-          <div className="velden">
-            <SoortKeuze soort={invoer.soort} onChange={(s) => zet('soort', s)} />
-            <GetalVeld
-              label="Basistarief"
-              eenheid="€/ton"
-              waarde={invoer.basistarief}
-              onChange={(n) => zet('basistarief', n)}
-              hint="Het tarief dat hoort bij het indexcijfer van de basisperiode. Voorbeeldwaarde: vul uw eigen tarief in."
-            />
-            <KeuzeVeld
-              label="Indexreeks"
-              waarde={reeks.id}
-              opties={indexreeksen.map((r) => ({ waarde: r.id, label: `${r.kort} (CBS ${r.tabelId})` }))}
-              onChange={(id) => zet('reeks', id)}
-              hint={reeks.gebruik}
-            />
-            <KeuzeVeld
-              label="Basisperiode"
-              waarde={basis}
-              opties={beschikbaar.slice(0, -1).map((p) => ({ waarde: p, label: periodeLabel(p) + voorlopigTekst(reeks, p) }))}
-              onChange={(p) => zet('basisperiode', p)}
-              hint="Meestal de periode van inschrijving of het jaar voor de start van het contract."
-            />
-            <KeuzeVeld
-              label="Peilperiode"
-              waarde={peil}
-              opties={(peilOpties.length ? peilOpties : [basis]).map((p) => ({ waarde: p, label: periodeLabel(p) + voorlopigTekst(reeks, p) }))}
-              onChange={(p) => zet('peilperiode', p)}
-              hint="De periode waarmee u het nieuwe tarief bepaalt."
-            />
-            {voorlopig && (
-              <p className="notitie" role="status">
-                Let op: CBS noemt een van deze cijfers voorlopig. Het kan nog wijzigen. Veel contracten rekenen daarom met
-                het eerste gepubliceerde cijfer of wachten op het definitieve cijfer.
-              </p>
-            )}
-          </div>
-        </Kaart>
-        <Uitkomst
-          label={<Badge soort="status-gegund">CBS-cijfers, peildatum {datum(indexbron.peildatum)}</Badge>}
-          formule={FORMULE}
-          toelichting={
-            <>
-              Bron: CBS StatLine, tabel{' '}
-              <a href={reeks.bronUrl} target="_blank" rel="noopener noreferrer">
-                {reeks.tabelId}
-              </a>
-              , opgehaald op {datum(indexbron.peildatum)}. Het basisjaar van de reeks ({reeks.basisjaar}) maakt voor de uitkomst
-              niet uit: alleen de verhouding telt.
-            </>
-          }
-          invoer={invoerRegels}
-        >
-          <div className="stapel">
-            <div className="tegels">
-              <Tegel label={`Tarief ${periodeLabel(peil)}`} waarde={euro(tarief, 2)} toelichting="per ton" hero />
-              <Tegel label="Indexfactor" waarde={getal(factor, 4)} toelichting={`${periodeLabel(peil)} t.o.v. ${periodeLabel(basis)}`} />
-              <Tegel label="Stijging" waarde={procent((factor - 1) * 100)} toelichting={`${euro(tarief - invoer.basistarief, 2)} per ton`} />
+      <section aria-labelledby="gratis">
+        <div className="ta-sectiekop">
+          <h2 className="sectie" id="gratis" style={{ margin: 0 }}>
+            Indexeren met één reeks
+          </h2>
+          <Badge soort="gratis">Gratis</Badge>
+        </div>
+        <div className="raster raster-tool">
+          <Kaart titel="Invoer" className="invoerkaart">
+            <div className="velden">
+              <SoortKeuze soort={invoer.soort} onChange={(s) => zet('soort', s)} />
+              <GetalVeld
+                label="Basistarief"
+                eenheid="€/ton"
+                max={MAX_BASISTARIEF}
+                waarde={invoer.basistarief}
+                onChange={(n) => zet('basistarief', n)}
+                hint="Het tarief dat hoort bij het indexcijfer van de basisperiode. 100 is een voorbeeld: vul uw eigen tarief in."
+              />
+              <KeuzeVeld
+                label="Indexreeks"
+                waarde={reeks.id}
+                opties={indexreeksen.map((r) => ({ waarde: r.id, label: `${r.kort} (CBS ${r.tabelId})` }))}
+                onChange={(id) => zet('reeks', id)}
+                hint={reeks.gebruik}
+              />
+              {reeks.eenheid !== 'index' && (
+                <p className="notitie info" role="note">
+                  De pompprijs is een consumentenprijs in euro per liter, inclusief accijns en btw. Btw verandert de verhouding
+                  niet zolang het btw-tarief gelijk blijft. Accijns is een vast bedrag per liter en verandert de verhouding wel.
+                  Rekent uw contract met een prijs zonder accijns, dan wijkt de uitkomst af.
+                </p>
+              )}
+              <KeuzeVeld
+                label="Basisperiode"
+                waarde={basis}
+                opties={beschikbaar.slice(0, -1).map((p) => ({ waarde: p, label: periodeLabel(p) + voorlopigTekst(reeks, p) }))}
+                onChange={(p) => zet('basisperiode', p)}
+                hint="Meestal de periode van inschrijving of het jaar voor de start van het contract."
+              />
+              <KeuzeVeld
+                label="Peilperiode"
+                waarde={peil}
+                opties={(peilOpties.length ? peilOpties : [basis]).map((p) => ({ waarde: p, label: periodeLabel(p) + voorlopigTekst(reeks, p) }))}
+                onChange={(p) => zet('peilperiode', p)}
+                hint="De periode waarmee u het nieuwe tarief bepaalt. U kiest alleen perioden na de basisperiode: een indexatie rekent vooruit vanaf de basis."
+              />
+              {voorlopig && (
+                <p className="notitie" role="status">
+                  Let op: CBS noemt een van deze cijfers voorlopig. Het kan nog wijzigen. Veel contracten rekenen daarom met het
+                  eerste gepubliceerde cijfer of wachten op het definitieve cijfer.
+                </p>
+              )}
+              <AfrondingKeuze afronding={afr} onChange={(a) => zet('afronding', a)} />
             </div>
-            <ExportKnoppen
-              naam="Indexcalculator"
-              csvRijen={csvGratis}
-              params={deelParams}
-              pad={PAD}
-              toelichting="De CSV bevat invoer, indexcijfers, bron en uitkomst. De link bewaart al uw invoer, ook de Pro-instellingen."
-            />
-          </div>
-        </Uitkomst>
-      </div>
+          </Kaart>
+          <Uitkomst
+            inklapbaar
+            label={<Badge soort="status-gegund">CBS-cijfers, peildatum {datum(indexbron.peildatum)}</Badge>}
+            formule={FORMULE}
+            toelichting={
+              <>
+                Bron: CBS StatLine, tabel{' '}
+                <a href={reeks.bronUrl} target="_blank" rel="noopener noreferrer">
+                  {reeks.tabelId}
+                </a>
+                , opgehaald op {datum(indexbron.peildatum)}. Het basisjaar van de reeks ({reeks.basisjaar}) maakt voor de uitkomst
+                niet uit: alleen de verhouding telt. Afronding: {afrondingTekst(afr)}.
+              </>
+            }
+            invoer={invoerRegels}
+          >
+            <div className="stapel">
+              <div className="tegels">
+                <Tegel label={`Tarief ${periodeLabel(peil)}`} waarde={euro(tarief, 2)} toelichting="per ton" hero />
+                <Tegel
+                  label="Indexfactor"
+                  waarde={getal(factor, factorDecimalen(afr))}
+                  toelichting={`${periodeLabel(peil)} t.o.v. ${periodeLabel(basis)}`}
+                />
+                <Tegel label="Stijging" waarde={procent(stijgingPct)} toelichting={`${euro(tarief - invoer.basistarief, 2)} per ton`} />
+              </div>
+              <p className="klein muted" style={{ margin: 0 }}>
+                Indexcijfers: {toonWaarde(reeks, basisWaarde, afr)} ({periodeLabel(basis)}) en {toonWaarde(reeks, peilWaarde, afr)} (
+                {periodeLabel(peil)}), CBS-tabel{' '}
+                <a href={reeks.bronUrl} target="_blank" rel="noopener noreferrer">
+                  {reeks.tabelId}
+                </a>
+                .
+              </p>
+              <ExportKnoppen
+                naam="Indexcalculator"
+                csvRijen={csvGratis}
+                params={deelParams}
+                pad={PAD}
+                linkInklappen
+                toelichting="De CSV bevat invoer, indexcijfers, afronding, bron en uitkomst. De link bewaart al uw invoer, ook de Pro-instellingen."
+              />
+            </div>
+          </Uitkomst>
+        </div>
+      </section>
 
-      <h2 className="sectie" id="pro" style={{ margin: '28px 0 12px' }}>
-        Pro voor leden
-      </h2>
-      <Vergrendeld
-        titel="Indexcalculator Pro"
-        ledenKrijgen={[
-          'Eigen weging over meerdere CBS-reeksen, met een vast deel dat niet meebeweegt',
-          'Tarief per contractjaar met peilmaand of jaargemiddelde, in tabel en grafiek',
-          'Twee contractjaren vergelijken en alles exporteren als CSV',
-          'Rapport maken met invoer, bronnen, formule en uitkomst',
-        ]}
-      >
-        <IndexPro invoer={invoer} zet={zet} deelParams={deelParams} />
-      </Vergrendeld>
+      <section className="ta-pro" aria-labelledby="pro">
+        <div className="ta-sectiekop">
+          <h2 className="sectie" id="pro" style={{ margin: 0 }}>
+            Eigen weging en contractjaren
+          </h2>
+          <Badge soort="pro">Pro voor leden</Badge>
+        </div>
+        <p className="ta-pro-uitleg">
+          Weeg loon, prijzen, energie en diesel zoals in uw contract en zie het tarief voor elk contractjaar, met plafond, bodem en
+          afronding.
+        </p>
+        {laden ? (
+          <p className="notitie info" role="status" style={{ minHeight: 120 }}>
+            Ledentoegang controleren…
+          </p>
+        ) : (
+          <Vergrendeld
+            titel="Indexcalculator Pro"
+            ledenKrijgen={[
+              'Eigen weging over meerdere CBS-reeksen, met een vast deel dat niet meebeweegt',
+              'Tarief per contractjaar met peilmaand of jaargemiddelde, in tabel en grafiek',
+              'Twee contractjaren vergelijken en alles exporteren als CSV, met de indexcijfers per reeks',
+              'Rapport maken met invoer, bronnen, formule en uitkomst',
+            ]}
+          >
+            <IndexPro invoer={invoer} zet={zet} deelParams={deelParams} />
+          </Vergrendeld>
+        )}
+      </section>
 
-      <h2 className="sectie" id="reeksen" style={{ margin: '28px 0 12px' }}>
-        Over de reeksen
-      </h2>
-      <div className="raster raster-2">
-        <Kaart titel="Waarom deze reeksen" className="lees">
+      <section className="ta-achtergrond" aria-labelledby="ta-achtergrond-kop">
+        <h2 className="sectie" id="ta-achtergrond-kop">
+          Achtergrond
+        </h2>
+        <Inklapbaar id="reeksen" titel="Waarom deze reeksen" sub={`${indexreeksen.length} CBS-reeksen`}>
           <p>
-            Indexeringsclausules in afvalcontracten volgen meestal de kostenopbouw van de dienst. Loon, energie en
-            brandstof zijn de grootste posten, aangevuld met de algemene prijsontwikkeling.
+            Indexeringsclausules in afvalcontracten volgen meestal de kostenopbouw van de dienst. Loon, energie en brandstof zijn de
+            grootste posten, aangevuld met de algemene prijsontwikkeling.
           </p>
           <ul className="opsomming">
             <li>
-              <strong>Cao-lonen per uur inclusief bijzondere beloningen</strong> voor de bedrijfstak waterbedrijven en
-              afvalbeheer (SBI E). Voor inzamelcontracten ook vervoer en opslag (SBI H). Het totaal van alle bedrijfstakken
-              is een alternatief als het contract geen bedrijfstak noemt.
+              <strong>Cao-lonen per uur inclusief bijzondere beloningen</strong> voor de bedrijfstak waterbedrijven en afvalbeheer
+              (SBI E). Voor inzamelcontracten ook vervoer en opslag (SBI H). Het totaal van alle bedrijfstakken is een alternatief als
+              het contract geen bedrijfstak noemt.
             </li>
             <li>
-              <strong>Consumentenprijsindex (CPI), alle bestedingen.</strong> De standaardreeks voor algemene
-              prijsontwikkeling.
+              <strong>Consumentenprijsindex (CPI), alle bestedingen.</strong> De standaardreeks voor algemene prijsontwikkeling.
             </li>
             <li>
-              <strong>Producentenprijsindex energie</strong> (elektriciteit, gas, stoom en warmte, afzet binnenland) voor
-              de energiekosten van installaties.
+              <strong>Producentenprijsindex energie</strong> (elektriciteit, gas, stoom en warmte, afzet binnenland) voor de
+              energiekosten van installaties.
             </li>
             <li>
-              <strong>Pompprijs diesel</strong> voor brandstof van inzamelvoertuigen. Dit is een prijs in euro per liter,
-              geen index. De berekening werkt hetzelfde, want alleen de verhouding telt.
+              <strong>Pompprijs diesel</strong> voor brandstof van inzamelvoertuigen. Dit is een consumentenprijs in euro per liter,
+              inclusief accijns en btw, geen index. De berekening werkt hetzelfde, want alleen de verhouding telt.
             </li>
           </ul>
           <p className="klein muted">
             Niet opgenomen: de producentenprijsindex voor gasolie. CBS publiceert die reeks met veel lege maanden, waardoor een
             indexatie niet betrouwbaar na te rekenen is.
           </p>
-        </Kaart>
-        <Bronnenlijst
-          id="bronnen"
-          regels={bronRegels}
-          sub={
-            <>
-              Opgehaald op {datum(indexbron.peildatum)} via de CBS Open Data API. {indexbron.licentie}.
-            </>
-          }
-        />
-      </div>
+        </Inklapbaar>
+        <Inklapbaar id="rekenregels" titel="Rekenregels en afronding" sub="formules, peilperiode, afronding">
+          <ul className="opsomming">
+            <li>
+              Eén reeks: <code>{FORMULE}</code>.
+            </li>
+            <li>
+              Meerdere reeksen (Pro): <code>{FORMULE_PRO}</code>. Weging en vast deel moeten samen 100 % zijn.
+            </li>
+            <li>
+              De peilperiode ligt altijd na de basisperiode. Een contract indexeert vooruit: het nieuwe tarief volgt uit de
+              ontwikkeling sinds de basisperiode.
+            </li>
+            <li>
+              Contractjaar J gebruikt het cijfer van jaar J (nacalculatie) of J − 1 (tarief per 1 januari), als jaargemiddelde of
+              van de gekozen peilmaand.
+            </li>
+            <li>
+              Met een plafond of bodem indexeert de tool jaar op jaar: {FORMULE_GRENS}. Zonder begrenzing is dat gelijk aan basistarief
+              × factor.
+            </li>
+            <li>
+              Afronding: de tool rondt rekenkundig af (vanaf 5 naar boven). Eerst de indexcijfers (als u dat kiest), dan de
+              indexfactor, dan het tarief. Bij jaar-op-jaar indexeren rekent elk jaar verder met het afgeronde tarief van het jaar
+              ervoor.
+            </li>
+          </ul>
+        </Inklapbaar>
+        <Inklapbaar id="bronnen" titel="Bronnen en peildatum" sub={`CBS, opgehaald op ${datum(indexbron.peildatum)}`}>
+          <p className="klein muted" style={{ margin: 0 }}>
+            Opgehaald via de CBS Open Data API. {indexbron.licentie}.
+          </p>
+          <BronRegels regels={bronRegels} />
+        </Inklapbaar>
+      </section>
       <RapportVoet tekst={`Indexcijfers: CBS StatLine (CC BY 4.0), opgehaald op ${datum(indexbron.peildatum)}`} />
-    </>
+    </div>
   );
 }
 
@@ -298,6 +399,47 @@ function SoortKeuze({ soort, onChange }: { soort: Periodesoort; onChange: (s: Pe
   );
 }
 
+function AfrondingKeuze({ afronding, onChange }: { afronding: Afronding; onChange: (a: Afronding) => void }) {
+  const naarTekst = (n: number | null, leeg: string) => (n === null ? leeg : String(n));
+  const naarGetal = (t: string) => (t === 'cbs' || t === 'nee' ? null : Number(t));
+  return (
+    <details className="ta-afronding" id="afronding">
+      <summary>
+        <span className="veld-label">Afronding</span> <span className="ta-inklap-sub">{afrondingTekst(afronding)}</span>
+      </summary>
+      <div className="velden">
+        <KeuzeVeld
+          label="Indexcijfers afronden"
+          waarde={naarTekst(afronding.indexDecimalen, 'cbs')}
+          opties={[
+            { waarde: 'cbs', label: 'Nee, zoals CBS ze publiceert' },
+            { waarde: '1', label: 'Op 1 decimaal' },
+            { waarde: '2', label: 'Op 2 decimalen' },
+          ]}
+          onChange={(t) => onChange({ ...afronding, indexDecimalen: naarGetal(t) })}
+        />
+        <KeuzeVeld
+          label="Indexfactor afronden"
+          waarde={naarTekst(afronding.factorDecimalen, 'nee')}
+          opties={[
+            { waarde: 'nee', label: 'Nee' },
+            { waarde: '3', label: 'Op 3 decimalen' },
+            { waarde: '4', label: 'Op 4 decimalen' },
+          ]}
+          onChange={(t) => onChange({ ...afronding, factorDecimalen: naarGetal(t) })}
+        />
+        <label className="keuze">
+          <input type="checkbox" checked={afronding.tariefCenten} onChange={(e) => onChange({ ...afronding, tariefCenten: e.target.checked })} />
+          Tarief afronden op hele centen
+        </label>
+        <p className="klein muted" style={{ margin: 0 }}>
+          Neem de afronding uit uw contract over. De keuze geldt ook voor Pro en staat in de CSV en de deellink.
+        </p>
+      </div>
+    </details>
+  );
+}
+
 interface ProProps {
   invoer: IndexInvoer;
   zet: <K extends keyof IndexInvoer>(k: K, v: IndexInvoer[K]) => void;
@@ -305,7 +447,7 @@ interface ProProps {
 }
 
 function IndexPro({ invoer, zet, deelParams }: ProProps) {
-  const { soort } = invoer;
+  const { soort, afronding: afr } = invoer;
   const somPct = indexreeksen.reduce((s, r) => s + (invoer.wegingPct[r.id] ?? 0), 0) + invoer.vastPct;
   const klopt = Math.abs(somPct - 100) < 1e-6;
   const gewogen: GewogenReeks[] = indexreeksen
@@ -317,7 +459,7 @@ function IndexPro({ invoer, zet, deelParams }: ProProps) {
   const peilOpties = basis ? perioden.filter((p) => p > basis) : [];
   const peil = basis ? kiesPeriode(peilOpties.length ? peilOpties : [basis], invoer.peilperiode) : undefined;
   const vast = invoer.vastPct / 100;
-  const factor = basis && peil ? factorTussen(gewogen, soort, basis, peil, vast) : undefined;
+  const factor = basis && peil ? factorTussen(gewogen, soort, basis, peil, vast, afr) : undefined;
 
   const eersteJaar = Math.min(invoer.eersteJaar, invoer.laatsteJaar);
   const laatsteJaar = Math.max(invoer.eersteJaar, invoer.laatsteJaar);
@@ -332,6 +474,7 @@ function IndexPro({ invoer, zet, deelParams }: ProProps) {
     peilmaand: invoer.peilmaand,
     plafondPct: invoer.plafondPct,
     geenDaling: invoer.geenDaling,
+    afronding: afr,
   };
   const grenzen = invoer.plafondPct !== null || invoer.geenDaling;
   const grensTekst = [
@@ -367,7 +510,9 @@ function IndexPro({ invoer, zet, deelParams }: ProProps) {
   const zetVergelijk = (na: number, nb: number) => zet('vergelijk', [na, nb]);
   const vergelijking = a !== undefined && b !== undefined ? vergelijkJaren(rijen, a, b) : undefined;
   const ontbrekend = laatsteJaar - eersteJaar + 1 - rijen.length;
-  const voorlopigGebruikt = rijen.some((r) => gebruikt.some((g) => isVoorlopig(g, r.peilperiode))) || (peil !== undefined && gebruikt.some((g) => isVoorlopig(g, peil)));
+  const voorlopigGebruikt =
+    rijen.some((r) => gebruikt.some((g) => isVoorlopig(g, r.peilperiode))) || (peil !== undefined && gebruikt.some((g) => isVoorlopig(g, peil)));
+  const fd = factorDecimalen(afr);
 
   const csvPro = (): CsvCel[][] => [
     ['Indexcalculator Pro', 'KplusV'],
@@ -386,28 +531,33 @@ function IndexPro({ invoer, zet, deelParams }: ProProps) {
     ...(soort === 'maand' ? [['Peilmaand', MAANDNAMEN[invoer.peilmaand - 1]] as CsvCel[]] : []),
     ['Plafond per indexatie (%)', invoer.plafondPct ?? 'geen'],
     ['Negatieve indexatie', invoer.geenDaling ? 'niet toegepast' : 'toegepast'],
+    ['Afronding', afrondingTekst(afr)],
     [],
-    ['Bronnen'],
-    ...gebruikt.map((g): CsvCel[] => [g.kort, `${g.tabelId} ${g.tabelTitel}`, g.bronUrl]),
+    ['Bronnen en indexcijfers basisperiode', 'CBS-tabel', 'Bron-URL', `Indexcijfer ${basis ? periodeLabel(basis) : ''} (CBS)`],
+    ...gebruikt.map((g): CsvCel[] => [g.kort, `${g.tabelId} ${g.tabelTitel}`, g.bronUrl, basis ? (waardeOp(g, soort, basis) ?? null) : null]),
     [],
     [
       'Contractjaar',
       'Peilperiode',
+      ...gebruikt.map((g): CsvCel => `Indexcijfer ${g.kort} peilperiode (CBS)`),
       'Indexfactor',
       'Tarief (euro per ton)',
       'Stijging t.o.v. vorig jaar (%)',
       'Tarief zonder plafond of bodem (euro per ton)',
       'Begrensd',
+      'Voorlopig cijfer gebruikt',
       'Ter vergelijking: alleen CPI (euro per ton)',
     ],
     ...rijen.map((r): CsvCel[] => [
       r.jaar,
       periodeLabel(r.peilperiode),
+      ...gebruikt.map((g): CsvCel => waardeOp(g, soort, r.peilperiode) ?? null),
       r.factor,
       r.tarief,
       r.stijgingPct,
       r.tariefZonderGrens,
       r.begrensd ? 'ja' : 'nee',
+      gebruikt.some((g) => isVoorlopig(g, r.peilperiode)) ? 'ja' : 'nee',
       cpiPerJaar.get(r.jaar) ?? null,
     ]),
     [],
@@ -491,11 +641,7 @@ function IndexPro({ invoer, zet, deelParams }: ProProps) {
               <legend>Begrenzing uit het contract</legend>
               <div className="keuzes kolom">
                 <label className="keuze">
-                  <input
-                    type="checkbox"
-                    checked={invoer.plafondPct !== null}
-                    onChange={(e) => zet('plafondPct', e.target.checked ? 3 : null)}
-                  />
+                  <input type="checkbox" checked={invoer.plafondPct !== null} onChange={(e) => zet('plafondPct', e.target.checked ? 3 : null)} />
                   Plafond per indexatie
                 </label>
                 <label className="keuze">
@@ -514,16 +660,20 @@ function IndexPro({ invoer, zet, deelParams }: ProProps) {
                 hint="Vul het percentage uit uw contract in. 3 % is een voorbeeldwaarde. Met een begrenzing indexeert de tool jaar op jaar."
               />
             )}
+            <p className="klein muted" style={{ margin: 0 }}>
+              Afronding: {afrondingTekst(afr)}. <a href="#afronding">Wijzigen bij de invoer hierboven</a>.
+            </p>
           </div>
         </Kaart>
       </div>
 
       <Uitkomst
+        inklapbaar
         titel="Tarief per contractjaar"
         label={<Badge soort="status-gegund">CBS-cijfers, peildatum {datum(indexbron.peildatum)}</Badge>}
         formule={`${FORMULE_PRO}\npeilperiode contractjaar J = ${soort === 'jaar' ? 'jaar' : `${MAANDNAMEN[invoer.peilmaand - 1]} van jaar`} J${
           invoer.verschuiving ? ' − 1' : ''
-        }${grenzen ? `\n${FORMULE_GRENS}` : ''}`}
+        }${grenzen ? `\n${FORMULE_GRENS}` : ''}\nafronding: ${afrondingTekst(afr)}`}
         toelichting={
           ontbrekend > 0
             ? `${ontbrekend} contractja${ontbrekend === 1 ? 'ar ontbreekt' : 'ren ontbreken'}: CBS heeft voor de peilperiode nog geen cijfer voor alle gekozen reeksen.`
@@ -532,30 +682,30 @@ function IndexPro({ invoer, zet, deelParams }: ProProps) {
         invoer={[
           { label: 'Basistarief', waarde: `${euro(invoer.basistarief, 2)} per ton` },
           { label: 'Basisperiode', waarde: basis ? periodeLabel(basis) : '–' },
-          ...gewogen.map((g) => ({ label: `Weging ${g.naam}`, waarde: procent(g.weging * 100, 0) })),
+          ...gewogen.map((g) => ({
+            label: `Weging ${g.naam}`,
+            waarde: `${procent(g.weging * 100, 0)}${basis ? ` (indexcijfer ${periodeLabel(basis)}: ${toonWaarde(g.reeks as CbsReeks, waardeOp(g.reeks, soort, basis), afr)})` : ''}`,
+          })),
           { label: 'Vast deel', waarde: procent(invoer.vastPct, 0) },
           { label: 'Contractjaren', waarde: `${eersteJaar} t/m ${laatsteJaar}` },
           { label: 'Begrenzing', waarde: grenzen ? grensTekst : 'geen' },
+          { label: 'Afronding', waarde: afrondingTekst(afr) },
         ]}
       >
         <div className="stapel">
           <div className="tegels">
             <Tegel
               label={peil ? `Gewogen tarief ${periodeLabel(peil)}` : 'Gewogen tarief'}
-              waarde={factor !== undefined ? euro(invoer.basistarief * factor, 2) : '–'}
+              waarde={factor !== undefined ? euro(rondTarief(invoer.basistarief * factor, afr), 2) : '–'}
               toelichting={
                 factor !== undefined && basis
-                  ? `factor ${getal(factor, 4)} t.o.v. ${periodeLabel(basis)}${grenzen ? ', zonder begrenzing' : ''}`
+                  ? `factor ${getal(factor, fd)} t.o.v. ${periodeLabel(basis)}${grenzen ? ', zonder begrenzing' : ''}`
                   : 'geen gemeenschappelijke cijfers'
               }
               hero
             />
             {vergelijking && a !== undefined && b !== undefined && (
-              <Tegel
-                label={`Verschil ${a} → ${b}`}
-                waarde={procent(vergelijking.verschilPct)}
-                toelichting={`${euro(vergelijking.verschil, 2)} per ton`}
-              />
+              <Tegel label={`Verschil ${a} → ${b}`} waarde={procent(vergelijking.verschilPct)} toelichting={`${euro(vergelijking.verschil, 2)} per ton`} />
             )}
           </div>
           {voorlopigGebruikt && (
@@ -563,30 +713,21 @@ function IndexPro({ invoer, zet, deelParams }: ProProps) {
               Een of meer peilperioden gebruiken voorlopige CBS-cijfers. Die kunnen nog wijzigen.
             </p>
           )}
-          {grafiekRijen.length > 1 && (
-            <LijnGrafiek
-              titel="Tarief per contractjaar met gewogen index, vergeleken met alleen consumentenprijzen"
-              labels={grafiekRijen.map((r) => r.jaar)}
-              reeksen={[
-                { naam: 'Tarief met gewogen index', waarden: grafiekRijen.map((r) => r.tarief) },
-                { naam: 'Ter vergelijking: alleen CPI', waarden: grafiekRijen.map((r) => cpiPerJaar.get(r.jaar)!), vergelijking: true },
-              ]}
-              formatY={(n) => euro(n)}
-              vanafNul={false}
-            />
+          {jaarOpties.length > 1 && (
+            <div className="velden-2 invoerkaart">
+              <KeuzeVeld label="Vergelijk contractjaar" waarde={a!} opties={jaarOpties} onChange={(j) => zetVergelijk(j, b!)} />
+              <KeuzeVeld label="met contractjaar" waarde={b!} opties={jaarOpties} onChange={(j) => zetVergelijk(a!, j)} />
+            </div>
           )}
           <div className="tabel-container" tabIndex={0} role="region" aria-label="Tabel tarief per contractjaar">
             <table>
               <caption>
-                Tarief per ton per contractjaar. Bron indexcijfers: CBS, opgehaald op {datum(indexbron.peildatum)}.
+                Tarief per ton per contractjaar, met de peilperiode en de indexfactor eronder. Bron indexcijfers: CBS, opgehaald op{' '}
+                {datum(indexbron.peildatum)}.
               </caption>
               <thead>
                 <tr>
                   <th scope="col">Contractjaar</th>
-                  <th scope="col">Peilperiode</th>
-                  <th scope="col" className="num">
-                    Indexfactor
-                  </th>
                   <th scope="col" className="num">
                     Tarief per ton
                   </th>
@@ -601,42 +742,52 @@ function IndexPro({ invoer, zet, deelParams }: ProProps) {
               <tbody>
                 {rijen.map((r) => (
                   <tr key={r.jaar}>
-                    <th scope="row" style={{ fontWeight: 500 }}>
+                    <th scope="row" style={{ fontWeight: 600 }}>
                       {r.jaar}
+                      <span className="ta-onder">
+                        {periodeLabel(r.peilperiode)}
+                        {gebruikt.some((g) => isVoorlopig(g, r.peilperiode)) ? ' (voorlopig)' : ''}
+                      </span>
                     </th>
-                    <td>
-                      {periodeLabel(r.peilperiode)}
-                      {gebruikt.some((g) => isVoorlopig(g, r.peilperiode)) ? ' (voorlopig)' : ''}
+                    <td className="num">
+                      {euro(r.tarief, 2)}
+                      <span className="ta-onder">factor {getal(r.factor, fd)}</span>
                     </td>
-                    <td className="num">{getal(r.factor, 4)}</td>
-                    <td className="num">{euro(r.tarief, 2)}</td>
                     <td className="num">
                       {r.stijgingPct === null ? '–' : procent(r.stijgingPct)}
-                      {r.begrensd && (
-                        <>
-                          <br />
-                          <span className="klein muted">begrensd, zonder: {euro(r.tariefZonderGrens, 2)}</span>
-                        </>
-                      )}
+                      {r.begrensd && <span className="ta-onder">begrensd, zonder: {euro(r.tariefZonderGrens, 2)}</span>}
                     </td>
                     <td className="num">{cpiPerJaar.has(r.jaar) ? euro(cpiPerJaar.get(r.jaar)!, 2) : '–'}</td>
                   </tr>
                 ))}
                 {rijen.length === 0 && (
                   <tr>
-                    <td colSpan={6}>Geen contractjaren met cijfers. Controleer de jaren en de weging.</td>
+                    <td colSpan={4}>Geen contractjaren met cijfers. Controleer de jaren en de weging.</td>
                   </tr>
                 )}
               </tbody>
             </table>
           </div>
-          {jaarOpties.length > 1 && (
-            <div className="velden-2 invoerkaart">
-              <KeuzeVeld label="Vergelijk contractjaar" waarde={a!} opties={jaarOpties} onChange={(j) => zetVergelijk(j, b!)} />
-              <KeuzeVeld label="met contractjaar" waarde={b!} opties={jaarOpties} onChange={(j) => zetVergelijk(a!, j)} />
-            </div>
+          {grafiekRijen.length > 1 && (
+            <LijnGrafiek
+              titel="Tarief per contractjaar met gewogen index, vergeleken met alleen consumentenprijzen"
+              labels={grafiekRijen.map((r) => r.jaar)}
+              reeksen={[
+                { naam: 'Tarief met gewogen index', waarden: grafiekRijen.map((r) => r.tarief) },
+                { naam: 'Ter vergelijking: alleen CPI', waarden: grafiekRijen.map((r) => cpiPerJaar.get(r.jaar)!), vergelijking: true },
+              ]}
+              formatY={(n) => euro(n)}
+              vanafNul={false}
+            />
           )}
-          <ExportKnoppen naam="Indexcalculator Pro" csvRijen={csvPro} params={deelParams} pad={PAD} />
+          <ExportKnoppen
+            naam="Indexcalculator Pro"
+            csvRijen={csvPro}
+            params={deelParams}
+            pad={PAD}
+            linkInklappen
+            toelichting="De CSV bevat per contractjaar de CBS-indexcijfers van elke gebruikte reeks, de factor, het tarief en de afronding."
+          />
           <RapportKnop />
         </div>
       </Uitkomst>

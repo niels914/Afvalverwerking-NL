@@ -1,0 +1,89 @@
+import { useEffect, type ReactNode } from 'react';
+import './tools-a.css';
+
+// Bouwstenen om een rekentool op mobiel kort te houden: kern bovenaan, details inklapbaar.
+// Ingeklapte delen gaan open bij printen ("Rapport maken") en als een anker ernaar wijst.
+
+/** Samenvatting bovenaan een tool: de uitkomst in één zin en de belangrijkste aannames. */
+export function Kern({ titel = 'In het kort', children }: { titel?: string; children: ReactNode }) {
+  return (
+    <section className="ta-kern" aria-labelledby="ta-kern-titel">
+      <h2 id="ta-kern-titel">{titel}</h2>
+      {children}
+    </section>
+  );
+}
+
+interface InklapbaarProps {
+  /** Anker-id; een link naar #id opent het blok. */
+  id?: string;
+  titel: string;
+  /** Korte tekst naast de titel, bijv. aantal regels of de gekozen instelling. */
+  sub?: ReactNode;
+  /** Kopniveau van de titel in de samenvatting. */
+  kopNiveau?: 2 | 3;
+  open?: boolean;
+  children: ReactNode;
+}
+
+/** Inklapbaar blok met een echte kop in de samenvatting, zodat het in de koppenstructuur blijft. */
+export function Inklapbaar({ id, titel, sub, kopNiveau = 2, open, children }: InklapbaarProps) {
+  const Kop = kopNiveau === 2 ? 'h2' : 'h3';
+  return (
+    <details className="ta-inklap" id={id} open={open}>
+      <summary>
+        <Kop className="ta-inklap-titel">{titel}</Kop>
+        {sub && <span className="ta-inklap-sub">{sub}</span>}
+      </summary>
+      <div className="ta-inklap-inhoud">{children}</div>
+    </details>
+  );
+}
+
+/** Opent het ingeklapte blok waar het anker in de adresbalk naar wijst (of waar het in ligt). */
+function openBijAnker() {
+  const id = decodeURIComponent(window.location.hash.slice(1));
+  if (!id) return;
+  const doel = document.getElementById(id);
+  const details = doel?.closest('details');
+  if (details && !details.open) {
+    details.open = true;
+    doel?.scrollIntoView();
+  }
+}
+
+/**
+ * Zet ingeklapte blokken open bij printen en zet ze daarna terug, en opent een blok als een anker ernaar wijst.
+ * Eén keer aanroepen per pagina.
+ */
+export function useInklapBijPrintEnAnker() {
+  useEffect(() => {
+    let geopend: HTMLDetailsElement[] = [];
+    const voorPrint = () => {
+      geopend = [...document.querySelectorAll<HTMLDetailsElement>('details:not([open])')];
+      geopend.forEach((d) => (d.open = true));
+    };
+    const naPrint = () => {
+      geopend.forEach((d) => (d.open = false));
+      geopend = [];
+    };
+    window.addEventListener('beforeprint', voorPrint);
+    window.addEventListener('afterprint', naPrint);
+    window.addEventListener('hashchange', openBijAnker);
+    // Ook bij binnenkomst met een anker (de pagina laadt lazy, dus even wachten tot alles er staat).
+    const t = window.setTimeout(openBijAnker, 0);
+    return () => {
+      window.removeEventListener('beforeprint', voorPrint);
+      window.removeEventListener('afterprint', naPrint);
+      window.removeEventListener('hashchange', openBijAnker);
+      window.clearTimeout(t);
+    };
+  }, []);
+}
+
+/** Klik op een link "Op deze pagina": open eerst het doelblok, zodat het scrollen op de inhoud uitkomt. */
+export function openAnkerDoel(id: string) {
+  const doel = document.getElementById(id);
+  const details = doel?.closest('details');
+  if (details && !details.open) details.open = true;
+}

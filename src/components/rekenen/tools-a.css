@@ -1,0 +1,288 @@
+/* Indexcalculator en CO2-heffingenscan (onderdeel tools-a): kern bovenaan, inklapbare details,
+   gratis en Pro duidelijk gescheiden, leesbare tabellen op 400 px. Alleen tokens uit src/styles/tokens.css.
+   Alle klassen beginnen met ta-, zodat andere tools er geen last van hebben. */
+
+/* ---------- Leesbaarheid: hulp- en brontekst iets groter ---------- */
+.ta-tool .veld .hint,
+.ta-tool .klein,
+.ta-tool .notitie,
+.ta-tool .kaart .sub,
+.ta-tool caption {
+  font-size: 14px;
+  line-height: 1.5;
+}
+.ta-tool .tegel small {
+  font-size: 13.5px;
+}
+.ta-tool .formule {
+  font-size: 13px;
+}
+
+/* ---------- Kern bovenaan ---------- */
+.ta-kern {
+  background: var(--kaartvlak-2);
+  border-left: 5px solid var(--paars);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin: 0 0 20px;
+  display: grid;
+  gap: 8px;
+}
+.ta-kern h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--donkerviolet);
+  margin: 0;
+}
+.ta-kern .ta-kern-zin {
+  font-size: 17px;
+  line-height: 1.45;
+  color: var(--tekst);
+  margin: 0;
+}
+.ta-kern .ta-kern-zin strong {
+  font-weight: 700;
+}
+.ta-kern ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 3px;
+  font-size: 14.5px;
+  color: var(--tekst-2);
+}
+.ta-kern p {
+  margin: 0;
+}
+
+/* ---------- Sectiekoppen gratis en Pro ---------- */
+.ta-sectiekop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin: 0 0 12px;
+}
+.ta-sectiekop h2 {
+  margin: 0;
+}
+.ta-pro {
+  margin-top: 32px;
+  padding: 18px 16px 20px;
+  background: var(--kaartvlak);
+  border: 1px solid var(--rand);
+  border-top: 5px solid var(--donkerviolet);
+  border-radius: var(--radius-kaart);
+}
+.ta-pro > p.ta-pro-uitleg {
+  margin: -4px 0 14px;
+  font-size: 14.5px;
+  color: var(--tekst-2);
+}
+@media (max-width: 480px) {
+  .ta-pro {
+    margin-left: -8px;
+    margin-right: -8px;
+    padding: 14px 8px 16px;
+  }
+}
+
+/* ---------- Inklapbare blokken ---------- */
+.ta-achtergrond {
+  margin-top: 32px;
+  display: grid;
+  gap: 10px;
+}
+.ta-achtergrond > h2 {
+  margin: 0 0 4px;
+}
+.ta-inklap {
+  background: var(--wit);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  min-width: 0;
+}
+.ta-inklap > summary,
+.ta-verantwoording > summary,
+.ta-deellink > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+  border-radius: var(--radius);
+}
+.ta-inklap > summary::-webkit-details-marker,
+.ta-verantwoording > summary::-webkit-details-marker,
+.ta-deellink > summary::-webkit-details-marker {
+  display: none;
+}
+.ta-inklap > summary {
+  padding: 14px 16px 14px 40px;
+  position: relative;
+  min-height: 48px;
+}
+.ta-inklap > summary::before,
+.ta-verantwoording > summary::before,
+.ta-deellink > summary::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--donkerviolet);
+  border-bottom: 2px solid var(--donkerviolet);
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+  flex: none;
+}
+.ta-inklap > summary::before {
+  position: absolute;
+  left: 17px;
+  top: 21px;
+}
+.ta-inklap[open] > summary::before,
+.ta-verantwoording[open] > summary::before,
+.ta-deellink[open] > summary::before {
+  transform: rotate(45deg);
+}
+.ta-inklap-titel {
+  font-size: 17px;
+  margin: 0;
+  color: var(--tekst);
+  display: inline;
+}
+h3.ta-inklap-titel {
+  font-size: 16px;
+}
+.ta-inklap-sub {
+  font-size: 14px;
+  color: var(--tekst-secundair);
+}
+.ta-inklap > summary:hover .ta-inklap-titel {
+  color: var(--donkerviolet);
+}
+.ta-inklap-inhoud {
+  padding: 0 16px 16px;
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.ta-inklap-inhoud > .kaart {
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  background: transparent;
+}
+
+/* Verantwoording in de uitkomstkaart */
+.ta-verantwoording > summary {
+  align-items: center;
+  min-height: 40px;
+}
+.ta-verantwoording > summary h3 {
+  margin: 0;
+  font-size: 14.5px;
+}
+.ta-verantwoording h4 {
+  font-size: 13.5px;
+  color: var(--donkerviolet);
+  margin: 0;
+}
+.ta-verantwoording[open] {
+  display: grid;
+  gap: 10px;
+}
+.ta-deellink > summary {
+  align-items: center;
+  min-height: 36px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--link);
+}
+.ta-deellink[open] {
+  display: grid;
+  gap: 8px;
+}
+
+/* ---------- Tabellen op smalle schermen ---------- */
+@media (max-width: 520px) {
+  .ta-tool table {
+    font-size: 13px;
+  }
+  .ta-tool th,
+  .ta-tool td {
+    padding: 8px 7px;
+  }
+  .ta-tool thead th {
+    font-size: 10.5px;
+    letter-spacing: 0.02em;
+    white-space: normal;
+  }
+}
+.ta-onder {
+  display: block;
+  font-size: 12.5px;
+  color: var(--tekst-secundair);
+  font-weight: 400;
+}
+/* Breed: volledige bedragen; smal (≤ 520 px): in duizenden, zodat de tabel niet hoeft te scrollen. */
+.ta-tool .ta-smal {
+  display: none;
+}
+@media (max-width: 520px) {
+  .ta-tool .ta-smal {
+    display: inline;
+  }
+  .ta-tool .ta-onder.ta-smal {
+    display: block;
+  }
+  .ta-tool .ta-breed {
+    display: none;
+  }
+}
+
+/* ---------- Afronding en kleine keuzes ---------- */
+.ta-afronding {
+  border: 1px dashed var(--lichtviolet);
+  border-radius: var(--radius);
+  padding: 0 12px;
+}
+.ta-afronding[open] {
+  padding-bottom: 12px;
+}
+.ta-afronding > summary {
+  padding: 10px 0;
+}
+
+/* ---------- Printen ---------- */
+@media print {
+  details::details-content {
+    content-visibility: visible;
+    display: contents;
+  }
+  .ta-inklap > summary::before,
+  .ta-verantwoording > summary::before,
+  .ta-deellink,
+  .ta-afronding {
+    display: none !important;
+  }
+  .ta-inklap > summary {
+    padding: 0 0 6px;
+  }
+  .ta-inklap {
+    border: 0;
+  }
+  .ta-inklap-inhoud {
+    padding: 0;
+  }
+  .ta-pro {
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 16px 0 0;
+  }
+  .ta-kern {
+    break-inside: avoid;
+  }
+}

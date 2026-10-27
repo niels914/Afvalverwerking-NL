@@ -157,8 +157,23 @@ describe('CO2-heffingenscan: vrijgesteld deel', () => {
     expect(r[9].belastbaar).toBeCloseTo(r[9].uitstoot);
   });
 
-  it('gebruikt een kental dat volgt uit de NIR-standaardwaarden', () => {
-    expect(kentalEmissiefactor.waarde).toBeCloseTo((9.4 * 107.4 * 0.36) / 1000, 3);
+  it('gebruikt een kental dat volgt uit de lijst van energiedragers 2026', () => {
+    // 9,6 GJ/ton × 107,1 kg CO2/GJ × (1 − 0,63 biogeen) = 380,4 kg fossiel CO2 per ton
+    expect(kentalEmissiefactor.waarde).toBe(0.38);
+    expect(kentalEmissiefactor.waarde).toBeCloseTo((9.6 * 107.1 * 0.37) / 1000, 3);
+  });
+
+  it('vergelijkt geldend recht en voorstel eerlijk met de standaardinflatie', () => {
+    // Standaard 2,6 % per jaar: beide paden komen in 2035 uit op hetzelfde reële niveau (MvT tabel 12: € 304 in prijspeil 2026).
+    expect(co2StandaardInvoer.inflatiePct).toBe(2.6);
+    const f = 1.026;
+    const geldend = tariefInJaar(regels('geldend'), 2035, co2StandaardInvoer.inflatiePct) / f ** 9;
+    const voorstel = tariefInJaar(regels('voorstel'), 2035, co2StandaardInvoer.inflatiePct) / f ** 9;
+    expect(geldend).toBeCloseTo(303.55, 0);
+    expect(Math.abs(voorstel / geldend - 1)).toBeLessThan(0.02);
+    // Tarief 2027 geldend recht: (103,66 + 49,66) × 1,026; voorstel staat vast op 129,15.
+    expect(tariefInJaar(regels('geldend'), 2027, 2.6)).toBeCloseTo((103.66 + 49.66) * 1.026, 8);
+    expect(tariefInJaar(regels('voorstel'), 2027, 2.6)).toBe(129.15);
   });
 });
 

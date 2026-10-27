@@ -3,7 +3,7 @@
 // Waar staat "status: 'voorstel'" gaat het om het wetsvoorstel Belastingplan 2027 (nog geen wet).
 // Bijwerken: zie docs/stukken/tools-a.md, paragraaf "Onderhoud CO2-heffingenscan".
 
-export const PEILDATUM = '2026-10-19';
+export const PEILDATUM = '2026-10-27';
 
 export interface Bron {
   titel: string;
@@ -47,9 +47,9 @@ export const bronnen = {
     titel: 'Rijksoverheid, Belastingplan 2027 (nieuwsbericht 15 september 2026)',
     url: 'https://www.rijksoverheid.nl/actueel/nieuws/2026/09/15/belastingplan-2027-voorstellen-voor-beter-werkend-belastingstelsel-en-gezonde-overheidsfinancien',
   },
-  nir2024: {
-    titel: 'NEa/RVO, Nederlandse lijst van energiedragers en standaard CO2-emissiefactoren, versie januari 2024 (regel "Afval")',
-    url: 'https://www.emissieautoriteit.nl/documenten/2024/02/9/standaardwaarden-nir-2024',
+  energiedragers2026: {
+    titel: 'RVO, Nederlandse lijst van energiedragers en standaard CO2-emissiefactoren, versie januari 2026 (regel "Afval" en voetnoot 6)',
+    url: 'https://www.rvo.nl/sites/default/files/2026-06/Nederlandse-energiedragerlijst-versie-januari-2026.pdf',
   },
 } satisfies Record<string, Bron>;
 
@@ -135,22 +135,20 @@ export const reductiefactor: Record<number, number> = { 2021: 1.2, 2022: 1.143, 
 export const procesemissiefactor: Record<number, number> = { 2021: 0.97, 2028: 0.91 };
 
 /**
- * Kental fossiele CO2 per ton afval, afgeleid uit de NIR-standaardwaarden 2024 voor "Afval":
- * stookwaarde 9,4 GJ/ton × emissiefactor 107,4 kg CO2/GJ × (1 − 64 % biogeen) = 0,363 ton fossiel CO2 per ton.
- * Gemiddelde voor afval in AVI's, niet specifiek voor huishoudelijk restafval. Vervang door de waarde van uw verwerker.
+ * Kental fossiele CO2 per ton afval, afgeleid uit de Nederlandse lijst van energiedragers, versie januari 2026
+ * (RVO, afgestemd met de NEa), regel "Afval": netto stookwaarde 9,6 GJ/ton × CO2-emissiefactor 107,1 kg/GJ
+ * × (1 − 63 % biogeen aandeel in de emissiefactor, voetnoot 6) = 0,380 ton fossiel CO2 per ton afval.
+ * De lijst geeft voor 2025 en 2026 dezelfde waarden als voor 2024 (voetnoot 3). Gemiddelde voor afval in AVI's,
+ * niet specifiek voor huishoudelijk restafval. Vervang door de waarde van uw verwerker.
  */
 export const kentalEmissiefactor = {
-  stookwaardeGjPerTon: 9.4,
-  emissiefactorKgPerGj: 107.4,
-  biogeenAandeel: 0.64,
-  waarde: Math.round(((9.4 * 107.4 * (1 - 0.64)) / 1000) * 1000) / 1000,
+  stookwaardeGjPerTon: 9.6,
+  emissiefactorKgPerGj: 107.1,
+  biogeenAandeel: 0.63,
+  waarde: Math.round(((9.6 * 107.1 * (1 - 0.63)) / 1000) * 1000) / 1000,
+  bron: bronnen.energiedragers2026,
 };
 
-/**
- * Wettelijke inflatiecorrectie per 1 januari 2027 zonder de voorgestelde beperking: 2,6 % (tabelcorrectiefactor 1,026).
- * Het voorgestelde AVI-tarief 2027 van € 129,15 is daar al mee geïndexeerd. Bron: MvT Belastingplan 2027.
- * Alleen ter oriëntatie in de tool; latere jaren zijn niet bekend en blijven een aanname van de gebruiker.
- */
 /**
  * Tariefpad in prijspeil 2026 (afgerond op hele euro's) uit de memorie van toelichting bij het Belastingplan 2027,
  * tabel 12. Hiermee zijn geldend recht en voorstel eerlijk te vergelijken: beide zonder inflatie na 2026.
@@ -168,17 +166,26 @@ export const tariefpadPrijspeil2026: { jaar: number; geldend: number; voorstel: 
   { jaar: 2035, geldend: 304, voorstel: 304 },
 ];
 
+/**
+ * Wettelijke inflatiecorrectie per 1 januari 2027: 2,6 % (tabelcorrectiefactor 1,026), volgens de MvT Belastingplan 2027.
+ * Het voorgestelde AVI-tarief 2027 van € 129,15 is daar al mee geïndexeerd. De scan gebruikt 2,6 % ook als standaard
+ * voor latere jaren: dat is een aanname, want die correcties zijn nog niet bekend.
+ */
 export const inflatiecorrectie2027 = { pct: 2.6, bron: bronnen.bp2027 };
 
 export const scanJaren = { eerste: 2026, laatste: 2035 };
 
-/** Standaardinvoer van de scan. Tonnage en inwoners zijn voorbeeldwaarden. */
+/**
+ * Standaardinvoer van de scan. Tonnage en inwoners zijn voorbeeldwaarden. Inflatie staat standaard op 2,6 %
+ * (correctie per 1-1-2027), zodat geldend recht en wetsvoorstel eerlijk te vergelijken zijn: de verhogingen in het
+ * voorstel bevatten al inflatie, die in het geldend recht niet.
+ */
 export const co2StandaardInvoer = {
   tonnage: 50000,
   emissiefactor: kentalEmissiefactor.waarde,
   jaar: 2027,
   pad: 'geldend' as PadId,
-  inflatiePct: 0,
+  inflatiePct: inflatiecorrectie2027.pct,
   vrijstelling: 'wettelijk' as 'wettelijk' | 'eigen',
   eigenVrijgesteldPct: 50,
   uitstootVerhoudingPct: 100,

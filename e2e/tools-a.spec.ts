@@ -37,6 +37,11 @@ test.describe('Indexcalculator', () => {
     await expect(page.locator('.tegel.hero .tegel-waarde').first()).toContainText(nl(100 * factor));
     await expect(page.getByText(nl(factor, 4), { exact: true })).toBeVisible();
 
+    // Kern bovenaan met dezelfde uitkomst.
+    const kern = page.getByRole('region', { name: 'In het kort' });
+    await expect(kern).toContainText(nl(100 * factor));
+    await expect(kern).toContainText('Afronding: indexcijfers zoals CBS ze publiceert, indexfactor niet afgerond, tarief op hele centen');
+
     // Bron en peildatum zichtbaar.
     await expect(page.getByText(/CBS-cijfers, peildatum/).first()).toBeVisible();
     await expect(page.getByRole('link', { name: '86141NED' }).first()).toHaveAttribute('href', /opendata\.cbs\.nl/);
@@ -61,6 +66,47 @@ test.describe('Indexcalculator', () => {
     await expect(page.locator('.tegel.hero .tegel-waarde').first()).toContainText(nl(100 * factor));
     if (cpi.voorlopig.includes(laatste)) await expect(page.getByText(/CBS noemt een van deze cijfers voorlopig/)).toBeVisible();
     await expect(page).toHaveURL(/soort=maand/);
+    await geenHorizontaleScroll(page);
+  });
+
+  test('rondt af volgens het contract en zet de afronding in link en CSV', async ({ page }) => {
+    await page.goto('/tools/indexcalculator');
+    await page.getByLabel('Basisperiode', { exact: true }).selectOption('2021');
+    const peil = String(cpi.laatsteJaar);
+    await page.getByLabel('Peilperiode', { exact: true }).selectOption(peil);
+    await page.getByLabel('Basistarief', { exact: true }).fill('87,65');
+    await page.locator('#afronding summary').click();
+    await page.getByLabel('Indexcijfers afronden').selectOption('1');
+    await page.getByLabel('Indexfactor afronden').selectOption('3');
+    const r1 = (n: number) => Math.round(n * 10) / 10;
+    const factor = Math.round((r1(cpi.jaren[peil]) / r1(cpi.jaren['2021'])) * 1000) / 1000;
+    await expect(page.locator('.tegel').nth(1)).toContainText(nl(factor, 3));
+    await expect(page.locator('.tegel.hero .tegel-waarde').first()).toContainText(nl(Math.round(87.65 * factor * 100) / 100));
+    await expect(page).toHaveURL(/rindex=1/);
+    await expect(page).toHaveURL(/rfactor=3/);
+    const { tekst } = await leesDownload(page, 'CSV downloaden');
+    expect(tekst).toContain('Afronding;indexcijfers op 1 decimaal, indexfactor op 3 decimalen, tarief op hele centen');
+    expect(tekst).toContain(`Indexfactor;${String(factor).replace('.', ',')}`);
+  });
+
+  test('legt bij de dieselprijs uit dat accijns en btw erin zitten', async ({ page }) => {
+    await page.goto('/tools/indexcalculator');
+    await page.getByLabel('Indexreeks', { exact: true }).selectOption('pomp-diesel');
+    await expect(page.getByRole('note').filter({ hasText: 'inclusief accijns en btw' })).toBeVisible();
+    await expect(page.getByText(/per liter/).first()).toBeVisible();
+  });
+
+  test('klapt achtergrond in en opent die via de inhoudsopgave', async ({ page }) => {
+    await page.goto('/tools/indexcalculator');
+    const bronnen = page.locator('details#bronnen');
+    await expect(bronnen).not.toHaveAttribute('open', '');
+    await page.getByRole('navigation', { name: 'Op deze pagina' }).getByRole('link', { name: 'Bronnen en peildatum' }).click();
+    await expect(bronnen).toHaveAttribute('open', '');
+    await expect(bronnen.getByText('Officiële bron').first()).toBeVisible();
+    // Formule en gebruikte invoer zitten ingeklapt in de uitkomst.
+    await expect(page.locator('.formule').first()).toBeHidden();
+    await page.getByText('Zo ontstaat deze uitkomst').first().click();
+    await expect(page.locator('.formule').first()).toBeVisible();
     await geenHorizontaleScroll(page);
   });
 
@@ -126,10 +172,16 @@ test.describe('CO2-heffingenscan', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'CO2-heffingenscan' })).toBeVisible();
     await geenHorizontaleScroll(page);
 
+    // Standaard: 2,6 % inflatie, dus geldend recht 2027 = (103,66 + 49,66) × 1,026.
+    await expect(page.locator('.tegel').nth(2)).toContainText(nl((103.66 + 49.66) * 1.026));
+    await expect(page.getByRole('region', { name: 'In het kort' })).toContainText('Beide met 2,6');
+    await expect(page.getByRole('region', { name: 'In het kort' })).toContainText('0,380');
+
     await page.getByLabel('Restafval', { exact: true }).fill('10000');
     await page.getByLabel('Fossiele emissiefactor').fill('0,4');
     await page.getByLabel('Heffingsjaar').selectOption('2027');
-    // Geldend recht 2027: € 153,32; vrijgesteld 0,97 × 1,023 × 0,70
+    await page.getByLabel('Inflatiecorrectie per jaar').fill('0');
+    // Geldend recht 2027 zonder inflatie: € 153,32; vrijgesteld 0,97 × 1,023 × 0,70
     const deel = 0.97 * 1.023 * 0.7;
     const kosten = 4000 * (1 - deel) * 153.32;
     await expect(page.locator('.tegel.hero .tegel-waarde').first()).toContainText(nl(Math.round(kosten), 0));
@@ -149,11 +201,17 @@ test.describe('CO2-heffingenscan', () => {
   test('toont tarieventabel, bronnen en aannames', async ({ page }) => {
     await page.goto('/tools/co2-heffingenscan');
     const tabel = page.getByRole('region', { name: 'Tabel tarief en correctiefactor per jaar' });
-    await expect(tabel.getByRole('row', { name: /2030/ })).toContainText('€ 303,55');
-    await expect(tabel.getByRole('row', { name: /2035/ })).toContainText('€ 328,01');
+    await expect(tabel).toBeHidden(); // ingeklapt
+    await page.getByRole('heading', { name: 'Tarieven per jaar' }).click();
+    await expect(tabel).toBeVisible();
+    await page.getByLabel('Inflatiecorrectie per jaar').fill('0');
+    await expect(tabel.getByRole('row', { name: /^2030/ })).toContainText('€ 303,55');
+    await expect(tabel.getByRole('row', { name: /^2035/ })).toContainText('€ 328,01');
+    await page.getByRole('heading', { name: 'Bronnen en peildatum' }).click();
     await expect(page.getByRole('link', { name: /Wet belastingen op milieugrondslag/ }).first()).toHaveAttribute('href', /wetten\.overheid\.nl/);
     await expect(page.getByText('Aanname, vul eigen waarde in').first()).toBeVisible();
     await expect(page.getByText('Kental, afgeleid uit bron').first()).toBeVisible();
+    await expect(page.getByRole('link', { name: /lijst van energiedragers/ }).first()).toHaveAttribute('href', /rvo\.nl/);
     await expect(page.getByRole('heading', { name: 'Wat kan er veranderen' })).toBeVisible();
     // Eerlijke vergelijking: tabel in prijspeil 2026 en een waarschuwing bij 0 % inflatie.
     const pp = page.getByRole('region', { name: 'Tabel tariefpad in prijspeil 2026' });
@@ -162,8 +220,20 @@ test.describe('CO2-heffingenscan', () => {
     await expect(page.getByText(/Zonder inflatieaanname lijkt het voorstel/)).toBeVisible();
     await page.getByLabel('Inflatiecorrectie per jaar').fill('2');
     await expect(page.getByText(/Zonder inflatieaanname lijkt het voorstel/)).toBeHidden();
-    await expect(tabel.getByRole('row', { name: /2027/ })).toContainText(nl((103.66 + 49.66) * 1.02));
+    await expect(tabel.getByRole('row', { name: /^2027/ })).toContainText(nl((103.66 + 49.66) * 1.02));
     await geenHorizontaleScroll(page);
+  });
+
+  test('is op 400 px kort genoeg: kern bovenaan, details ingeklapt', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobiel-400', 'alleen mobiel');
+    for (const pad of ['/tools/co2-heffingenscan', '/tools/indexcalculator']) {
+      await page.goto(pad);
+      await expect(page.getByRole('region', { name: 'In het kort' })).toBeVisible();
+      await expect(page.locator('.slotkaart')).toBeVisible();
+      const hoogte = await page.evaluate(() => document.documentElement.scrollHeight);
+      expect(hoogte, `${pad} is te lang op 400 px`).toBeLessThan(5500);
+      await geenHorizontaleScroll(page);
+    }
   });
 
   test('exporteert CSV en herstelt invoer uit de deellink', async ({ page }) => {
@@ -209,6 +279,9 @@ test.describe('Navigatie en printweergave', () => {
       await expect(page.locator('.rapportkop')).toContainText(`Rapport ${titel}`);
       await expect(nav).toBeHidden();
       await expect(page.getByRole('button', { name: 'CSV downloaden' }).first()).toBeHidden();
+      // Ingeklapte delen komen in het rapport mee.
+      await expect(page.locator('.formule').first()).toBeVisible();
+      await expect(page.locator('details#bronnen .bronregels')).toBeVisible();
     });
   }
 });
@@ -231,7 +304,22 @@ test.describe('Pro voor leden', () => {
     await expect(page.getByRole('region', { name: 'Tabel tarief per contractjaar' }).getByRole('row')).not.toHaveCount(1);
     const { tekst } = await leesDownload(page, 'CSV downloaden'); // eerste knop = gratis deel
     expect(tekst).toContain('Indexcalculator');
+    const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'CSV downloaden' }).nth(1).click()]);
+    const pro = readFileSync((await download.path())!, 'utf8');
+    expect(pro).toContain('Indexcijfer CPI peilperiode (CBS)');
+    expect(pro).toContain('Afronding;');
     await expect(page.getByRole('button', { name: 'Rapport maken' })).toBeVisible();
+  });
+
+  test('Pro-invoer blijft staan na het laden van de ledentoegang', async ({ page }) => {
+    await logIn(page, '/tools/indexcalculator');
+    await page.goto('/tools/indexcalculator');
+    // Zolang de toegang wordt gecontroleerd, is er geen Pro-invoer die later vervangen wordt.
+    const veld = page.getByLabel('Vast deel, niet geïndexeerd');
+    await veld.fill('15');
+    await page.waitForTimeout(2500);
+    await expect(veld).toHaveValue('15');
+    await expect(page).toHaveURL(/vast=15/);
   });
 
   test('CO2-heffingenscan Pro: scenario’s en vergelijking', async ({ page }) => {

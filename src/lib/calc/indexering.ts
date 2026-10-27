@@ -134,6 +134,51 @@ export interface GewogenReeks {
   reeks: ReeksWaarden;
 }
 
+/* ---------- Afronding ---------- */
+
+/**
+ * Afronding zoals een contract die voorschrijft. Contracten verschillen hierin; de tool laat de keuze aan de gebruiker
+ * en zet de gekozen afronding in de uitkomst en de CSV.
+ */
+export interface Afronding {
+  /** Indexcijfers afronden op dit aantal decimalen vóór het rekenen; null = zoals CBS ze publiceert. */
+  indexDecimalen: number | null;
+  /** Indexfactor (en bij jaar-op-jaar indexeren de stap per jaar) afronden; null = niet afronden. */
+  factorDecimalen: number | null;
+  /** Tarief per jaar afronden op hele centen. Bij jaar-op-jaar indexeren rekent het volgende jaar verder met het afgeronde tarief. */
+  tariefCenten: boolean;
+}
+
+/** Geen enkele tussentijdse afronding. */
+export const GEEN_AFRONDING: Afronding = { indexDecimalen: null, factorDecimalen: null, tariefCenten: false };
+
+/**
+ * Rekenkundig afronden (helft naar boven, weg van nul) op een aantal decimalen. Null of undefined = niet afronden.
+ * Het geschaalde getal gaat eerst naar 15 significante cijfers, zodat bijvoorbeeld 1,005 op twee decimalen 1,01 wordt
+ * en niet 1,00 (1,005 × 100 is in zwevende komma 100,4999…).
+ */
+export function rondAf(n: number, decimalen: number | null | undefined): number {
+  if (decimalen === null || decimalen === undefined || !Number.isFinite(n)) return n;
+  const schaal = 10 ** decimalen;
+  const r = Math.round(Number((Math.abs(n) * schaal).toPrecision(15))) / schaal;
+  return n < 0 && r !== 0 ? -r : r;
+}
+
+/** Tarief volgens de afronding: op hele centen of onafgerond. */
+export function rondTarief(tarief: number, afronding: Afronding = GEEN_AFRONDING): number {
+  return afronding.tariefCenten ? rondAf(tarief, 2) : tarief;
+}
+
+/** Korte omschrijving van de afronding, voor uitkomst en CSV. */
+export function afrondingTekst(a: Afronding): string {
+  const delen = [
+    a.indexDecimalen === null ? 'indexcijfers zoals CBS ze publiceert' : `indexcijfers op ${a.indexDecimalen} decima${a.indexDecimalen === 1 ? 'al' : 'len'}`,
+    a.factorDecimalen === null ? 'indexfactor niet afgerond' : `indexfactor op ${a.factorDecimalen} decimalen`,
+    a.tariefCenten ? 'tarief op hele centen' : 'tarief niet afgerond',
+  ];
+  return delen.join(', ');
+}
+
 /** Factor tussen twee perioden voor een gewogen mix. Undefined als een reeks een van de perioden mist. */
 export function factorTussen(
   reeksen: GewogenReeks[],
@@ -141,6 +186,7 @@ export function factorTussen(
   basis: Periode,
   peil: Periode,
   vastDeel = 0,
+  afronding: Afronding = GEEN_AFRONDING,
 ): number | undefined {
   const onderdelen: IndexOnderdeel[] = [];
   for (const r of reeksen) {
@@ -148,9 +194,9 @@ export function factorTussen(
     const b = waardeOp(r.reeks, soort, basis);
     const n = waardeOp(r.reeks, soort, peil);
     if (b === undefined || n === undefined) return undefined;
-    onderdelen.push({ naam: r.naam, weging: r.weging, basis: b, nu: n });
+    onderdelen.push({ naam: r.naam, weging: r.weging, basis: rondAf(b, afronding.indexDecimalen), nu: rondAf(n, afronding.indexDecimalen) });
   }
-  return indexFactor(onderdelen, vastDeel);
+  return rondAf(indexFactor(onderdelen, vastDeel), afronding.factorDecimalen);
 }
 
 /* ---------- Contractjaren ---------- */
@@ -173,6 +219,8 @@ export interface ContractjarenInvoer {
   plafondPct?: number | null;
   /** Geen daling: een negatieve indexatie wordt niet toegepast. */
   geenDaling?: boolean;
+  /** Afronding volgens het contract; standaard geen. */
+  afronding?: Afronding;
 }
 
 export interface Contractjaar {
@@ -216,16 +264,18 @@ export function begrensStap(stap: number, plafondPct?: number | null, geenDaling
 export function tariefPerContractjaar(inv: ContractjarenInvoer): Contractjaar[] {
   const uit: Contractjaar[] = [];
   const grenzen = (inv.plafondPct !== null && inv.plafondPct !== undefined) || !!inv.geenDaling;
+  const afr = inv.afronding ?? GEEN_AFRONDING;
   let vorigeFactor = 1;
   let vorigTarief = inv.basistarief;
   for (let jaar = inv.eersteJaar; jaar <= inv.laatsteJaar; jaar++) {
     const peil = peilperiode(jaar, inv.soort, inv.verschuiving, inv.peilmaand);
-    const factor = factorTussen(inv.reeksen, inv.soort, inv.basisperiode, peil, inv.vastDeel);
+    const factor = factorTussen(inv.reeksen, inv.soort, inv.basisperiode, peil, inv.vastDeel, afr);
     if (factor === undefined) continue;
-    const tariefZonderGrens = inv.basistarief * factor;
-    const stap = factor / vorigeFactor;
+    const tariefZonderGrens = rondTarief(inv.basistarief * factor, afr);
+    // Jaar-op-jaar: de stap wordt net als de factor afgerond, het tarief op centen; het volgende jaar bouwt daarop voort.
+    const stap = grenzen ? rondAf(factor / vorigeFactor, afr.factorDecimalen) : factor / vorigeFactor;
     const begrensdeStap = grenzen ? begrensStap(stap, inv.plafondPct, inv.geenDaling) : stap;
-    const tarief = grenzen ? vorigTarief * begrensdeStap : tariefZonderGrens;
+    const tarief = grenzen ? rondTarief(vorigTarief * begrensdeStap, afr) : tariefZonderGrens;
     const vorige = uit[uit.length - 1];
     uit.push({
       jaar,
@@ -306,7 +356,12 @@ export interface IndexInvoer {
   geenDaling: boolean;
   /** Twee contractjaren om te vergelijken (Pro); null = eerste en laatste contractjaar. */
   vergelijk: [number, number] | null;
+  /** Afronding volgens het contract (gratis en Pro). */
+  afronding: Afronding;
 }
+
+/** Hoogste basistarief dat de tool accepteert (euro per eenheid). */
+export const MAX_BASISTARIEF = 1_000_000;
 
 const getal = (s: string | null): number | undefined => {
   if (s === null || s.trim() === '') return undefined;
@@ -331,6 +386,9 @@ export function indexInvoerNaarParams(inv: IndexInvoer): URLSearchParams {
   if (inv.plafondPct !== null) p.set('max', String(inv.plafondPct));
   if (inv.geenDaling) p.set('bodem', '1');
   if (inv.vergelijk) p.set('vgl', `${inv.vergelijk[0]}-${inv.vergelijk[1]}`);
+  p.set('rindex', inv.afronding.indexDecimalen === null ? 'cbs' : String(inv.afronding.indexDecimalen));
+  p.set('rfactor', inv.afronding.factorDecimalen === null ? 'nee' : String(inv.afronding.factorDecimalen));
+  p.set('rtarief', inv.afronding.tariefCenten ? 'cent' : 'nee');
   return p;
 }
 
@@ -363,9 +421,20 @@ export function indexInvoerUitParams(p: URLSearchParams, standaard: IndexInvoer,
   const bodem = p.get('bodem');
   const vgl = /^(\d{4})-(\d{4})$/.exec(p.get('vgl') ?? '');
   const jaarOk = (n: number | undefined) => n !== undefined && Number.isInteger(n) && n >= 2000 && n <= 2100;
+  const decimalen = (t: string | null, toegestaan: number[], leeg: string, std: number | null): number | null => {
+    if (t === leeg) return null;
+    const n = getal(t);
+    return n !== undefined && toegestaan.includes(n) ? n : std;
+  };
+  const rtarief = p.get('rtarief');
+  const afronding: Afronding = {
+    indexDecimalen: decimalen(p.get('rindex'), [0, 1, 2, 3], 'cbs', standaard.afronding.indexDecimalen),
+    factorDecimalen: decimalen(p.get('rfactor'), [2, 3, 4, 5, 6], 'nee', standaard.afronding.factorDecimalen),
+    tariefCenten: rtarief === 'cent' ? true : rtarief === 'nee' ? false : standaard.afronding.tariefCenten,
+  };
   return {
     soort,
-    basistarief: tarief !== undefined && tarief >= 0 ? tarief : standaard.basistarief,
+    basistarief: tarief !== undefined && tarief >= 0 && tarief <= MAX_BASISTARIEF ? tarief : standaard.basistarief,
     reeks: reeks && geldigeReeksen.includes(reeks) ? reeks : standaard.reeks,
     basisperiode: basis && isPeriode(basis, soort) ? basis : soort === standaard.soort ? standaard.basisperiode : '',
     peilperiode: peil && isPeriode(peil, soort) ? peil : soort === standaard.soort ? standaard.peilperiode : '',
@@ -379,5 +448,6 @@ export function indexInvoerUitParams(p: URLSearchParams, standaard: IndexInvoer,
     plafondPct: plafond !== undefined && plafond >= 0 && plafond <= 100 ? plafond : p.has('max') || p.toString() === '' ? standaard.plafondPct : null,
     geenDaling: bodem === null ? (p.toString() === '' ? standaard.geenDaling : false) : bodem === '1',
     vergelijk: vgl && jaarOk(Number(vgl[1])) && jaarOk(Number(vgl[2])) ? [Number(vgl[1]), Number(vgl[2])] : p.toString() === '' ? standaard.vergelijk : null,
+    afronding,
   };
 }

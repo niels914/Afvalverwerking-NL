@@ -20,10 +20,36 @@ interface UitkomstProps {
   toelichting?: ReactNode;
   /** Label rechtsboven. Standaard het dummylabel; tools met echte bronnen geven hier een eigen label. */
   label?: ReactNode;
+  /** Formule en gebruikte invoer inklappen (open bij printen). Standaard uit. */
+  inklapbaar?: boolean;
 }
 
 /** Uitkomstblok voor alle rekentools: dummylabel, uitkomst, formule en invoerwaarden. */
-export function Uitkomst({ titel = 'Uitkomst', formule, invoer, children, toelichting, label }: UitkomstProps) {
+export function Uitkomst({ titel = 'Uitkomst', formule, invoer, children, toelichting, label, inklapbaar }: UitkomstProps) {
+  if (inklapbaar) {
+    return (
+      <Kaart titel={titel} actie={label ?? <span className="dummylabel">Dummyberekening, indicatief en fictief</span>}>
+        <div aria-live="polite">{children}</div>
+        <details className="verantwoording ta-verantwoording">
+          <summary>
+            <h3>Zo ontstaat deze uitkomst</h3>
+            <span className="ta-inklap-sub">formule en gebruikte invoer</span>
+          </summary>
+          <code className="formule">{formule}</code>
+          {toelichting && <p className="klein muted">{toelichting}</p>}
+          <h4>Gebruikte invoer</h4>
+          <dl className="invoerlijst">
+            {invoer.map((r) => (
+              <div key={r.label} style={{ display: 'contents' }}>
+                <dt>{r.label}</dt>
+                <dd>{r.waarde}</dd>
+              </div>
+            ))}
+          </dl>
+        </details>
+      </Kaart>
+    );
+  }
   return (
     <Kaart titel={titel} actie={label ?? <span className="dummylabel">Dummyberekening, indicatief en fictief</span>}>
       <div aria-live="polite">{children}</div>

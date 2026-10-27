@@ -82,14 +82,15 @@ const REEKSEN = [
   },
   {
     id: 'pomp-diesel',
-    naam: 'Gemiddelde pompprijs diesel',
+    naam: 'Gemiddelde pompprijs diesel (consumentenprijs inclusief accijns en btw)',
     kort: 'Pompprijs diesel',
     tabelId: '81567NED',
     dimensies: { Motorbrandstof: { zoekTitel: /diesel/i } },
     onderwerp: 'GemiddeldePompprijs_1',
     eenheid: 'euro per liter',
     basisjaar: 'geen index (prijs in euro per liter)',
-    gebruik: 'Veel gebruikte brandstofreeks in inzamelcontracten; inclusief accijns en btw.',
+    gebruik:
+      'Brandstofkosten van inzamelvoertuigen. Prijs aan de pomp in euro per liter, inclusief accijns en btw: een wijziging van de accijns telt dus mee in de indexatie.',
   },
 ];
 

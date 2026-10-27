@@ -17,6 +17,11 @@ import {
   vergelijkJaren,
   waardeOp,
   wegingKlopt,
+  rondAf,
+  rondTarief,
+  afrondingTekst,
+  GEEN_AFRONDING,
+  MAX_BASISTARIEF,
   type IndexInvoer,
 } from './indexering';
 import { indexreeksen, indexStandaardInvoer, reeksMetId } from '../../data/indexreeksen';
@@ -229,6 +234,67 @@ describe('indexering: plafond en bodem', () => {
   });
 });
 
+describe('indexering: afronding', () => {
+  it('rondt rekenkundig af, ook bij randgevallen van zwevende komma', () => {
+    expect(rondAf(1.005, 2)).toBe(1.01);
+    expect(rondAf(1.0049, 2)).toBe(1);
+    expect(rondAf(103.45, 1)).toBe(103.5);
+    expect(rondAf(1.23456, 4)).toBe(1.2346);
+    expect(rondAf(-1.005, 2)).toBe(-1.01);
+    expect(rondAf(1.23456, null)).toBe(1.23456);
+    expect(rondAf(1e-7, 4)).toBe(0);
+    expect(rondTarief(117.235, { ...GEEN_AFRONDING, tariefCenten: true })).toBe(117.24);
+    expect(rondTarief(117.235)).toBe(117.235);
+  });
+
+  it('rondt indexcijfers af voor het rekenen en de factor erna', () => {
+    const R = { jaren: { '2021': 98.44, '2025': 117.26 }, maanden: {} };
+    const reeks = [{ naam: 'R', weging: 1, reeks: R }];
+    // Zonder afronding: 117,26 / 98,44
+    expect(factorTussen(reeks, 'jaar', '2021', '2025')).toBeCloseTo(117.26 / 98.44, 12);
+    // Indexcijfers op 1 decimaal: 117,3 / 98,4 = 1,19207…
+    expect(factorTussen(reeks, 'jaar', '2021', '2025', 0, { ...GEEN_AFRONDING, indexDecimalen: 1 })).toBeCloseTo(117.3 / 98.4, 12);
+    // Factor op 3 decimalen
+    expect(factorTussen(reeks, 'jaar', '2021', '2025', 0, { ...GEEN_AFRONDING, factorDecimalen: 3 })).toBe(1.191);
+    // Beide: 1,19207 → 1,192
+    expect(factorTussen(reeks, 'jaar', '2021', '2025', 0, { indexDecimalen: 1, factorDecimalen: 3, tariefCenten: false })).toBe(1.192);
+  });
+
+  it('rondt het tarief per contractjaar op centen af en bouwt jaar op jaar voort op het afgeronde tarief', () => {
+    const R = { jaren: { '2022': 100, '2023': 103.333, '2024': 106.777 }, maanden: {} };
+    const basis = {
+      basistarief: 87.65,
+      reeksen: [{ naam: 'R', weging: 1, reeks: R }],
+      vastDeel: 0,
+      soort: 'jaar' as const,
+      basisperiode: '2022',
+      eersteJaar: 2024,
+      laatsteJaar: 2025,
+      verschuiving: 1 as const,
+      peilmaand: 1,
+    };
+    const centen = { indexDecimalen: null, factorDecimalen: 4, tariefCenten: true };
+    const zonder = tariefPerContractjaar(basis);
+    const met = tariefPerContractjaar({ ...basis, afronding: centen });
+    expect(zonder[0].tarief).toBeCloseTo(87.65 * 1.03333, 10);
+    expect(met[0].factor).toBe(1.0333);
+    expect(met[0].tarief).toBe(90.57); // 87,65 × 1,0333 = 90,568…
+    expect(met[1].tarief).toBe(rondAf(87.65 * 1.0678, 2));
+    // Met plafond (jaar op jaar): stap 2025 = 106,777 / 103,333 = 1,03333 → afgerond 1,0333; plafond 10 % raakt niet.
+    const keten = tariefPerContractjaar({ ...basis, afronding: centen, plafondPct: 10 });
+    expect(keten[0].tarief).toBe(90.57);
+    const stap = rondAf(1.0678 / 1.0333, 4);
+    expect(keten[1].tarief).toBe(rondAf(90.57 * stap, 2));
+  });
+
+  it('beschrijft de afronding in woorden', () => {
+    expect(afrondingTekst(GEEN_AFRONDING)).toBe('indexcijfers zoals CBS ze publiceert, indexfactor niet afgerond, tarief niet afgerond');
+    expect(afrondingTekst({ indexDecimalen: 1, factorDecimalen: 4, tariefCenten: true })).toBe(
+      'indexcijfers op 1 decimaal, indexfactor op 4 decimalen, tarief op hele centen',
+    );
+  });
+});
+
 describe('indexering: CBS-data', () => {
   it('bevat echte reeksen met bron, tabel-id en peildatum', () => {
     expect(indexreeksen.length).toBeGreaterThanOrEqual(5);
@@ -267,6 +333,7 @@ describe('indexering: deellink', () => {
       plafondPct: 2.5,
       geenDaling: true,
       vergelijk: [2024, 2027],
+      afronding: { indexDecimalen: 1, factorDecimalen: 4, tariefCenten: false },
     };
     expect(indexInvoerUitParams(indexInvoerNaarParams(inv), indexStandaardInvoer, ids)).toEqual(inv);
     expect(indexInvoerNaarParams(inv).get('vgl')).toBe('2024-2027');
@@ -294,5 +361,16 @@ describe('indexering: deellink', () => {
     expect(indexInvoerUitParams(new URLSearchParams('vgl=2024-1999'), indexStandaardInvoer, ids).vergelijk).toBeNull();
     expect(indexInvoerUitParams(new URLSearchParams('vgl=24-26'), indexStandaardInvoer, ids).vergelijk).toBeNull();
     expect(new URLSearchParams('max=150').has('max') && indexInvoerUitParams(new URLSearchParams('max=150'), indexStandaardInvoer, ids).plafondPct).toBeNull();
+  });
+
+  it('leest de afronding en begrenst het basistarief', () => {
+    const uit = (q: string) => indexInvoerUitParams(new URLSearchParams(q), indexStandaardInvoer, ids);
+    expect(uit('rindex=cbs&rfactor=nee&rtarief=nee').afronding).toEqual(GEEN_AFRONDING);
+    expect(uit('rindex=2&rfactor=3&rtarief=cent').afronding).toEqual({ indexDecimalen: 2, factorDecimalen: 3, tariefCenten: true });
+    // Onbekende waarden en oude links zonder afronding: standaard.
+    expect(uit('rindex=9&rfactor=x').afronding).toEqual(indexStandaardInvoer.afronding);
+    expect(uit('soort=jaar').afronding).toEqual(indexStandaardInvoer.afronding);
+    expect(uit(`tarief=${MAX_BASISTARIEF}`).basistarief).toBe(MAX_BASISTARIEF);
+    expect(uit(`tarief=${MAX_BASISTARIEF + 1}`).basistarief).toBe(indexStandaardInvoer.basistarief);
   });
 });

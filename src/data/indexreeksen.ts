@@ -83,4 +83,6 @@ export const indexStandaardInvoer: IndexInvoer = {
   plafondPct: null,
   geenDaling: false,
   vergelijk: null,
+  // Standaard: indexcijfers en factor zoals berekend, tarief op hele centen. De gebruiker kiest de afronding uit het contract.
+  afronding: { indexDecimalen: null, factorDecimalen: null, tariefCenten: true },
 };

@@ -40,36 +40,43 @@ export interface BronRegel {
 export function Bronnenlijst({ titel = 'Bronnen en peildatum', sub, regels, id }: { titel?: string; sub?: ReactNode; regels: BronRegel[]; id?: string }) {
   return (
     <Kaart titel={titel} sub={sub} id={id} className="bronnenkaart">
-      <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 12 }}>
-        {regels.map((r) => (
-          <li key={r.onderwerp} style={{ display: 'grid', gap: 3, borderTop: '1px solid var(--rij)', paddingTop: 10, minWidth: 0 }}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 10px', alignItems: 'baseline' }}>
-              <strong style={{ fontWeight: 600 }}>{r.onderwerp}</strong>
-              <BronStatusLabel status={r.status} />
-            </div>
-            {r.waarde !== undefined && <div className="num">{r.waarde}</div>}
-            {r.toelichting && <div className="klein muted">{r.toelichting}</div>}
-            {(r.bron || r.peildatum) && (
-              <div className="klein muted" style={{ overflowWrap: 'anywhere' }}>
-                {r.bron && (
-                  <>
-                    Bron:{' '}
-                    {r.url ? (
-                      <a href={r.url} target="_blank" rel="noopener noreferrer">
-                        {r.bron}
-                      </a>
-                    ) : (
-                      r.bron
-                    )}
-                  </>
-                )}
-                {r.bron && r.peildatum && ' · '}
-                {r.peildatum && <>peildatum {datum(r.peildatum)}</>}
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
+      <BronRegels regels={regels} />
     </Kaart>
+  );
+}
+
+/** Alleen de regels van de bronnenlijst, zonder kaart en kop (bijv. in een inklapbaar blok). */
+export function BronRegels({ regels }: { regels: BronRegel[] }) {
+  return (
+    <ul className="bronregels" style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 12 }}>
+      {regels.map((r) => (
+        <li key={r.onderwerp} style={{ display: 'grid', gap: 3, borderTop: '1px solid var(--rij)', paddingTop: 10, minWidth: 0 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 10px', alignItems: 'baseline' }}>
+            <strong style={{ fontWeight: 600 }}>{r.onderwerp}</strong>
+            <BronStatusLabel status={r.status} />
+          </div>
+          {r.waarde !== undefined && <div className="num">{r.waarde}</div>}
+          {r.toelichting && <div className="klein muted">{r.toelichting}</div>}
+          {(r.bron || r.peildatum) && (
+            <div className="klein muted" style={{ overflowWrap: 'anywhere' }}>
+              {r.bron && (
+                <>
+                  Bron:{' '}
+                  {r.url ? (
+                    <a href={r.url} target="_blank" rel="noopener noreferrer">
+                      {r.bron}
+                    </a>
+                  ) : (
+                    r.bron
+                  )}
+                </>
+              )}
+              {r.bron && r.peildatum && ' · '}
+              {r.peildatum && <>peildatum {datum(r.peildatum)}</>}
+            </div>
+          )}
+        </li>
+      ))}
+    </ul>
   );
 }
