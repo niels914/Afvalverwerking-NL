@@ -1,11 +1,28 @@
 # Tools B: Bodemassencalculator, Rekenmodel PMD en Aanbestedingstool
 
-Stand: 27 oktober 2026 (ronde 2). Alle drie de tools tonen bij binnenkomst een volledig ingevulde uitkomst met
-openbaar onderbouwde waarden en een bandbreedte. Elk cijfer heeft een bron en een peildatum in de UI, in de CSV en in een
-databestand. Waarden zonder openbare bron staan zichtbaar als aanname en worden alleen gebruikt als de gebruiker ze zelf
-invult (rekenwijze "eigen contract" bij bodemas, tarieven voor andere stromen dan restafval bij de aanbestedingstool).
+Stand: 27 oktober 2026 (ronde 3). Alle drie de tools tonen bij binnenkomst een volledig ingevulde uitkomst. Waar die
+uitkomst rust op een kental dat in de bron niet vaststaat, toont de tool een bandbreedte met het voorbehoud in de
+uitkomstzin zelf, en pas een stellige conclusie als de gebruiker een eigen tarief invult. Elk cijfer heeft een bron en
+een peildatum in de UI (nu ook direct onder elke uitkomst), in de CSV (met kolom Status) en in een databestand.
 
-## Wat er in ronde 2 veranderde
+## Wat er in ronde 3 veranderde
+
+| Punt van de inspectie | Oplossing |
+|---|---|
+| **Blokkerend:** de kopconclusie van het PMD-model ("bronscheiding ~1,5 mln goedkoper", "nascheiding blijft duurder, hoeveel PMD er ook") rustte op € 119,85 per ton restafval, terwijl de bron (akkoord par. 7) bij € 93,47 geen eenheid noemt | Het kental heeft nu twee lezingen (`nascheidingskostenLezingen` in `tools-b-pmd.ts`): per ton restafval € 119,85 en per ton PMD, omgerekend € 17,26 per ton restafval. Beide zitten in de bandbreedte (`pmdVarianten.nascheidingskosten`). Zolang het veld op het kental staat, is de uitkomst "Indicatief": de kernzin begint met het voorbehoud, toont het verschil als bandbreedte (bij de standaard: van nascheiding € 248.000 goedkoper tot bronscheiding € 1,59 mln goedkoper) en noemt het **omslagpunt in nascheidingstarief** (`omslagNascheidingskosten`, standaard € 29 per ton restafval, band € 25–32): rekent de nascheider minder, dan is nascheiding goedkoper. Het veld "Tarief van uw nascheider" staat in de uitkomstkaart met het label "Kental, eenheid onzeker: vul eigen tarief in". Pas met een eigen tarief (`pmdConclusieMogelijk`) zegt de tool welke route goedkoper is. De zin "hoeveel PMD er ook" verschijnt niet meer bij het kental. |
+| **Blokkerend:** de standaarduitkomst van de bodemascalculator (€ 1,85 mln) rustte op één zin uit de nota van toelichting (Stb. 2021, 235) | De kernzin zegt nu zelf: "Indicatief, op basis van één kostenschatting uit de nota van toelichting bij het Besluit vrijstellingen stortverbod (2021): … € 1,53 mln tot € 3,09 mln kosten per jaar", plus dat het een kostenvergelijking voor de AVI is en geen markttarief. De hoofdtegel toont de bandbreedte. Het veld "Uw netto opwerkingskosten" staat in de uitkomstkaart; met een eigen waarde of met ingevulde contractbedragen (`bodemasConclusieMogelijk`) volgt een stellige uitkomst. Inklapblok "Waarom een bandbreedte?" legt uit waarom de tool met 3,8 % residu rekent (in 2024 werkelijk gestort, RWS) en de bron met ~15 % (bij wassen): dat is de bovenkant van de band. Pro: totaal gemarkeerd als indicatief zolang installaties het kental gebruiken. |
+| Bovengrens tonnage bodemas | Signaal bij meer verbrand afval dan heel Nederland in een jaar (7.392.000 t, RWS 2022). |
+| Ontwikkelaarstekst "Lokaal getest …" | Weg. |
+| Schijnnauwkeurigheid | Uitkomsten op kentallen afgerond naar grootte (`opmaak.ts`: € 1,53 mln, € 207.000, € 4.300); invoer en tarieven per ton niet. |
+| CSV zonder kentalstatus, onafgeronde bedragen | Kolommen Invoer; Waarde; Status; Herkomst (officieel, kental, kental eenheid onzeker, voorbeeld, eigen waarde), regel "Uitkomst" (indicatief of met uw tarief), regel "Afronding", afgeronde uitkomsten. |
+| Pro-gevoeligheid: dubbele, identieke balken | Parameters met hetzelfde effect staan er één keer in: "Hoeveelheid bodemas" (verbrand afval of aandeel) en "Opbrengst ferro/non-ferro (prijs of aandeel)". De grafiek staat alleen op brede schermen; op 400 px de tabel. |
+| PMD-tabel met posten op mobiel afgekapt | Tabel "Opbouw per route" stapelt per post (route-labels per cel), ook in de smalle uitkomstkolom op desktop. |
+| Bronnen en peildatum bij de uitkomst | `UitkomstBronnen` direct onder elke uitkomst met deeplinks (RWS, Staatsblad, CBS, Belastingdienst; akkoord, CBS, IPR Normag, Strategy&). |
+| Aanbesteding: zwevende balk over keuzekaarten; lege balk bij volume 0 | De samenvattingsbalk staat vanaf stap 2 in de tekststroom boven de stap (niet meer sticky), en zegt "vul in stap 1 een volume in" of "… een tarief in". |
+| Aanbesteding: bronregel bij raming; MVI-overzicht met directe links in stap 2; links gaan naar de productgroep | Onder de raming staat de bron van het tariefkental. Stap 2 begint met een MVI-overzicht per stroom (productgroep, codes, link; of "geen MVI-productgroep"). Linkteksten zeggen nu "Productgroep … in de MVI-criteriatool (zoek op 049.006)", omdat de MVI-tool geen link per criterium heeft. |
+| Label CE Delft | Door Niels bevestigd; blijft staan. |
+
+## Wat er in ronde 2 veranderde (ter naslag)
 
 | Punt van de criticus | Oplossing |
 |---|---|
@@ -27,16 +44,16 @@ invult (rekenwijze "eigen contract" bij bodemas, tarieven voor andere stromen da
 | Onderdeel | Bestand | Wat het doet |
 |---|---|---|
 | Bodemassencalculator | `src/pages/tools/Bodemassencalculator.tsx` | Gratis: gemeente of gemiddelde AVI, rekenwijze kental of eigen contract, uitkomst met bandbreedte, controles, CSV, deellink, printen. Inklapbaar: kosten van opwerken en storten, aandelen, tabel 2022–2024, bronnen. Pro (apart, achter `Vergrendeld`): meerdere installaties, totaal, gevoeligheidsanalyse, CSV, rapport. |
-| Rekenlogica bodemas | `src/lib/calc/bodemas.ts` (+ test, 33 tests) | `bodemas`, `controleerBodemas`, `bandbreedte`, `bodemasInstallaties`, `gevoeligheid`, deellink (oude links met `tarief=` openen als contract). |
+| Rekenlogica bodemas | `src/lib/calc/bodemas.ts` (+ test, 36 tests) | `bodemas`, `bodemasConclusieMogelijk`, `controleerBodemas`, `bandbreedte`, `bodemasInstallaties`, `gevoeligheid`, deellink (oude links met `tarief=` openen als contract). |
 | Kentallen bodemas | `src/data/tools-b-bodemas.ts` | RWS 2022–2024, kostenkentallen (Staatsblad 2021, 235), CPI-factor, scenario's laag/midden/hoog, gemiddelde per AVI, bereik voor controles. |
 | Rekenmodel PMD (leden) | `src/pages/tools/PmdRekenmodel.tsx` | Uitkomst eerst (zin met voordeel en bandbreedte, tegels, opbouw), invoer in groepen Bronscheiding / Nascheiding / Verbranding, grafiek en staffeleffect inklapbaar, CSV, deellink, rapport. Openbaar: staffel en bronnen (inklapbaar). |
-| Rekenlogica PMD | `src/lib/calc/pmd.ts` (+ test, 23 tests) | Routes, omslagpunt, `controleerPmd`, `pmdBandbreedte` (alle combinaties laag/hoog), deellink. |
+| Rekenlogica PMD | `src/lib/calc/pmd.ts` (+ test, 30 tests) | Routes, omslagpunt in kg en in nascheidingstarief (`omslagNascheidingskosten`), `pmdConclusieMogelijk`, `pmdCombinaties`, `controleerPmd`, `pmdBandbreedte` (alle combinaties laag/hoog), deellink. |
 | Gegevens PMD | `src/data/tools-b-pmd.ts`, `src/data/tools-b-cbs-pmd.json` | Staffel, kostenbasis, nascheiding, kental en band verbrandingstarief, kental en band teruggewonnen PMD, grenzen voor controles, CBS. |
 | Aanbestedingstool | `src/pages/tools/Aanbestedingstool.tsx` | Vier stappen (opdracht, eisen en criteria, weging, overzicht), soort opdracht, raming met bandbreedte, signalen, vaste samenvattingsbalk, MVI-status per stroom, tekstbestand, CSV, deellink, printen. |
 | Rekenlogica aanbesteding | `src/lib/calc/aanbesteding.ts` (+ test, 31 tests) | Weging, afronding, raming, `ramingBandbreedte`, `drempelBand`, `ramingSignalen`, checklist, export, deellink (`type=`). |
 | Criteria per stroom | `src/data/tools-b-aanbesteding.ts` | 8 stromen, 45 criteria, drempels per soort opdracht, `mviStatus`, `productgroepNaam`. |
 | Bronnen | `src/data/tools-b-bronnen.ts` | Alle bronnen met titel, uitgever, datum, URL; `PEILDATUM` 2026-10-27. |
-| Componenten | `src/components/rekenen/b/` | `BronVeld` (nu met `onFout`), `CelGetal`, `Knoppen`, nieuw: `Blokken` (`Uitklap`, `Ankers`, `Bandbreedte`, `Meldingen`, `useUitklapBijPrint`, `useVeldFouten`), `Delen` (CSV, link kopiëren, ingeklapte deellink, `BronLijst`). Gedeelde componenten in `src/components/rekenen/*` zijn niet gewijzigd. |
+| Componenten | `src/components/rekenen/b/` | `BronVeld` (nu met `onFout`), `CelGetal`, `Knoppen`, nieuw: `Blokken` (`Uitklap`, `Ankers`, `Bandbreedte`, `Meldingen`, `useUitklapBijPrint`, `useVeldFouten`), `Delen` (CSV, link kopiëren, ingeklapte deellink, `BronLijst`); ronde 3: `opmaak.ts` (afgeronde bedragen, + test), `UitkomstBronnen`, `BronVeld.statusTekst`. Gedeelde componenten in `src/components/rekenen/*` zijn niet gewijzigd. |
 | Overzicht tools | `src/pages/Tools.tsx`, `src/data/tools.ts` | Beschrijvingen en bronnen per tool bijgewerkt. |
 | E2E | `e2e/tools-b.spec.ts` | 14 tests × 400 px en desktop = 28. |
 
@@ -61,7 +78,9 @@ netto kosten      = kosten opwerking − opbrengst metalen + storten residu
 ```
 
 Bandbreedte (alleen voor velden die de gebruiker niet zelf aanpaste): laag = € 10,00 opwerking, 3,8 % residu, € 30
-storten; midden = € 12,19, 3,8 %, € 42,66; hoog = € 12,19, 15 %, € 48,76. Stortbelasting steeds € 40,85.
+storten; midden = € 12,19, 3,8 %, € 42,66; hoog = € 12,19, 15 %, € 48,76. Stortbelasting steeds € 40,85. Standaard
+(gemiddelde AVI): € 1,53 mln tot € 3,09 mln, indicatief. Stellige uitkomst alleen met eigen opwerkingskosten of
+ingevulde contractbedragen.
 Niet in de berekening: transport van bodemas, CO2-heffing.
 
 **PMD** (nulsituatie: al het PMD gaat met het restafval naar de verbranding)
@@ -73,7 +92,14 @@ na:    restafval = inwoners × restafval naar nascheider / 1000
        netto = restafval × (nascheidingskosten − nascheidingsvergoeding) − teruggewonnen PMD × verbrandingstarief
 ```
 
-Bandbreedte: teruggewonnen PMD 15–25 kg/inw en verbrandingstarief 95,85–110,85 €/t, alle combinaties.
+Bandbreedte: teruggewonnen PMD 15–25 kg/inw, verbrandingstarief 95,85–110,85 €/t en (zolang het kental in het veld
+staat) nascheidingskosten 17,26–119,85 €/t restafval; alle combinaties.
+
+```
+omslagpunt nascheidingstarief = (netto bronscheiding + teruggewonnen PMD × verbrandingstarief) / restafval + nascheidingsvergoeding
+```
+
+Conclusie ("X is goedkoper") alleen als de nascheidingskosten afwijken van het kental.
 
 **Aanbesteding**
 
@@ -98,7 +124,8 @@ Europees         = geraamde waarde ≥ drempelbedrag (per soort dienst en soort 
 | Afvalstoffenbelasting 2026 | € 40,85 per ton (storten en verbranden) | officieel | Belastingdienst, tarief afvalstoffenbelasting |
 | Staffel inzamelvergoeding 2026 | 325 / 277 / 228 / 195 / 0 €/t; 3b 179 (2027), 163 (2028) | officieel | Aanbiedingsbrief onderhandelingsresultaat 28 mei 2025, par. 6.2: https://www.nvrd.nl/wp-content/uploads/2025/06/Aanbiedingsbrief-nieuwe-afspraken-verpakkingsafval.pdf |
 | Kostenbasis bronscheiding | € 325 per ton PMD | kental (geen eigen raming) | idem |
-| Nascheidingsvergoeding / -kosten | € 17,26 / € 119,85 per ton restafval | officieel / kental afgeleid | idem, par. 7 |
+| Nascheidingsvergoeding | € 17,26 per ton restafval | officieel | idem, par. 7 |
+| Nascheidingskosten | € 17,26 tot € 119,85 per ton restafval (twee lezingen van € 93,47 + € 6,79 "per ton", × 1,1954) | kental, eenheid onzeker | idem, par. 7. Lezing per ton restafval ligt het meest voor de hand: € 3 mln opslag / € 6,79 ≈ 442 kton, wat past bij nagescheiden restafval |
 | Teruggewonnen PMD bij nascheiding | 15–25 kg/inw; midden 20 | kental | IPR Normag voor MARN, 27 juli 2021, par. 3.3: https://nijmegen.bestuurlijkeinformatie.nl/Document/View/766b277b-ba1e-457d-96bf-331e7fafec0a |
 | Poorttarief restafval | € 55–70 per ton | kental | Strategy& voor Vereniging Afvalbedrijven, 11 september 2025, p. 31 (bron ACM 2023) |
 | Verbrandingstarief incl. ASB | 95,85 / 103,35 / 110,85 €/t | kental, afgeleid | poorttarief + ASB 2026 |
@@ -125,22 +152,25 @@ Teksten van de MVI-criteriatool zijn niet overgenomen; per criterium staat een e
 7. **Drempelbedragen (per 1 januari 2028):** `drempels` in `tools-b-aanbesteding.ts`.
 8. Zet daarna `PEILDATUM` in `tools-b-bronnen.ts` op de dag van controle.
 
-## Controles (27 oktober 2026)
+## Controles (27 oktober 2026, ronde 3)
 
-- `npx tsc --noEmit -p .`: geen fouten in dit onderdeel (wel in `src/data/types.ts` en `src/pages/Home.tsx` van een andere bouwer).
-- `npx vitest run`: 15 bestanden, 272 tests geslaagd (bodemas 33, pmd 23, aanbesteding 31).
+- `npx tsc --noEmit -p .`: geen fouten.
+- `npx vitest run`: 17 bestanden, 322 tests geslaagd (bodemas 36, pmd 30, aanbesteding 31, opmaak 4).
 - `npx vite build --outDir /tmp/claude-0/build-tools-b --emptyOutDir`: geslaagd.
 - `PW_BASE=http://localhost:5104 E2E_EMAIL=… E2E_WACHTWOORD=… npx playwright test e2e/tools-b.spec.ts`: 28 geslaagd
   (400 px en desktop), inclusief de ledentests met echte inlog.
-- Lighthouse mobiel (preview, prestaties/toegankelijkheid): bodemassencalculator 95/100, PMD-rekenmodel 96/100,
-  aanbestedingstool 97/100, /tools 99/100.
-- Paginahoogte op 400 px (bezoeker): bodemas 3.441 px (was ~7.800), aanbestedingstool stap 1 3.600 px; als lid:
-  PMD 3.513 px (was ~9.200). Geen horizontale scroll.
+- Lighthouse mobiel (preview; prestaties/toegankelijkheid/best practices): bodemassencalculator 96/100/100,
+  PMD-rekenmodel 96/100/100, aanbestedingstool 97/100/100, /tools 98/100/100. SEO 66 overal door de noindex van de
+  bètafase (niet van dit onderdeel).
+- Geen horizontale scroll op 400 px.
 
 ## Open punten
 
+- **Eenheid nascheidingskosten** (€ 93,47 "per ton", akkoord par. 7): navragen bij NVRD of Verpact, of het
+  kostenonderzoek 2021 (KSO) opvragen. Staat de eenheid vast, dan kan `nascheidingskostenBand.laag` naar het kental en
+  mag de tool bij de standaard weer een conclusie trekken.
 - **Opwerkingskosten bodemas** rusten op één overheidsbron uit 2021 (nota van toelichting, "bij benadering"). Een
-  recentere openbare bron is niet gevonden. Als leden contractcijfers delen, kan KplusV een geanonimiseerde bandbreedte
+  recentere openbare bron is niet gevonden (opnieuw gezocht in ronde 3). Als leden contractcijfers delen, kan KplusV een geanonimiseerde bandbreedte
   publiceren.
 - **Inzamelkosten PMD**: alleen de kostenbasis van het akkoord is openbaar; een onafhankelijke raming per gemeente niet.
 - **Teruggewonnen PMD**: de bron (2021) noemt praktijkcijfers zonder installaties; vaak zonder blik. Nieuwere openbare
@@ -148,6 +178,5 @@ Teksten van de MVI-criteriatool zijn niet overgenomen; per criterium staat een e
 - **Staffel 2027–2028** houdt de bedragen van 2026 aan (behalve 3b) tot de indexatie in euro's is gepubliceerd.
 - **Poorttarief 55–70 €/t**: onbekend of dit inclusief afvalstoffenbelasting is; de tool telt de belasting apart op.
 - **Juridische toets** van de voorbeeldcriteria, de uitleg bij sociale diensten en concessies, en de checklist.
-- Label "In ontwikkeling met CE Delft, publiek beschikbaar" komt uit de opdracht van Niels en blijft staan; Niels
-  bevestigt of het klopt.
+- Label "In ontwikkeling met CE Delft, publiek beschikbaar" is door Niels bevestigd.
 - `README.md` (van de lead) hoeft voor dit onderdeel niet te veranderen; hij verwijst al naar dit document.

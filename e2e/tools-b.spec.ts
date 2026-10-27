@@ -1,9 +1,10 @@
 import { test, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
-// Bodemassencalculator, Rekenmodel PMD en Aanbestedingstool (onderdeel tools-b, ronde 2):
-// uitkomst bij binnenkomst met bandbreedte, bron en peildatum, controles op onmogelijke invoer, CSV en tekstexport,
-// deellink, betaalmuur, MVI-codes alleen bij de eigen productgroep, drempels per soort opdracht en print.
+// Bodemassencalculator, Rekenmodel PMD en Aanbestedingstool (onderdeel tools-b, ronde 3):
+// uitkomst bij binnenkomst als bandbreedte met het voorbehoud in de uitkomstzin, een stellige uitkomst pas met een eigen
+// tarief, bron en peildatum onder de uitkomst, controles op onmogelijke invoer, CSV met status en afgeronde bedragen,
+// tekstexport, deellink, betaalmuur, MVI-codes alleen bij de eigen productgroep, drempels per soort opdracht en print.
 
 const cbs = JSON.parse(readFileSync(new URL('../src/data/tools-b-cbs-pmd.json', import.meta.url), 'utf8'));
 const nl = (n: number) => new Intl.NumberFormat('nl-NL').format(n);
@@ -28,25 +29,46 @@ async function klapOpen(page: Page, kop: string | RegExp) {
 const hero = (page: Page) => page.locator('.tegel.hero').first();
 
 test.describe('Bodemassencalculator', () => {
-  test('toont bij binnenkomst een volledig ingevulde uitkomst met bandbreedte en bronnen', async ({ page }) => {
+  test('toont bij binnenkomst een indicatieve bandbreedte met het voorbehoud in de uitkomstzin', async ({ page }) => {
     await page.goto('/tools/bodemassencalculator');
     await expect(page.getByRole('heading', { level: 1, name: 'Bodemassencalculator' })).toBeVisible();
     await geenHorizontaleScroll(page);
 
-    // Gemiddelde AVI 2024: 494.000 t × 24,4 % = 120.536 t ; × € 12,19 + 4.580 t residu × (€ 42,66 + € 40,85)
+    // Gemiddelde AVI 2024: 494.000 t × 24,4 % = 120.536 t.
+    // laag: × € 10 + 4.580 t residu × (€ 30 + € 40,85) = 1.529.879 ; hoog: × € 12,19 + 18.080 t × (€ 48,76 + € 40,85) = 3.089.519
     await expect(page.getByLabel('Verbrand afval', { exact: true })).toHaveValue('494000');
-    await expect(hero(page)).toContainText('Netto kosten per jaar');
-    await expect(hero(page)).toContainText('1.851.840');
-    await expect(page.locator('.tb-kern')).toContainText('120.536 ton ruwe bodemas');
-    await expect(page.locator('.tb-band')).toContainText('Bandbreedte');
+    await expect(hero(page)).toContainText('Netto kosten per jaar (indicatief)');
+    await expect(hero(page)).toContainText(/€\s1,53 mln tot €\s3,09 mln/);
+    await expect(page.locator('.tb-kern')).toContainText('121.000 ton ruwe bodemas');
+    await expect(page.locator('.tb-kern')).toContainText('Indicatief, op basis van één kostenschatting uit de nota van toelichting');
+    await expect(page.locator('.tb-kern')).toContainText('geen markttarief');
+    await expect(page.locator('.tb-uitkomst .badge').first()).toHaveText('Indicatief');
     await expect(page.getByText('Nog in te vullen voor bedragen')).toHaveCount(0);
+    // Bronnen direct onder de uitkomst.
+    await expect(page.locator('.tb-uitkomstbron').getByRole('link', { name: /Rijkswaterstaat/ })).toHaveAttribute('href', /verenigingafvalbedrijven\.nl/);
+    await expect(page.locator('.tb-uitkomstbron').getByRole('link', { name: /Staatsblad 2021, 235/ })).toHaveAttribute('href', /stb-2021-235/);
+    // Residu-aanname uitgelegd.
+    await klapOpen(page, 'Waarom een bandbreedte?');
+    await expect(page.getByText(/ongeveer 15 % residu/)).toBeVisible();
+
+    // Eigen tarief: pas dan een stellige uitkomst. 120.536 × 18 + 4.580,4 × 83,51 = 2.552.154
+    const opwerking = page.getByLabel('Uw netto opwerkingskosten (tarief min metaalopbrengst)', { exact: true });
+    await expect(opwerking).toHaveValue('12,19');
+    await expect(page.getByText('Kental uit 2021, indicatief: vul eigen tarief in')).toBeVisible();
+    await opwerking.fill('18');
+    await expect(page.locator('.tb-kern')).toContainText(/Met uw tarief kosten opwerken en residu storten netto ongeveer €\s2,55 mln per jaar/);
+    await expect(hero(page)).toContainText('Netto kosten per jaar');
+    await expect(hero(page)).not.toContainText('indicatief');
+    await expect(page.locator('.tb-uitkomst .badge').first()).toHaveText('Met uw tarief');
+    await expect(page.locator('.tb-band')).toContainText('Bandbreedte');
+    await page.getByRole('button', { name: /Terug naar bronwaarde \(€\s12,19\)/ }).click();
+    await expect(hero(page)).toContainText('(indicatief)');
 
     // Kentallen staan ingeklapt, met bron en peildatum.
     await klapOpen(page, 'Aandelen bodemas en metalen');
     await expect(page.getByLabel('Aandeel ruwe bodemas', { exact: true })).toHaveValue('24,4');
     await expect(page.getByRole('link', { name: /Rijkswaterstaat, Afvalverwerking in Nederland 2024/ }).first()).toHaveAttribute('href', /verenigingafvalbedrijven\.nl/);
     await klapOpen(page, 'Kosten van opwerken en storten');
-    await expect(page.getByLabel('Netto opwerkingskosten', { exact: true })).toHaveValue('12,19');
     await expect(page.getByRole('link', { name: 'Staatsblad 2021, 235 en CBS-CPI' }).first()).toHaveAttribute('href', /officielebekendmakingen\.nl\/stb-2021-235/);
     await expect(page.getByLabel('Stortbelasting', { exact: true })).toHaveValue('40,85');
 
@@ -68,6 +90,9 @@ test.describe('Bodemassencalculator', () => {
     await page.getByLabel('Aandeel ruwe bodemas', { exact: true }).fill('45');
     await expect(page.getByText(/wijkt sterk af van het landelijke beeld/)).toBeVisible();
 
+    await page.getByLabel('Verbrand afval', { exact: true }).fill('99000000000');
+    await expect(page.getByText(/meer dan alles wat in Nederland in een jaar wordt verbrand/)).toBeVisible();
+
     await page.getByLabel('Verbrand afval', { exact: true }).fill('-5');
     await expect(page.getByText('Minimaal 0.')).toBeVisible();
     await expect(page.getByText(/De uitkomst is niet bijgewerkt: verbrand afval/)).toBeVisible();
@@ -85,16 +110,20 @@ test.describe('Bodemassencalculator', () => {
     await klapOpen(page, 'Kosten van opwerken en storten');
     await page.getByLabel('Residu dat wordt gestort', { exact: true }).fill('0');
     // kosten 24.400 × 30 = 732.000 ; opbrengst 1.683,6 × 150 + 585,6 × 900 = 779.580 → netto opbrengst 47.580
+    // Met eigen contractbedragen: stellige uitkomst, afgerond.
     await expect(hero(page)).toContainText('Netto opbrengst per jaar');
-    await expect(hero(page)).toContainText(/47\.580/);
+    await expect(hero(page)).toContainText(/48\.000/);
     await expect(hero(page)).toContainText('opbrengst per ton verbrand');
+    await expect(page.locator('.tb-kern')).toContainText('Met uw tarief levert opwerken netto ongeveer');
     await expect(page).toHaveURL(/wijze=contract/);
 
     const { naam, tekst } = await leesDownload(page, 'CSV downloaden');
     expect(naam).toMatch(/^bodemassencalculator-\d{4}-\d{2}-\d{2}\.csv$/);
-    expect(tekst).toContain('Verwerkingstarief (euro per ton ruwe bodemas);30;eigen waarde');
-    expect(tekst).toContain('Aandeel ruwe bodemas (% van verbrand);24,4;kental Rijkswaterstaat 2024');
-    expect(tekst).toContain('Netto kosten (euro per jaar, negatief = opbrengst);-47580');
+    expect(tekst).toContain('Invoer;Waarde;Status;Herkomst');
+    expect(tekst).toContain('Verwerkingstarief (euro per ton ruwe bodemas);30;eigen waarde;uw contract');
+    expect(tekst).toContain('Aandeel ruwe bodemas (% van verbrand);24,4;kental;kental Rijkswaterstaat 2024');
+    expect(tekst).toContain('Uitkomst;met uw eigen tarief');
+    expect(tekst).toContain('Netto kosten (euro per jaar, negatief = opbrengst);-48000');
     expect(tekst).toContain('officielebekendmakingen.nl/stb-2021-235');
 
     // Afwijken van de bron en terugzetten.
@@ -130,7 +159,7 @@ test.describe('Bodemassencalculator', () => {
 
   test('printweergave opent de ingeklapte blokken', async ({ page }) => {
     await page.goto('/tools/bodemassencalculator');
-    await expect(hero(page)).toContainText('1.851.840');
+    await expect(hero(page)).toContainText('mln');
     await page.evaluate(() => window.dispatchEvent(new Event('beforeprint')));
     await page.emulateMedia({ media: 'print' });
     await expect(page.locator('.rapportkop')).toBeVisible();
@@ -177,7 +206,9 @@ test.describe('Aanbestedingstool', () => {
 
     // Restafval met tariefkental: raming als bandbreedte (40.000 t × 7 jaar × € 95,85 tot € 110,85).
     await expect(page.getByText('€ 26.838.000 tot € 31.038.000')).toBeVisible();
-    await expect(page.locator('.ab-vast')).toContainText('Raming');
+    // Bron van het tariefkental bij de raming; de vaste balk verschijnt pas vanaf stap 2 (niet over de stroomkeuze).
+    await expect(page.getByRole('link', { name: /Strategy&/ }).first()).toBeVisible();
+    await expect(page.locator('.ab-vast')).toHaveCount(0);
 
     // GFT, eigen tarief → één bedrag en drempeltoets.
     await page.getByRole('radio', { name: /GFT-afval/ }).check();
@@ -201,9 +232,18 @@ test.describe('Aanbestedingstool', () => {
 
     // Stap 2: MVI-criteria met code en link; gedetailleerde methode erbij kiezen.
     await expect(page.getByRole('heading', { name: 'Stap 2 · Eisen en criteria' })).toBeFocused();
+    await expect(page.locator('.ab-vast')).toContainText('Raming');
+    // MVI-overzicht met directe link naar de productgroep.
+    await expect(page.locator('.ab-mvi-overzicht')).toContainText('Productgroep Verwerking huishoudelijk afval');
+    await expect(page.locator('.ab-mvi-overzicht')).toContainText('049.006');
+    await expect(page.locator('.ab-mvi-overzicht').getByRole('link')).toHaveAttribute('href', 'https://www.mvicriteria.nl/nl/webtool?product_group=54&cluster=5');
     await expect(page.getByText('MVI 049.006 · Significant')).toBeVisible();
     await page.evaluate(() => document.querySelectorAll<HTMLDetailsElement>('details.ab-meer').forEach((d) => (d.open = true)));
-    await expect(page.getByRole('link', { name: /MVI-criterium 049\.006 in de MVI-criteriatool/ })).toHaveAttribute('href', 'https://www.mvicriteria.nl/nl/webtool?product_group=54&cluster=5');
+    // De link gaat naar de productgroep en zegt dat ook.
+    await expect(page.getByRole('link', { name: /Productgroep Verwerking huishoudelijk afval in de MVI-criteriatool \(zoek op 049\.006\)/ })).toHaveAttribute(
+      'href',
+      'https://www.mvicriteria.nl/nl/webtool?product_group=54&cluster=5',
+    );
     const detail = page.getByRole('checkbox', { name: 'CO2-score van de GFT-verwerking, gedetailleerde methode' });
     await expect(detail).not.toBeChecked();
     await detail.check();
@@ -258,6 +298,7 @@ test.describe('Aanbestedingstool', () => {
 
   test('koppelt MVI-codes alleen aan de eigen productgroep (textiel)', async ({ page }) => {
     await page.goto('/tools/aanbestedingstool?stroom=textiel&stap=2');
+    await expect(page.locator('.ab-mvi-overzicht')).toContainText('Voor deze stroom bestaat geen MVI-productgroep');
     await expect(page.getByText('Ontleend aan MVI 049.012 · andere productgroep')).toBeVisible();
     await expect(page.getByText(/^MVI 049\.\d{3} · /)).toHaveCount(0);
     await page.getByLabel('Alleen officiële MVI-criteria').check();
@@ -273,6 +314,10 @@ test.describe('Aanbestedingstool', () => {
     await page.goto('/tools/aanbestedingstool');
     await page.getByLabel('Volume', { exact: true }).fill('50.000.000');
     await expect(page.getByText(/groter dan al het fijne huishoudelijke restafval in Nederland/)).toBeVisible();
+    await page.getByLabel('Volume', { exact: true }).fill('0');
+    await page.getByRole('button', { name: 'Stap 2: Eisen en criteria' }).click();
+    await expect(page.locator('.ab-vast')).toContainText('vul in stap 1 een volume in');
+    await page.getByRole('button', { name: 'Stap 1: Opdracht' }).click();
     await page.getByLabel('Volume', { exact: true }).fill('40000');
     await page.getByRole('radio', { name: /^PMD/ }).check();
     await expect(page.getByLabel('Geraamd tarief', { exact: true })).toHaveValue('');
@@ -341,8 +386,9 @@ test.describe('Als lid ingelogd', () => {
     await page.getByLabel('Verbrand in ton, Installatie 2', { exact: true }).fill('50000');
     // 1.851.840,37 (gemiddelde AVI) + 50.000 t: 12.200 × 12,19 + 463,6 × 83,51 = 187.433,24 → 2.039.274
     const totaalTegel = page.locator('.tegel.hero').filter({ hasText: /totaal/ });
-    await expect(totaalTegel).toContainText('Netto kosten totaal');
-    await expect(totaalTegel).toContainText('2.039.274');
+    await expect(totaalTegel).toContainText('Netto kosten totaal (indicatief)');
+    await expect(totaalTegel).toContainText(/€\s2,04 mln/);
+    await expect(page.getByText(/Indicatief voor Installatie 1, Installatie 2/)).toBeVisible();
     await expect(page.getByRole('region', { name: 'Tabel gevoeligheidsanalyse' })).toContainText('Netto opwerkingskosten');
     await geenHorizontaleScroll(page);
 
@@ -353,26 +399,47 @@ test.describe('Als lid ingelogd', () => {
     await expect(page.getByRole('button', { name: /Rapport maken/ }).first()).toBeVisible();
   });
 
-  test('Rekenmodel PMD: uitkomst bij binnenkomst, bandbreedte, controle en CSV met herkomst', async ({ page }) => {
+  test('Rekenmodel PMD: indicatief bij binnenkomst, conclusie pas met eigen nascheidingstarief, controle en CSV', async ({ page }) => {
     await logInNaar(page, '/tools/pmd-rekenmodel');
     await expect(page.getByLabel('Inwoners', { exact: true })).toHaveValue('100000');
-    // bron: 2.100 t × (325 − 228 − 103,35) = −13.335 ; na: 16.800 × (119,85 − 17,26) − 2.000 × 103,35 = 1.516.812
-    await expect(page.locator('.tb-kern')).toContainText(/bronscheiding €\s1\.530\.147 per jaar goedkoper/);
-    await expect(page.locator('.tb-kern')).toContainText('binnen de bronwaarden');
-    await expect(page.getByRole('region', { name: 'Opbouw per route' })).toContainText('1.516.812');
+    // Kental nascheidingskosten zonder vaste eenheid: geen conclusie, wel bandbreedte en omslagpunt.
+    // bron: 2.100 t × (325 − 228 − 103,35) = −13.335 ; omslag k = (−13.335 + 2.000 × 103,35) / 16.800 + 17,26 = 28,77
+    const kern = page.locator('.tb-kern');
+    await expect(kern).toContainText('Indicatief, want de nascheidingskosten zijn een kental zonder vaste eenheid in de bron');
+    await expect(kern).not.toContainText('Met uw nascheidingstarief');
+    await expect(kern).not.toContainText('hoeveel PMD er ook');
+    await expect(hero(page)).toContainText('Omslagpunt nascheidingstarief');
+    await expect(hero(page)).toContainText(/€\s29 per ton/);
+    await expect(page.locator('.tb-uitkomst .badge').first()).toHaveText('Indicatief');
+    await expect(page.getByText('Kental, eenheid onzeker: vul eigen tarief in')).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Opbouw per route' })).toContainText(/€\s290\.000 tot €\s2,01 mln/);
+    await expect(page.locator('.tb-uitkomstbron').getByRole('link', { name: /akkoord Verpact/ })).toHaveAttribute('href', /nvrd\.nl/);
+
+    const indicatief = await leesDownload(page, 'CSV downloaden');
+    expect(indicatief.tekst).toContain('Invoer;Waarde;Status;Herkomst');
+    expect(indicatief.tekst).toContain('Nascheidingskosten (euro per ton restafval);119,85;kental, eenheid onzeker');
+    expect(indicatief.tekst).toContain('Verschil nascheiding − bronscheiding (euro, positief = bronscheiding goedkoper);zie bandbreedte');
+    expect(indicatief.tekst).toContain('Omslagpunt nascheidingstarief (euro per ton restafval);28,77');
+
+    // Eigen tarief € 45: na = 16.800 × (45 − 17,26) − 2.000 × 103,35 = 259.332 ; verschil 272.667
+    await page.getByLabel('Tarief van uw nascheider (nascheidingskosten)', { exact: true }).fill('45');
+    await expect(kern).toContainText(/Met uw nascheidingstarief is bronscheiding ongeveer €\s273\.000 per jaar goedkoper/);
+    await expect(kern).toContainText('binnen de bronwaarden');
+    await expect(hero(page)).toContainText('Voordeel bronscheiding');
+    await expect(page.locator('.tb-uitkomst .badge').first()).toHaveText('Met uw tarief');
     await expect(page.getByRole('region', { name: 'Opbouw per route' })).toContainText('Bandbreedte');
 
     await klapOpen(page, 'Nascheiding');
-    await page.getByLabel('Teruggewonnen PMD', { exact: true }).fill('15');
-    await expect(page.locator('.tb-kern')).toContainText(/bronscheiding €\s1\.581\.822 per jaar goedkoper/);
     await page.getByLabel('Teruggewonnen PMD', { exact: true }).fill('400');
     await expect(page.getByRole('alert').filter({ hasText: 'Controleer de invoer' })).toContainText('Dat kan niet');
     await page.getByLabel('Teruggewonnen PMD', { exact: true }).fill('15');
 
     const { tekst } = await leesDownload(page, 'CSV downloaden');
     expect(tekst).toContain('Teruggewonnen PMD bij nascheiding (kg per inwoner);15;eigen waarde');
-    expect(tekst).toContain('Netto per jaar (euro, negatief = opbrengst);-13335;1568487');
-    expect(tekst).toContain('Inzamelvergoeding (euro per ton PMD);228;https://www.nvrd.nl/');
+    expect(tekst).toContain('Nascheidingskosten (euro per ton restafval);45;eigen waarde');
+    // na: 259.332 + 500 × 103,35 = 311.007 → afgerond 311.000
+    expect(tekst).toContain('Netto per jaar (euro, negatief = opbrengst);-13000;311000');
+    expect(tekst).toContain('Inzamelvergoeding (euro per ton PMD);228;officieel;https://www.nvrd.nl/');
 
     // Ongeldig aantal inwoners: melding dat de uitkomst niet is bijgewerkt.
     await page.getByLabel('Inwoners', { exact: true }).fill('0');

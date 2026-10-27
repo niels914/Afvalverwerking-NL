@@ -69,7 +69,17 @@ export function routeBron(i: PmdInvoer): PmdRoute {
   const vergoeding = pmdTon * i.vergoedingBron;
   const vermedenVerbranding = pmdTon * i.verbrandingstarief;
   const netto = kosten - vergoeding - vermedenVerbranding;
-  return { naam: 'Bronscheiding', pmdTon, grondslagTon: pmdTon, kosten, vergoeding, vermedenVerbranding, netto, perInwoner: perInw(netto, i.inwoners), perTonPmd: perTon(netto, pmdTon) };
+  return {
+    naam: 'Bronscheiding',
+    pmdTon,
+    grondslagTon: pmdTon,
+    kosten,
+    vergoeding,
+    vermedenVerbranding,
+    netto,
+    perInwoner: perInw(netto, i.inwoners),
+    perTonPmd: perTon(netto, pmdTon),
+  };
 }
 
 export function routeNa(i: PmdInvoer): PmdRoute {
@@ -79,13 +89,27 @@ export function routeNa(i: PmdInvoer): PmdRoute {
   const vergoeding = grondslagTon * i.vergoedingNa;
   const vermedenVerbranding = pmdTon === null ? null : pmdTon * i.verbrandingstarief;
   const netto = vermedenVerbranding === null ? null : kosten - vergoeding - vermedenVerbranding;
-  return { naam: 'Nascheiding', pmdTon, grondslagTon, kosten, vergoeding, vermedenVerbranding, netto, perInwoner: perInw(netto, i.inwoners), perTonPmd: perTon(netto, pmdTon) };
+  return {
+    naam: 'Nascheiding',
+    pmdTon,
+    grondslagTon,
+    kosten,
+    vergoeding,
+    vermedenVerbranding,
+    netto,
+    perInwoner: perInw(netto, i.inwoners),
+    perTonPmd: perTon(netto, pmdTon),
+  };
 }
 
 export function pmdVergelijking(i: PmdInvoer): PmdVergelijking {
   const bron = routeBron(i);
   const na = routeNa(i);
-  return { bron, na, verschil: bron.netto === null || na.netto === null ? null : na.netto - bron.netto };
+  return {
+    bron,
+    na,
+    verschil: bron.netto === null || na.netto === null ? null : na.netto - bron.netto,
+  };
 }
 
 /**
@@ -167,15 +191,21 @@ export function controleerPmd(i: PmdInvoer, g: PmdGrenzen): PmdControle {
   const signalen: string[] = [];
   if (i.inwoners <= 0) fouten.push('Vul een aantal inwoners groter dan 0 in.');
   if (i.teruggewonnenNa !== null && i.teruggewonnenNa > i.restafvalNa)
-    fouten.push(`Teruggewonnen PMD (${kg(i.teruggewonnenNa)} per inwoner) is meer dan het restafval dat naar de nascheider gaat (${kg(i.restafvalNa)}). Dat kan niet.`);
+    fouten.push(
+      `Teruggewonnen PMD (${kg(i.teruggewonnenNa)} per inwoner) is meer dan het restafval dat naar de nascheider gaat (${kg(i.restafvalNa)}). Dat kan niet.`,
+    );
   else if (i.teruggewonnenNa !== null && i.teruggewonnenNa > g.teruggewonnenHoog)
-    signalen.push(`Teruggewonnen PMD van ${kg(i.teruggewonnenNa)} per inwoner ligt boven de hoogste praktijkwaarde in de bron (${kg(g.teruggewonnenHoog)}). Vraag de onderbouwing op bij de nascheider.`);
+    signalen.push(
+      `Teruggewonnen PMD van ${kg(i.teruggewonnenNa)} per inwoner ligt boven de hoogste praktijkwaarde in de bron (${kg(g.teruggewonnenHoog)}). Vraag de onderbouwing op bij de nascheider.`,
+    );
   if (i.teruggewonnenNa !== null && i.teruggewonnenNa <= i.restafvalNa && i.teruggewonnenNa > i.restafvalNa * g.pmdAandeelRestafval)
     signalen.push(
       `Bij ${kg(i.restafvalNa)} restafval per inwoner zit er gemiddeld ${kg(i.restafvalNa * g.pmdAandeelRestafval)} PMD in. Het teruggewonnen PMD is hoger; dat is alleen haalbaar als uw restafval meer PMD bevat dan gemiddeld.`,
     );
   if (i.responsBron > g.responsMax * 1.2)
-    signalen.push(`${kg(i.responsBron)} PMD per inwoner is meer dan de gemeente met de hoogste inzameling volgens CBS (${kg(g.responsMax)}). Controleer de waarde.`);
+    signalen.push(
+      `${kg(i.responsBron)} PMD per inwoner is meer dan de gemeente met de hoogste inzameling volgens CBS (${kg(g.responsMax)}). Controleer de waarde.`,
+    );
   if (i.inwoners > g.inwonersNl) signalen.push('Het aantal inwoners is groter dan dat van heel Nederland. Controleer de waarde.');
   return { fouten, signalen };
 }
@@ -195,7 +225,10 @@ export function pmdCombinaties(i: PmdInvoer, varianten: PmdVarianten): PmdInvoer
   let combinaties: PmdInvoer[] = [i];
   for (const k of volgendeVarianten(i, varianten)) {
     const v = varianten[k]!;
-    combinaties = combinaties.flatMap((c) => [{ ...c, [k]: v.laag }, { ...c, [k]: v.hoog }]);
+    combinaties = combinaties.flatMap((c) => [
+      { ...c, [k]: v.laag },
+      { ...c, [k]: v.hoog },
+    ]);
   }
   return combinaties;
 }

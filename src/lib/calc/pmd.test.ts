@@ -48,7 +48,11 @@ describe('gegevens uit het akkoord Verpact, VNG en NVRD', () => {
   it('heeft de staffel 2026 zoals gepubliceerd', () => {
     expect(staffel.map((s) => s.euroPerTon[2026])).toEqual([325, 277, 228, 195, 0]);
     expect(staffel.map((s) => s.pctKostenbasis[2026])).toEqual([100, 85, 70, 60, 0]);
-    expect(staffelPerCategorie['3b'].euroPerTon).toEqual({ 2026: 195, 2027: 179, 2028: 163 });
+    expect(staffelPerCategorie['3b'].euroPerTon).toEqual({
+      2026: 195,
+      2027: 179,
+      2028: 163,
+    });
     expect(kostenbasisBron).toBe(325);
   });
 
@@ -162,7 +166,11 @@ describe('kentallen nascheiding en verbranding (ronde 2)', () => {
   });
 
   it('heeft een verbrandingstarief van 95,85 tot 110,85 (poorttarief 55–70 plus ASB 2026)', () => {
-    expect(pmdVarianten.verbrandingstarief).toEqual({ laag: 95.85, midden: 103.35, hoog: 110.85 });
+    expect(pmdVarianten.verbrandingstarief).toEqual({
+      laag: 95.85,
+      midden: 103.35,
+      hoog: 110.85,
+    });
   });
 
   it('rekent bij binnenkomst beide routes uit', () => {
@@ -175,7 +183,10 @@ describe('kentallen nascheiding en verbranding (ronde 2)', () => {
 
 describe('controle van de invoer', () => {
   it('geeft geen meldingen bij de standaard', () => {
-    expect(controleerPmd(pmdStandaard, pmdGrenzen)).toEqual({ fouten: [], signalen: [] });
+    expect(controleerPmd(pmdStandaard, pmdGrenzen)).toEqual({
+      fouten: [],
+      signalen: [],
+    });
   });
 
   it('meldt 0 of minder inwoners als fout', () => {
@@ -203,7 +214,10 @@ describe('controle van de invoer', () => {
 });
 
 describe('bandbreedte', () => {
-  const varianten = { teruggewonnenNa: { laag: 5, midden: 10, hoog: 15 }, verbrandingstarief: { laag: 90, midden: 100, hoog: 110 } };
+  const varianten = {
+    teruggewonnenNa: { laag: 5, midden: 10, hoog: 15 },
+    verbrandingstarief: { laag: 90, midden: 100, hoog: 110 },
+  };
 
   it('rekent alle combinaties van laag en hoog door', () => {
     const b = pmdBandbreedte(invoer, varianten)!;
@@ -230,7 +244,11 @@ describe('nascheidingskosten: eenheid onzeker (ronde 3)', () => {
     expect(nascheidingskostenLezingen.perTonPmd).toBe(nascheiding.vergoeding2026);
     // € 3 mln opslag / € 6,79 per ton ≈ 442 kton: past bij nagescheiden restafval
     expect(nascheidingskostenLezingen.tonnageOpslagKton).toBe(442);
-    expect(nascheidingskostenBand).toEqual({ laag: 17.26, midden: 119.85, hoog: 119.85 });
+    expect(nascheidingskostenBand).toEqual({
+      laag: 17.26,
+      midden: 119.85,
+      hoog: 119.85,
+    });
     expect(pmdVarianten.nascheidingskosten).toBe(nascheidingskostenBand);
   });
 
@@ -246,8 +264,14 @@ describe('nascheidingskosten: eenheid onzeker (ronde 3)', () => {
     // per ton PMD: nascheiding goedkoper; per ton restafval: bronscheiding goedkoper
     expect(b.verschil!.laag).toBeLessThan(0);
     expect(b.verschil!.hoog).toBeGreaterThan(0);
-    const laag = pmdVergelijking({ ...pmdStandaard, nascheidingskosten: 17.26 });
-    const hoog = pmdVergelijking({ ...pmdStandaard, nascheidingskosten: 119.85 });
+    const laag = pmdVergelijking({
+      ...pmdStandaard,
+      nascheidingskosten: 17.26,
+    });
+    const hoog = pmdVergelijking({
+      ...pmdStandaard,
+      nascheidingskosten: 119.85,
+    });
     expect(b.na!.laag).toBeLessThanOrEqual(laag.na.netto as number);
     expect(b.na!.hoog).toBeGreaterThanOrEqual(hoog.na.netto as number);
   });

@@ -143,7 +143,15 @@ export function useVeldFouten() {
 }
 
 /** Korte bronregel direct onder een uitkomst, met links en peildatum, en een verwijzing naar de volledige lijst. */
-export function UitkomstBronnen({ bronnen, peildatum, lijstId = 'bronnen' }: { bronnen: { titel: string; url: string }[]; peildatum: string; lijstId?: string }) {
+export function UitkomstBronnen({
+  bronnen,
+  peildatum,
+  lijstId = 'bronnen',
+}: {
+  bronnen: { titel: string; url: string }[];
+  peildatum: string;
+  lijstId?: string;
+}) {
   return (
     <p className="klein muted tb-uitkomstbron">
       Bronnen:{' '}

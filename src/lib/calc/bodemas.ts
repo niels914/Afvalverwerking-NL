@@ -82,7 +82,15 @@ export function bodemas(i: BodemasInvoer): BodemasUitkomst {
   const overigTon = Math.max(0, bodemasTon - ferroTon - nonFerroTon - residuTon);
   const kostenStorten = residuTon * (i.stortkosten + i.stortbelasting);
   const ontbrekend = ontbrekendeBedragen(i);
-  const basis = { bodemasTon, ferroTon, nonFerroTon, residuTon, overigTon, kostenStorten, ontbrekend };
+  const basis = {
+    bodemasTon,
+    ferroTon,
+    nonFerroTon,
+    residuTon,
+    overigTon,
+    kostenStorten,
+    ontbrekend,
+  };
   const perTon = (netto: number) => ({
     perTonVerbrand: i.tonnageVerbrand > 0 ? netto / i.tonnageVerbrand : 0,
     perTonBodemas: bodemasTon > 0 ? netto / bodemasTon : 0,
@@ -91,15 +99,34 @@ export function bodemas(i: BodemasInvoer): BodemasUitkomst {
   if (i.rekenwijze === 'kental') {
     const brutoKosten = bodemasTon * i.nettoOpwerking;
     const nettoKosten = brutoKosten + kostenStorten;
-    return { ...basis, brutoKosten, opbrengst: null, nettoKosten, ...perTon(nettoKosten) };
+    return {
+      ...basis,
+      brutoKosten,
+      opbrengst: null,
+      nettoKosten,
+      ...perTon(nettoKosten),
+    };
   }
   if (ontbrekend.length > 0) {
-    return { ...basis, brutoKosten: null, opbrengst: null, nettoKosten: null, perTonVerbrand: null, perTonBodemas: null };
+    return {
+      ...basis,
+      brutoKosten: null,
+      opbrengst: null,
+      nettoKosten: null,
+      perTonVerbrand: null,
+      perTonBodemas: null,
+    };
   }
   const brutoKosten = bodemasTon * (i.verwerkingstarief as number);
   const opbrengst = (ferroTon * (i.prijsFerro as number) + nonFerroTon * (i.prijsNonFerro as number)) * (i.aandeelOpbrengstPct / 100);
   const nettoKosten = brutoKosten - opbrengst + kostenStorten;
-  return { ...basis, brutoKosten, opbrengst, nettoKosten, ...perTon(nettoKosten) };
+  return {
+    ...basis,
+    brutoKosten,
+    opbrengst,
+    nettoKosten,
+    ...perTon(nettoKosten),
+  };
 }
 
 /* ---------- Controle van de invoer ---------- */
@@ -137,13 +164,16 @@ export function controleerBodemas(i: BodemasInvoer, bereik: BodemasBereik, resid
   if (som > 100) fouten.push(`Ferro, non-ferro en residu zijn samen ${pct(som)} van de bodemas. Dat kan niet meer dan 100 % zijn; controleer de percentages.`);
   const [bLaag, bHoog] = bereik.aandeelBodemasPct;
   if (i.aandeelBodemasPct < bLaag - marge || i.aandeelBodemasPct > bHoog + marge)
-    signalen.push(`Aandeel bodemas ${pct(i.aandeelBodemasPct)} wijkt sterk af van het landelijke beeld (${pct(bLaag)} tot ${pct(bHoog)}). Controleer de opgave van uw verwerker.`);
+    signalen.push(
+      `Aandeel bodemas ${pct(i.aandeelBodemasPct)} wijkt sterk af van het landelijke beeld (${pct(bLaag)} tot ${pct(bHoog)}). Controleer de opgave van uw verwerker.`,
+    );
   const metalen = i.ferroPct + i.nonFerroPct;
   const [fLaag, fHoog] = bereik.ferroPct;
   const [nLaag, nHoog] = bereik.nonFerroPct;
   if (metalen > 2 * (fHoog + nHoog) || (metalen > 0 && metalen < (fLaag + nLaag) / 2))
     signalen.push(`Metalen samen ${pct(metalen)} van de bodemas; landelijk is dat ${pct(fLaag + nLaag)} tot ${pct(fHoog + nHoog)}. Controleer de waarde.`);
-  if (i.residuPct > residuMax) signalen.push(`Residu ${pct(i.residuPct)} ligt boven het maximum van ${pct(residuMax)} van de ruwe bodemas dat mag worden gestort.`);
+  if (i.residuPct > residuMax)
+    signalen.push(`Residu ${pct(i.residuPct)} ligt boven het maximum van ${pct(residuMax)} van de ruwe bodemas dat mag worden gestort.`);
   if (i.rekenwijze === 'contract' && i.aandeelOpbrengstPct > 100) fouten.push('Uw deel van de metaalopbrengst kan niet meer dan 100 % zijn.');
   return { fouten, signalen };
 }
@@ -177,7 +207,12 @@ export function bandbreedte(i: BodemasInvoer, scenario: { laag: Scenario; midden
   const hoog = bodemas(pas(scenario.hoog)).nettoKosten;
   const midden = bodemas(i).nettoKosten;
   if (laag === null || hoog === null || midden === null) return null;
-  return { laag: Math.min(laag, hoog), midden, hoog: Math.max(laag, hoog), volgtScenario: (Object.keys(scenario.midden) as (keyof Scenario)[]).filter(volgt) };
+  return {
+    laag: Math.min(laag, hoog),
+    midden,
+    hoog: Math.max(laag, hoog),
+    volgtScenario: (Object.keys(scenario.midden) as (keyof Scenario)[]).filter(volgt),
+  };
 }
 
 /* ---------- Meerdere installaties (Pro) ---------- */
@@ -194,7 +229,11 @@ export interface InstallatieRegel extends BodemasUitkomst {
 
 /** Uitkomst per installatie en het totaal. Bedragen in het totaal zijn null als één installatie onvolledig is. */
 export function bodemasInstallaties(installaties: Installatie[]) {
-  const regels: InstallatieRegel[] = installaties.map((inst) => ({ id: inst.id, naam: inst.naam, ...bodemas(inst) }));
+  const regels: InstallatieRegel[] = installaties.map((inst) => ({
+    id: inst.id,
+    naam: inst.naam,
+    ...bodemas(inst),
+  }));
   const volledig = regels.every((r) => r.nettoKosten !== null);
   const som = (f: (r: InstallatieRegel) => number) => regels.reduce((s, r) => s + f(r), 0);
   const totaal = {
@@ -212,7 +251,15 @@ export function bodemasInstallaties(installaties: Installatie[]) {
   return { regels, totaal };
 }
 
-export type BodemasParameter = 'tonnageVerbrand' | 'aandeelBodemasPct' | 'ferroPct' | 'nonFerroPct' | 'nettoOpwerking' | 'residuPct' | 'stortkosten' | BedragVeld;
+export type BodemasParameter =
+  | 'tonnageVerbrand'
+  | 'aandeelBodemasPct'
+  | 'ferroPct'
+  | 'nonFerroPct'
+  | 'nettoOpwerking'
+  | 'residuPct'
+  | 'stortkosten'
+  | BedragVeld;
 
 /**
  * Parameters die meetellen in de gevoeligheidsanalyse, per rekenwijze. Parameters die precies hetzelfde effect hebben

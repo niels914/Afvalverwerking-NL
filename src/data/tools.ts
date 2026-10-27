@@ -41,7 +41,8 @@ export const tools: Tool[] = [
     titel: 'Bodemassencalculator',
     pad: '/tools/bodemassencalculator',
     toegang: 'gratis+pro',
-    omschrijving: 'Bereken hoeveel bodemas en metalen vrijkomen en wat opwerken en het storten van residu netto kosten, met bandbreedte.',
+    omschrijving:
+      'Bereken hoeveel bodemas en metalen vrijkomen. De kosten van opwerken en residu storten ziet u als indicatieve bandbreedte, of precies met uw eigen tarief.',
     gratisDeel: 'Eén installatie of gemeente, ingevuld met openbare kentallen of met uw eigen contracttarieven.',
     proDeel: 'Meerdere installaties, gevoeligheidsanalyse, CSV en rapport.',
   },
@@ -51,7 +52,7 @@ export const tools: Tool[] = [
     pad: '/tools/pmd-rekenmodel',
     toegang: 'leden',
     omschrijving:
-      'Vergelijk de netto kosten van bron- en nascheiding van PMD voor uw gemeente, met de vergoedingen van Verpact voor 2026, de afvalcijfers van CBS en een bandbreedte.',
+      'Vergelijk de netto kosten van bron- en nascheiding van PMD voor uw gemeente, met de vergoedingen van Verpact voor 2026 en de afvalcijfers van CBS. Het model toont bij welk nascheidingstarief nascheiding goedkoper wordt; met uw eigen tarief trekt het een conclusie.',
   },
 ];
 

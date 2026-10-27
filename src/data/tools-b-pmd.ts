@@ -174,7 +174,11 @@ export const verbrandingstariefBand = {
   hoog: r2(poorttariefBandbreedte.hoog + asb2026),
 };
 
-export const pmdVarianten = { teruggewonnenNa: nascheidingRendement, verbrandingstarief: verbrandingstariefBand, nascheidingskosten: nascheidingskostenBand };
+export const pmdVarianten = {
+  teruggewonnenNa: nascheidingRendement,
+  verbrandingstarief: verbrandingstariefBand,
+  nascheidingskosten: nascheidingskostenBand,
+};
 
 /** Grenzen voor de plausibiliteitscontrole. */
 export const pmdGrenzen = {

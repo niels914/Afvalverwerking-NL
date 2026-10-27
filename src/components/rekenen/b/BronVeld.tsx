@@ -34,7 +34,24 @@ interface Props {
  * Getalveld dat laat zien waar de standaardwaarde vandaan komt: officiële bron, kental of eigen invoer.
  * Accepteert komma en punt. Een leeg veld is toegestaan als `magLeeg`; de tool toont dan wat er nog ontbreekt.
  */
-export function BronVeld({ label, waarde, onChange, eenheid, status, bronwaarde, bronwaardeTekst, bron, peildatum, toelichting, min = 0, max, magLeeg, voorbeeld, onFout, statusTekst }: Props) {
+export function BronVeld({
+  label,
+  waarde,
+  onChange,
+  eenheid,
+  status,
+  bronwaarde,
+  bronwaardeTekst,
+  bron,
+  peildatum,
+  toelichting,
+  min = 0,
+  max,
+  magLeeg,
+  voorbeeld,
+  onFout,
+  statusTekst,
+}: Props) {
   const id = useId();
   const leegToegestaan = magLeeg ?? status === 'aanname';
   const [tekst, setTekst] = useState(waarde === null ? '' : toonInInvoer(waarde));

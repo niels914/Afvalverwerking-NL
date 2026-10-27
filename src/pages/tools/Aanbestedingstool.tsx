@@ -87,7 +87,14 @@ const opties = {
 function pastBijZoek(c: Criterium, zoek: string, stroom: StroomId): boolean {
   const woorden = zoek.toLowerCase().split(/\s+/).filter(Boolean);
   if (woorden.length === 0) return true;
-  const tekst = [c.titel, c.tekst, c.toetsing ?? '', c.mvi ? `mvi ${c.mvi.code} ${mviStatus(c, stroom) === 'andere' ? 'andere productgroep' : ''}` : '', themaLabel[c.thema], soortLabel[c.soort]]
+  const tekst = [
+    c.titel,
+    c.tekst,
+    c.toetsing ?? '',
+    c.mvi ? `mvi ${c.mvi.code} ${mviStatus(c, stroom) === 'andere' ? 'andere productgroep' : ''}` : '',
+    themaLabel[c.thema],
+    soortLabel[c.soort],
+  ]
     .join(' ')
     .toLowerCase();
   return woorden.every((w) => tekst.includes(w));
@@ -130,7 +137,12 @@ export function Aanbestedingstool() {
   const wegingAfgerond = rondAfOp100(weging);
   const opdrachtType = (i.opdrachtType in opdrachtTypen ? i.opdrachtType : 'diensten') as OpdrachtType;
   const drempelBedrag = drempel.bedragen[opdrachtType];
-  const raming = { volumePerJaar: i.volume, tarief: i.tarief, looptijdJaren: i.looptijd, verlengingJaren: i.verlenging };
+  const raming = {
+    volumePerJaar: i.volume,
+    tarief: i.tarief,
+    looptijdJaren: i.looptijd,
+    verlengingJaren: i.verlenging,
+  };
   const waarde = geraamdeWaarde(raming);
   const toets = drempelToets(waarde, drempelBedrag);
   const kental = stroom.tariefKental && i.tarief === stroom.tariefKental.waarde ? { laag: stroom.tariefKental.laag, hoog: stroom.tariefKental.hoog } : null;
@@ -154,7 +166,8 @@ export function Aanbestedingstool() {
     prijsPct: weging.prijs,
     aantalKwaliteit: gunning.length,
     dubbeleCo2Methode:
-      (i.gekozen.includes('rest-co2-basis') && i.gekozen.includes('rest-co2-detail')) || (i.gekozen.includes('gft-co2-basis') && i.gekozen.includes('gft-co2-detail')),
+      (i.gekozen.includes('rest-co2-basis') && i.gekozen.includes('rest-co2-detail')) ||
+      (i.gekozen.includes('gft-co2-basis') && i.gekozen.includes('gft-co2-detail')),
     opdrachtType,
     drempelBinnenBand: bandOordeel === 'grens',
   });
@@ -187,7 +200,10 @@ export function Aanbestedingstool() {
     }));
   }
   function wissel(id: string) {
-    setI((x) => ({ ...x, gekozen: x.gekozen.includes(id) ? x.gekozen.filter((g) => g !== id) : [...x.gekozen, id] }));
+    setI((x) => ({
+      ...x,
+      gekozen: x.gekozen.includes(id) ? x.gekozen.filter((g) => g !== id) : [...x.gekozen, id],
+    }));
   }
   function zetPunten(id: string, n: number) {
     setI((x) => ({ ...x, punten: { ...x.punten, [id]: n } }));
@@ -201,7 +217,12 @@ export function Aanbestedingstool() {
     ['Geraamd tarief', i.tarief === null ? 'niet ingevuld' : `${euro(i.tarief, 2)} per ${stroom.tariefEenheid.replace('€/', '')}`],
     ['Looptijd', `${getal(i.looptijd)} jaar + ${getal(i.verlenging)} jaar verlengingsoptie`],
     ['Geraamde opdrachtwaarde', waarde === null ? 'niet te bepalen zonder tarief' : `${euro(waarde)} excl. btw`],
-    ...(band ? ([['Bandbreedte raming', `${euro(band.laag)} tot ${euro(band.hoog)} (tariefkental ${euro(kental!.laag, 2)} tot ${euro(kental!.hoog, 2)})`]] as [string, string][]) : []),
+    ...(band
+      ? ([['Bandbreedte raming', `${euro(band.laag)} tot ${euro(band.hoog)} (tariefkental ${euro(kental!.laag, 2)} tot ${euro(kental!.hoog, 2)})`]] as [
+          string,
+          string,
+        ][])
+      : []),
     ['Drempelbedrag', `${euro(drempelBedrag)} excl. btw (${drempelBron.datum})`],
     [
       'Uitkomst drempeltoets',
@@ -220,10 +241,7 @@ export function Aanbestedingstool() {
     datum: new Date().toISOString().slice(0, 10),
     peildatum: PEILDATUM,
     opdracht: opdrachtRegels,
-    weging: [
-      { label: 'Prijs', pct: wegingAfgerond.prijs },
-      ...gunning.map((c) => ({ label: c.titel, pct: wegingAfgerond[c.id] })),
-    ],
+    weging: [{ label: 'Prijs', pct: wegingAfgerond.prijs }, ...gunning.map((c) => ({ label: c.titel, pct: wegingAfgerond[c.id] }))],
     regels: soorten.flatMap((s) =>
       gekozen
         .filter((c) => c.soort === s)
@@ -241,12 +259,33 @@ export function Aanbestedingstool() {
     ),
     checklist: punten,
     bronnen: [
-      { titel: `${aanbestedingBronnen.mviAfval.uitgever}, ${aanbestedingBronnen.mviAfval.titel}`, url: aanbestedingBronnen.mviAfval.url },
-      ...(stroom.id === 'inzameling' ? [{ titel: aanbestedingBronnen.mviVoertuigen.titel, url: aanbestedingBronnen.mviVoertuigen.url }] : []),
+      {
+        titel: `${aanbestedingBronnen.mviAfval.uitgever}, ${aanbestedingBronnen.mviAfval.titel}`,
+        url: aanbestedingBronnen.mviAfval.url,
+      },
+      ...(stroom.id === 'inzameling'
+        ? [
+            {
+              titel: aanbestedingBronnen.mviVoertuigen.titel,
+              url: aanbestedingBronnen.mviVoertuigen.url,
+            },
+          ]
+        : []),
       { titel: `PIANOo, ${drempelBron.titel}`, url: drempelBron.url },
-      { titel: `PIANOo, ${aanbestedingBronnen.gunning.titel}`, url: aanbestedingBronnen.gunning.url },
-      { titel: `PIANOo, ${aanbestedingBronnen.bpkv.titel}`, url: aanbestedingBronnen.bpkv.url },
-      ...(stroom.tariefKental ? stroom.tariefKental.bron.map((b) => ({ titel: `${b.uitgever}, ${b.titel}`, url: b.url })) : []),
+      {
+        titel: `PIANOo, ${aanbestedingBronnen.gunning.titel}`,
+        url: aanbestedingBronnen.gunning.url,
+      },
+      {
+        titel: `PIANOo, ${aanbestedingBronnen.bpkv.titel}`,
+        url: aanbestedingBronnen.bpkv.url,
+      },
+      ...(stroom.tariefKental
+        ? stroom.tariefKental.bron.map((b) => ({
+            titel: `${b.uitgever}, ${b.titel}`,
+            url: b.url,
+          }))
+        : []),
     ],
   });
 
@@ -273,7 +312,10 @@ export function Aanbestedingstool() {
 
   return (
     <>
-      <RapportKop titel={`Aanbesteding ${stroom.naam}`} ondertitel={`Eisen, gunningscriteria en weging · bronnen MVI-criteriatool en PIANOo, peildatum ${datum(PEILDATUM)}`} />
+      <RapportKop
+        titel={`Aanbesteding ${stroom.naam}`}
+        ondertitel={`Eisen, gunningscriteria en weging · bronnen MVI-criteriatool en PIANOo, peildatum ${datum(PEILDATUM)}`}
+      />
       <PaginaKop
         titel="Aanbestedingstool"
         badges={
@@ -283,9 +325,8 @@ export function Aanbestedingstool() {
           </>
         }
       >
-        Stel per afvalstroom de eisen, gunningscriteria en contractbepalingen samen, verdeel de weging en download het
-        overzicht voor uw bestek. Waar een officieel MVI-criterium bestaat, verwijst de tool ernaar. De tool vervangt
-        geen juridisch advies.
+        Stel per afvalstroom de eisen, gunningscriteria en contractbepalingen samen, verdeel de weging en download het overzicht voor uw bestek. Waar een
+        officieel MVI-criterium bestaat, verwijst de tool ernaar. De tool vervangt geen juridisch advies.
       </PaginaKop>
 
       <div className="knoppen geen-print" style={{ justifyContent: 'space-between', marginBottom: 12 }}>
@@ -302,6 +343,27 @@ export function Aanbestedingstool() {
           {gekozen.length} {gekozen.length === 1 ? 'eis of criterium' : 'eisen en criteria'} gekozen
         </span>
       </div>
+
+      {stap > 0 && (
+        <div className="ab-vast geen-print" aria-label="Samenvatting van uw keuzes" role="region">
+          <span>
+            Raming{' '}
+            <strong>
+              {i.volume <= 0
+                ? 'vul in stap 1 een volume in'
+                : band
+                  ? `${euro(band.laag)} – ${euro(band.hoog)}`
+                  : waarde === null
+                    ? 'vul in stap 1 een tarief in'
+                    : euro(waarde)}
+            </strong>
+          </span>
+          <span>{toets === null ? 'Drempel onbekend' : bandOordeel === 'grens' ? 'Op de drempel' : toets.europees ? 'Europees' : 'Onder de drempel'}</span>
+          <span>
+            <strong>{gekozen.length}</strong> gekozen · prijs <strong>{procent(wegingAfgerond.prijs, 0)}</strong>
+          </span>
+        </div>
+      )}
 
       {stap === 0 && (
         <div className="stapel">
@@ -325,19 +387,31 @@ export function Aanbestedingstool() {
               <KeuzeVeld
                 label="Soort aanbestedende dienst"
                 waarde={i.drempel}
-                opties={(Object.keys(drempels) as DrempelId[]).map((d) => ({ waarde: d, label: drempels[d].label }))}
+                opties={(Object.keys(drempels) as DrempelId[]).map((d) => ({
+                  waarde: d,
+                  label: drempels[d].label,
+                }))}
                 onChange={(d) => setI((x) => ({ ...x, drempel: d }))}
                 hint="Bepaalt het drempelbedrag voor Europees aanbesteden."
               />
               <KeuzeVeld
                 label="Soort opdracht"
                 waarde={opdrachtType}
-                opties={(Object.keys(opdrachtTypen) as OpdrachtType[]).map((t) => ({ waarde: t, label: `${opdrachtTypen[t].label} (${euro(drempel.bedragen[t])})` }))}
+                opties={(Object.keys(opdrachtTypen) as OpdrachtType[]).map((t) => ({
+                  waarde: t,
+                  label: `${opdrachtTypen[t].label} (${euro(drempel.bedragen[t])})`,
+                }))}
                 onChange={(t) => setI((x) => ({ ...x, opdrachtType: t }))}
                 hint={opdrachtTypen[opdrachtType].uitleg}
               />
               <div className="velden-2 ab-velden">
-                <GetalVeld label="Volume" eenheid={stroom.volumeEenheid} waarde={i.volume} onChange={(n) => setI((x) => ({ ...x, volume: n }))} hint="Raming per jaar." />
+                <GetalVeld
+                  label="Volume"
+                  eenheid={stroom.volumeEenheid}
+                  waarde={i.volume}
+                  onChange={(n) => setI((x) => ({ ...x, volume: n }))}
+                  hint="Raming per jaar."
+                />
                 <BronVeld
                   label="Geraamd tarief"
                   eenheid={stroom.tariefEenheid}
@@ -346,9 +420,18 @@ export function Aanbestedingstool() {
                   status={stroom.tariefKental ? 'kental' : 'aanname'}
                   bronwaarde={stroom.tariefKental?.waarde}
                   bronwaardeTekst={stroom.tariefKental ? euro(stroom.tariefKental.waarde, 2) : undefined}
-                  bron={stroom.tariefKental ? { titel: 'Strategy& 2025 en Belastingdienst', url: stroom.tariefKental.bron[0].url } : undefined}
+                  bron={
+                    stroom.tariefKental
+                      ? {
+                          titel: 'Strategy& 2025 en Belastingdienst',
+                          url: stroom.tariefKental.bron[0].url,
+                        }
+                      : undefined
+                  }
                   peildatum={stroom.tariefKental ? PEILDATUM : undefined}
-                  toelichting={stroom.tariefKental ? stroom.tariefKental.toelichting : 'Geen openbare bron. Gebruik uw huidige contracttarief of een marktverkenning.'}
+                  toelichting={
+                    stroom.tariefKental ? stroom.tariefKental.toelichting : 'Geen openbare bron. Gebruik uw huidige contracttarief of een marktverkenning.'
+                  }
                 />
                 <GetalVeld label="Looptijd" eenheid="jaar" min={1} max={20} waarde={i.looptijd} onChange={(n) => setI((x) => ({ ...x, looptijd: n }))} />
                 <GetalVeld
@@ -370,6 +453,14 @@ export function Aanbestedingstool() {
             drempelBedrag={drempelBedrag}
             drempelLabel={`${drempel.kort.toLowerCase()}, ${opdrachtTypen[opdrachtType].label.toLowerCase()}`}
             signalen={signalen}
+            tariefBronnen={
+              band && stroom.tariefKental
+                ? stroom.tariefKental.bron.map((b) => ({
+                    titel: `${b.uitgever}, ${b.titel}`,
+                    url: b.url,
+                  }))
+                : undefined
+            }
           />
         </div>
       )}
@@ -387,8 +478,8 @@ export function Aanbestedingstool() {
           <Kaart className="invoerkaart">
             {kop('Stap 3 · Weging')}
             <p className="klein muted">
-              Geef prijs en elk gekozen gunningscriterium punten (0–100). De tool rekent dat om naar een weging van samen 100 %.
-              Maak de weging vooraf bekend in de aanbestedingsstukken.
+              Geef prijs en elk gekozen gunningscriterium punten (0–100). De tool rekent dat om naar een weging van samen 100 %. Maak de weging vooraf bekend in
+              de aanbestedingsstukken.
             </p>
             <div className="ab-weging">
               <WegingRij label="Prijs" punten={puntenVan('prijs')} pct={wegingAfgerond.prijs} onChange={(n) => zetPunten('prijs', n)} />
@@ -398,15 +489,23 @@ export function Aanbestedingstool() {
             </div>
             {gunning.length === 0 && (
               <p className="notitie" role="status">
-                U hebt geen gunningscriteria gekozen naast prijs. Ga terug naar stap 2 om kwaliteitscriteria toe te voegen, of
-                gun op laagste prijs en motiveer die keuze.
+                U hebt geen gunningscriteria gekozen naast prijs. Ga terug naar stap 2 om kwaliteitscriteria toe te voegen, of gun op laagste prijs en motiveer
+                die keuze.
               </p>
             )}
             {navigatie(stappen[1], stappen[3])}
           </Kaart>
           <Kaart titel="Verdeling" kopNiveau={3}>
             <div className="ab-balken">
-              <PercentageBalken items={[{ label: 'Prijs', pct: wegingAfgerond.prijs }, ...gunning.map((c) => ({ label: c.titel, pct: wegingAfgerond[c.id] }))]} />
+              <PercentageBalken
+                items={[
+                  { label: 'Prijs', pct: wegingAfgerond.prijs },
+                  ...gunning.map((c) => ({
+                    label: c.titel,
+                    pct: wegingAfgerond[c.id],
+                  })),
+                ]}
+              />
             </div>
             <PrijsSignaal signaal={signaal} />
             <p className="klein muted">
@@ -443,7 +542,15 @@ export function Aanbestedingstool() {
               <section>
                 <h3>Weging</h3>
                 <div className="ab-balken">
-                  <PercentageBalken items={[{ label: 'Prijs', pct: wegingAfgerond.prijs }, ...gunning.map((c) => ({ label: c.titel, pct: wegingAfgerond[c.id] }))]} />
+                  <PercentageBalken
+                    items={[
+                      { label: 'Prijs', pct: wegingAfgerond.prijs },
+                      ...gunning.map((c) => ({
+                        label: c.titel,
+                        pct: wegingAfgerond[c.id],
+                      })),
+                    ]}
+                  />
                 </div>
                 <PrijsSignaal signaal={signaal} />
               </section>
@@ -468,14 +575,14 @@ export function Aanbestedingstool() {
                             <>
                               {andereGroepTekst(c, stroom.id)}{' '}
                               <a href={c.mvi.bron.url} target="_blank" rel="noopener noreferrer">
-                                Criterium in de MVI-criteriatool
+                                Productgroep in de MVI-criteriatool (zoek op {c.mvi.code})
                               </a>
                             </>
                           ) : c.mvi ? (
                             <>
                               Officieel MVI-criterium {c.mvi.code}, ambitieniveau {ambitieLabel[c.mvi.ambitie].toLowerCase()}.{' '}
                               <a href={c.mvi.bron.url} target="_blank" rel="noopener noreferrer">
-                                Volledige tekst in de MVI-criteriatool
+                                Volledige tekst: productgroep in de MVI-criteriatool, zoek op {c.mvi.code}
                               </a>
                             </>
                           ) : (
@@ -517,8 +624,8 @@ export function Aanbestedingstool() {
               }
             />
             <p className="klein muted" style={{ margin: 0 }}>
-              Het tekstbestand en de CSV bevatten opdracht, weging, alle gekozen eisen en criteria met herkomst, de checklist en
-              de bronnen. Printen opent het printvenster; kies “Opslaan als PDF” voor een bestand.
+              Het tekstbestand en de CSV bevatten opdracht, weging, alle gekozen eisen en criteria met herkomst, de checklist en de bronnen. Printen opent het
+              printvenster; kies “Opslaan als PDF” voor een bestand.
             </p>
           </Kaart>
           <div className="knoppen geen-print">
@@ -538,19 +645,6 @@ export function Aanbestedingstool() {
         </div>
       )}
 
-      <div className="ab-vast geen-print" aria-label="Samenvatting van uw keuzes" role="region">
-        <span>
-          Raming{' '}
-          <strong>{band ? `${euro(band.laag)} – ${euro(band.hoog)}` : waarde === null ? 'nog geen tarief' : euro(waarde)}</strong>
-        </span>
-        <span>
-          {toets === null ? 'Drempel onbekend' : bandOordeel === 'grens' ? 'Op de drempel' : toets.europees ? 'Europees' : 'Onder de drempel'}
-        </span>
-        <span>
-          <strong>{gekozen.length}</strong> gekozen · prijs <strong>{procent(wegingAfgerond.prijs, 0)}</strong>
-        </span>
-      </div>
-
       <Kaart titel="Over deze tool" className="geen-print" sub={`Peildatum bronnen ${datum(PEILDATUM)}`}>
         <ul className="opsomming klein">
           <li>
@@ -558,9 +652,9 @@ export function Aanbestedingstool() {
             <a href={aanbestedingBronnen.mviAfval.url} target="_blank" rel="noopener noreferrer">
               MVI-criteriatool
             </a>{' '}
-            van de Rijksoverheid: productgroep kiezen, eisen en gunningscriteria selecteren, downloaden. Voor huishoudelijk afval
-            bestaan daar vijftien criteria (versie 24 juli 2026); die staan hier met code en ambitieniveau en een korte
-            samenvatting in eigen woorden. De officiële tekst staat alleen in de MVI-criteriatool.
+            van de Rijksoverheid: productgroep kiezen, eisen en gunningscriteria selecteren, downloaden. Voor huishoudelijk afval bestaan daar vijftien criteria
+            (versie 24 juli 2026); die staan hier met code en ambitieniveau en een korte samenvatting in eigen woorden. De officiële tekst staat alleen in de
+            MVI-criteriatool.
           </li>
           <li>Criteria zonder MVI-code zijn voorbeelden van KplusV uit de praktijk van afvalaanbestedingen, geen officiële criteria.</li>
           <li>
@@ -592,6 +686,7 @@ function DrempelKaart({
   drempelBedrag,
   drempelLabel,
   signalen,
+  tariefBronnen,
 }: {
   waarde: number | null;
   band: { laag: number; hoog: number } | null;
@@ -599,6 +694,7 @@ function DrempelKaart({
   drempelBedrag: number;
   drempelLabel: string;
   signalen: string[];
+  tariefBronnen?: { titel: string; url: string }[];
 }) {
   const toets = drempelToets(waarde, drempelBedrag);
   const oordeel = bandOordeel ?? (toets ? (toets.europees ? 'boven' : 'onder') : null);
@@ -606,19 +702,39 @@ function DrempelKaart({
     <Kaart titel="Geraamde opdrachtwaarde" kopNiveau={3} sub="Volume × tarief × (looptijd + verlengingsopties), excl. btw">
       <div className="stapel" style={{ gap: 10 }} aria-live="polite">
         {band ? (
-          <p style={{ margin: 0, fontSize: 20, fontWeight: 600, color: 'var(--donkerviolet)' }}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 20,
+              fontWeight: 600,
+              color: 'var(--donkerviolet)',
+            }}
+          >
             {euro(band.laag)} tot {euro(band.hoog)}
             <span className="klein muted" style={{ display: 'block', fontWeight: 400 }}>
               Midden {waarde === null ? '–' : euro(waarde)}. De bandbreedte volgt uit het tariefkental; vul uw eigen tarief in voor één bedrag.
             </span>
           </p>
         ) : (
-          <p style={{ margin: 0, fontSize: 22, fontWeight: 600, color: 'var(--donkerviolet)' }}>{waarde === null ? 'Vul een geraamd tarief in' : euro(waarde)}</p>
+          <p
+            style={{
+              margin: 0,
+              fontSize: 22,
+              fontWeight: 600,
+              color: 'var(--donkerviolet)',
+            }}
+          >
+            {waarde === null ? 'Vul een geraamd tarief in' : euro(waarde)}
+          </p>
         )}
         {toets && oordeel && (
           <p className={`notitie ${oordeel === 'onder' ? 'succes' : 'info'}`} style={{ margin: 0 }}>
             <strong>
-              {oordeel === 'boven' ? 'Europees aanbesteden.' : oordeel === 'onder' ? 'Onder de Europese drempel.' : 'Op de grens: de drempel valt binnen uw bandbreedte.'}
+              {oordeel === 'boven'
+                ? 'Europees aanbesteden.'
+                : oordeel === 'onder'
+                  ? 'Onder de Europese drempel.'
+                  : 'Op de grens: de drempel valt binnen uw bandbreedte.'}
             </strong>{' '}
             Het drempelbedrag voor {drempelLabel} is {euro(drempelBedrag)}.{' '}
             {oordeel === 'grens'
@@ -638,8 +754,22 @@ function DrempelKaart({
             </ul>
           </div>
         )}
+        {tariefBronnen && tariefBronnen.length > 0 && (
+          <p className="klein muted" style={{ margin: 0 }}>
+            Tariefkental:{' '}
+            {tariefBronnen.map((b, n) => (
+              <span key={b.url}>
+                {n > 0 && ' en '}
+                <a href={b.url} target="_blank" rel="noopener noreferrer">
+                  {b.titel}
+                </a>
+              </span>
+            ))}
+            . Een kental, geen offerte: vul uw eigen tarief in voor één bedrag.
+          </p>
+        )}
         <p className="klein muted" style={{ margin: 0 }}>
-          Tel soortgelijke opdrachten bij elkaar op. Bron:{' '}
+          Tel soortgelijke opdrachten bij elkaar op. Bron drempel:{' '}
           <a href={drempelBron.url} target="_blank" rel="noopener noreferrer">
             PIANOo, drempelbedragen 2026 en 2027
           </a>
@@ -655,7 +785,8 @@ function PrijsSignaal({ signaal }: { signaal: ReturnType<typeof prijsSignaal> })
   const tekst = {
     'alleen-prijs': 'Alleen prijs: u gunt op laagste prijs. Bij een Europese aanbesteding moet u die keuze motiveren.',
     'zeer-zwaar': 'Prijs weegt 90 % of meer. Dan beslist in de praktijk alleen de prijs; PIANOo waarschuwt dat een rechter zo’n weging kan afkeuren.',
-    'geen-prijs': 'Prijs weegt 0 %. Dat kan bij een vaste prijs of budget waarop inschrijvers alleen op kwaliteit concurreren. Leg die prijs dan vast in de stukken.',
+    'geen-prijs':
+      'Prijs weegt 0 %. Dat kan bij een vaste prijs of budget waarop inschrijvers alleen op kwaliteit concurreren. Leg die prijs dan vast in de stukken.',
   }[signaal];
   return (
     <p className="notitie" role="note" style={{ marginTop: 12 }}>
@@ -728,27 +859,48 @@ function CriteriaKiezen({
   const zoekId = useId();
   const themas = [...new Set(lijst.map((c) => c.thema))];
   const zichtbaar = lijst.filter(
-    (c) => (soortFilter === 'alle' || c.soort === soortFilter) && (themaFilter === 'alle' || c.thema === themaFilter) && (!alleenMvi || mviStatus(c, stroom) === 'eigen') && pastBijZoek(c, zoek, stroom),
+    (c) =>
+      (soortFilter === 'alle' || c.soort === soortFilter) &&
+      (themaFilter === 'alle' || c.thema === themaFilter) &&
+      (!alleenMvi || mviStatus(c, stroom) === 'eigen') &&
+      pastBijZoek(c, zoek, stroom),
   );
+
+  const eigenMvi = lijst.filter((c) => c.mvi && mviStatus(c, stroom) === 'eigen');
+  const andereMvi = lijst.filter((c) => c.mvi && mviStatus(c, stroom) === 'andere');
+  const groep = stromen[stroom].mvi;
 
   return (
     <div className="stapel">
+      <div className="notitie ab-mvi-overzicht">
+        <strong>Officiële MVI-criteria voor {stromen[stroom].naam.toLowerCase()}</strong>
+        {groep ? (
+          <span>
+            Productgroep {productgroepNaam(groep)}: {eigenMvi.length} criteria in deze lijst ({eigenMvi.map((c) => c.mvi!.code).sort().join(', ')}).{' '}
+            <a href={groep.url} target="_blank" rel="noopener noreferrer">
+              Open de productgroep in de MVI-criteriatool
+              <span className="visueel-verborgen"> (opent in nieuw venster)</span>
+            </a>
+            . De MVI-criteriatool heeft geen link per criterium; zoek daar op de code.
+            {andereMvi.length > 0 && ` ${andereMvi.length} criteria komen uit een andere productgroep en zijn zo gelabeld.`}
+          </span>
+        ) : (
+          <span>
+            Voor deze stroom bestaat geen MVI-productgroep.{' '}
+            {andereMvi.length > 0
+              ? `${andereMvi.length} criteria zijn ontleend aan een andere productgroep (${andereMvi.map((c) => c.mvi!.code).sort().join(', ')}); de rest zijn voorbeelden van KplusV.`
+              : 'Alle criteria hier zijn voorbeelden van KplusV.'}
+          </span>
+        )}
+      </div>
       <p className="klein muted" style={{ margin: 0 }}>
-        Kies wat u in de aanbesteding wilt opnemen. Bij een officieel MVI-criterium staan code en ambitieniveau; de volledige
-        tekst met invultabellen staat in de MVI-criteriatool. De selectie begint met de eisen en gunningscriteria op
-        basisniveau en significant niveau.
+        Kies wat u in de aanbesteding wilt opnemen. Bij een officieel MVI-criterium staan code en ambitieniveau; de volledige tekst met invultabellen staat in
+        de MVI-criteriatool. De selectie begint met de eisen en gunningscriteria op basisniveau en significant niveau.
       </p>
       <div className="veld ab-zoek">
         <label htmlFor={zoekId}>Zoeken in eisen en criteria</label>
         <div className="invoer">
-          <input
-            id={zoekId}
-            type="search"
-            autoComplete="off"
-            value={zoek}
-            onChange={(e) => setZoek(e.target.value)}
-            aria-describedby={`${zoekId}-uitkomst`}
-          />
+          <input id={zoekId} type="search" autoComplete="off" value={zoek} onChange={(e) => setZoek(e.target.value)} aria-describedby={`${zoekId}-uitkomst`} />
         </div>
         <span className="hint" id={`${zoekId}-uitkomst`} role="status" aria-live="polite">
           {zichtbaar.length} van {lijst.length} getoond. Zoek op trefwoord, bijvoorbeeld CO2, social return of 049.003.
@@ -789,7 +941,10 @@ function CriteriaKiezen({
         return (
           <section key={s} className="ab-groep" aria-labelledby={`ab-kop-${s}`}>
             <h3 id={`ab-kop-${s}`}>
-              {soortMeervoud[s]} <span className="klein muted">({deze.filter((c) => gekozen.includes(c.id)).length} van {deze.length} gekozen)</span>
+              {soortMeervoud[s]}{' '}
+              <span className="klein muted">
+                ({deze.filter((c) => gekozen.includes(c.id)).length} van {deze.length} gekozen)
+              </span>
             </h3>
             <p className="klein muted" style={{ margin: 0 }}>
               {soortUitleg[s]}
@@ -840,7 +995,8 @@ function CriteriumKaart({ c, stroom, gekozen, wissel }: { c: Criterium; stroom: 
         <p className="klein">
           {c.mvi && (
             <a href={c.mvi.bron.url} target="_blank" rel="noopener noreferrer">
-              MVI-criterium {c.mvi.code} in de MVI-criteriatool<span className="visueel-verborgen"> (opent in nieuw venster)</span>
+              Productgroep {productgroepNaam(c.mvi.bron)} in de MVI-criteriatool (zoek op {c.mvi.code})
+              <span className="visueel-verborgen"> (opent in nieuw venster)</span>
             </a>
           )}
           {c.mvi && c.tool && ' · '}

@@ -45,7 +45,14 @@ const contract: BodemasInvoer = {
 };
 
 /** Kentalinvoer met ronde getallen. */
-const kental: BodemasInvoer = { ...contract, rekenwijze: 'kental', nettoOpwerking: 10, residuPct: 5, stortkosten: 35, stortbelasting: 40 };
+const kental: BodemasInvoer = {
+  ...contract,
+  rekenwijze: 'kental',
+  nettoOpwerking: 10,
+  residuPct: 5,
+  stortkosten: 35,
+  stortbelasting: 40,
+};
 
 describe('kentallen uit Rijkswaterstaat, Afvalverwerking in Nederland 2024', () => {
   it('rekent de landelijke hoeveelheden om naar percentages', () => {
@@ -92,9 +99,21 @@ describe('kostenkentallen (Staatsblad 2021, 235; CBS-CPI; Belastingdienst)', () 
   });
 
   it('heeft een lage, middelste en hoge set waarden met de bronbedragen', () => {
-    expect(bodemasScenario.laag).toEqual({ nettoOpwerking: 10, residuPct: 3.8, stortkosten: 30 });
-    expect(bodemasScenario.midden).toEqual({ nettoOpwerking: 12.19, residuPct: 3.8, stortkosten: 42.66 });
-    expect(bodemasScenario.hoog).toEqual({ nettoOpwerking: 12.19, residuPct: bodemasKostenBron.residuVolgensBesluitPct, stortkosten: 48.76 });
+    expect(bodemasScenario.laag).toEqual({
+      nettoOpwerking: 10,
+      residuPct: 3.8,
+      stortkosten: 30,
+    });
+    expect(bodemasScenario.midden).toEqual({
+      nettoOpwerking: 12.19,
+      residuPct: 3.8,
+      stortkosten: 42.66,
+    });
+    expect(bodemasScenario.hoog).toEqual({
+      nettoOpwerking: 12.19,
+      residuPct: bodemasKostenBron.residuVolgensBesluitPct,
+      stortkosten: 48.76,
+    });
     expect(stortbelasting2026).toBe(40.85);
   });
 
@@ -124,7 +143,12 @@ describe('bodemas, rekenwijze kental', () => {
   });
 
   it('heeft geen contractbedragen nodig', () => {
-    const u = bodemas({ ...kental, verwerkingstarief: null, prijsFerro: null, prijsNonFerro: null });
+    const u = bodemas({
+      ...kental,
+      verwerkingstarief: null,
+      prijsFerro: null,
+      prijsNonFerro: null,
+    });
     expect(u.nettoKosten).toBe(275000);
   });
 
@@ -179,7 +203,12 @@ describe('bodemas, rekenwijze contract', () => {
   });
 
   it('noemt alle ontbrekende bedragen, alleen bij rekenwijze contract', () => {
-    const leeg = { ...contract, verwerkingstarief: null, prijsFerro: null, prijsNonFerro: null };
+    const leeg = {
+      ...contract,
+      verwerkingstarief: null,
+      prijsFerro: null,
+      prijsNonFerro: null,
+    };
     expect(ontbrekendeBedragen(leeg)).toEqual(['verwerkingstarief', 'prijsFerro', 'prijsNonFerro']);
     expect(ontbrekendeBedragen({ ...leeg, rekenwijze: 'kental' })).toEqual([]);
     expect(ontbrekendeBedragen({ ...contract, prijsFerro: NaN })).toEqual(['prijsFerro']);
@@ -191,9 +220,16 @@ describe('bodemas, rekenwijze contract', () => {
 });
 
 describe('controle van de invoer', () => {
-  const bereik = { aandeelBodemasPct: [22.7, 25.8] as [number, number], ferroPct: [6, 6.9] as [number, number], nonFerroPct: [2, 2.7] as [number, number] };
+  const bereik = {
+    aandeelBodemasPct: [22.7, 25.8] as [number, number],
+    ferroPct: [6, 6.9] as [number, number],
+    nonFerroPct: [2, 2.7] as [number, number],
+  };
   it('geeft geen meldingen bij de standaard', () => {
-    expect(controleerBodemas(bodemasStandaard, bodemasBereik, 15)).toEqual({ fouten: [], signalen: [] });
+    expect(controleerBodemas(bodemasStandaard, bodemasBereik, 15)).toEqual({
+      fouten: [],
+      signalen: [],
+    });
   });
   it('meldt een fout als ferro, non-ferro en residu samen meer dan 100 % zijn', () => {
     const c = controleerBodemas({ ...kental, ferroPct: 70, nonFerroPct: 40 }, bereik, 15);

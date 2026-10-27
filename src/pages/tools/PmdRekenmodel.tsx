@@ -60,9 +60,18 @@ omslagpunt nascheidingstarief = (netto bronscheiding + teruggewonnen PMD × verb
 
 const categorieen = staffel.map((s) => s.categorie);
 const r1 = (n: number) => Math.round(n * 10) / 10;
-const cbsBron = { titel: `CBS ${cbsPmd.bronnen.gemeente.tabelId}, ${cbsPmd.jaar}`, url: cbsPmd.bronnen.gemeente.url };
-const cbsNlBron = { titel: `CBS ${cbsPmd.bronnen.landelijk.tabelId}, ${cbsPmd.landelijk.jaar}`, url: cbsPmd.bronnen.landelijk.url };
-const akkoordBron = { titel: 'akkoord Verpact, VNG en NVRD (2025)', url: pmdBronnen.akkoord.url };
+const cbsBron = {
+  titel: `CBS ${cbsPmd.bronnen.gemeente.tabelId}, ${cbsPmd.jaar}`,
+  url: cbsPmd.bronnen.gemeente.url,
+};
+const cbsNlBron = {
+  titel: `CBS ${cbsPmd.bronnen.landelijk.tabelId}, ${cbsPmd.landelijk.jaar}`,
+  url: cbsPmd.bronnen.landelijk.url,
+};
+const akkoordBron = {
+  titel: 'akkoord Verpact, VNG en NVRD (2025)',
+  url: pmdBronnen.akkoord.url,
+};
 const iprVeldBron = { titel: 'IPR Normag 2021', url: iprBron.url };
 
 /** Standaardinvoer met de CBS-cijfers van een gemeente (of landelijk als de code onbekend is). */
@@ -85,11 +94,13 @@ export function PmdRekenmodel() {
   useUitklapBijPrint();
   return (
     <>
-      <RapportKop titel="Rekenmodel bron- en nascheiding PMD" ondertitel={`Vergoedingen 2026 volgens akkoord Verpact, VNG en NVRD; CBS ${cbsPmd.jaar}; peildatum ${datum(PEILDATUM)}`} />
+      <RapportKop
+        titel="Rekenmodel bron- en nascheiding PMD"
+        ondertitel={`Vergoedingen 2026 volgens akkoord Verpact, VNG en NVRD; CBS ${cbsPmd.jaar}; peildatum ${datum(PEILDATUM)}`}
+      />
       <PaginaKop titel="Rekenmodel bron- en nascheiding PMD" badges={<ToegangBadge toegang="leden" />}>
-        Wat kosten bronscheiding en nascheiding van PMD uw gemeente per jaar? Het model rekent met de vergoedingen van Verpact
-        voor 2026, de afvalcijfers van CBS voor uw gemeente en kentallen met bron. Elk getal kunt u vervangen door uw eigen
-        waarde.
+        Wat kosten bronscheiding en nascheiding van PMD uw gemeente per jaar? Het model rekent met de vergoedingen van Verpact voor 2026, de afvalcijfers van
+        CBS voor uw gemeente en kentallen met bron. Elk getal kunt u vervangen door uw eigen waarde.
       </PaginaKop>
       <Ankers
         links={[
@@ -154,7 +165,14 @@ function StaffelInhoud() {
           <tbody>
             {staffel.map((s) => (
               <tr key={s.categorie}>
-                <th scope="row" style={{ fontWeight: 500, whiteSpace: 'normal', minWidth: 150 }}>
+                <th
+                  scope="row"
+                  style={{
+                    fontWeight: 500,
+                    whiteSpace: 'normal',
+                    minWidth: 150,
+                  }}
+                >
                   {s.categorie}: {s.aandeel}
                 </th>
                 {staffelJaren.map((j) => (
@@ -171,20 +189,18 @@ function StaffelInhoud() {
       </div>
       <ul className="opsomming klein">
         <li>
-          Voor 2027 en 2028 worden de bedragen geïndexeerd met een methode die partijen samen vaststellen. De euro’s daarvan
-          zijn nog niet gepubliceerd; de tabel toont alleen de afgesproken daling van categorie 3b.
+          Voor 2027 en 2028 worden de bedragen geïndexeerd met een methode die partijen samen vaststellen. De euro’s daarvan zijn nog niet gepubliceerd; de
+          tabel toont alleen de afgesproken daling van categorie 3b.
         </li>
         <li>
-          Voorschot 2026 voor gemeenten met (overwegend) een haalsysteem: {euro(voorschot2026)} per ton. Verrekening volgt op
-          basis van de gemeten kwaliteit (
+          Voorschot 2026 voor gemeenten met (overwegend) een haalsysteem: {euro(voorschot2026)} per ton. Verrekening volgt op basis van de gemeten kwaliteit (
           <a href={pmdBronnen.nvrd.url} target="_blank" rel="noopener noreferrer">
             NVRD, 11 juni 2025
           </a>
           ).
         </li>
         <li>
-          Nascheiding: {euro(nascheiding.vergoeding2026, 2)} per ton restafval dat bij een door Verpact gecontracteerde
-          nascheider is nagescheiden (par. 7).
+          Nascheiding: {euro(nascheiding.vergoeding2026, 2)} per ton restafval dat bij een door Verpact gecontracteerde nascheider is nagescheiden (par. 7).
         </li>
         <li>Na overdracht op de overslag wordt apart ingezameld PMD eigendom van Verpact, dat sortering en verdere verwerking regelt.</li>
       </ul>
@@ -276,7 +292,8 @@ const bronRegels: BronRegel[] = [
   {
     onderwerp: 'Overige kosten bronscheiding',
     status: 'aanname',
-    toelichting: 'Geen openbare bron. Bijvoorbeeld het residu na opschoning, dat volgens het akkoord voor rekening van de gemeente komt. Standaard 0: niet meegerekend.',
+    toelichting:
+      'Geen openbare bron. Bijvoorbeeld het residu na opschoning, dat volgens het akkoord voor rekening van de gemeente komt. Standaard 0: niet meegerekend.',
   },
 ];
 
@@ -292,10 +309,16 @@ function PmdModel() {
   });
   // Met gemeente en categorie in de link zijn hun cijfers de basis; expliciete waarden in de link gaan voor.
   const [i, setI] = useState<PmdInvoer>(() =>
-    pmdUitParams(params, { ...basisVoorGemeente(params.get('gm') ?? ''), vergoedingBron: staffelPerCategorie[categorie].euroPerTon[2026] }),
+    pmdUitParams(params, {
+      ...basisVoorGemeente(params.get('gm') ?? ''),
+      vergoedingBron: staffelPerCategorie[categorie].euroPerTon[2026],
+    }),
   );
   const { melder, melding } = useVeldFouten();
-  const zet = <K extends keyof PmdInvoer>(k: K) => (v: PmdInvoer[K]) => setI((x) => ({ ...x, [k]: v }));
+  const zet =
+    <K extends keyof PmdInvoer>(k: K) =>
+    (v: PmdInvoer[K]) =>
+      setI((x) => ({ ...x, [k]: v }));
 
   const g = cbsGemeenten.find((x) => x.code === gemeente);
   const bronRespons = g?.pmdKgPerInw ?? cbsPmd.landelijk.pmdKgPerInw;
@@ -305,11 +328,19 @@ function PmdModel() {
   function kiesGemeente(code: string) {
     setGemeente(code);
     const b = basisVoorGemeente(code);
-    setI((x) => ({ ...x, inwoners: b.inwoners, responsBron: b.responsBron, restafvalNa: b.restafvalNa }));
+    setI((x) => ({
+      ...x,
+      inwoners: b.inwoners,
+      responsBron: b.responsBron,
+      restafvalNa: b.restafvalNa,
+    }));
   }
   function kiesCategorie(c: StaffelCategorie) {
     setCategorie(c);
-    setI((x) => ({ ...x, vergoedingBron: staffelPerCategorie[c].euroPerTon[2026] }));
+    setI((x) => ({
+      ...x,
+      vergoedingBron: staffelPerCategorie[c].euroPerTon[2026],
+    }));
   }
 
   const { bron, na, verschil } = pmdVergelijking(i);
@@ -317,7 +348,10 @@ function PmdModel() {
   const controle = controleerPmd(i, pmdGrenzen);
   const band = pmdBandbreedte(i, pmdVarianten);
 
-  const deelParams = pmdNaarParams(i, { ...(gemeente ? { gm: gemeente } : {}), cat: categorie });
+  const deelParams = pmdNaarParams(i, {
+    ...(gemeente ? { gm: gemeente } : {}),
+    cat: categorie,
+  });
   const deelTekst = deelParams.toString();
   useEffect(() => {
     if (params.toString() !== deelTekst) setParams(new URLSearchParams(deelTekst), { replace: true });
@@ -329,8 +363,15 @@ function PmdModel() {
   const conclusie = pmdConclusieMogelijk(i, kentalNascheidingskosten);
   const omslag = omslagNascheidingskosten(i);
   const omslagBand = band?.omslagTarief && band.omslagTarief.hoog - band.omslagTarief.laag >= 1 ? band.omslagTarief : null;
-  const naKostenBand = conclusie ? null : { laag: na.grondslagTon * nascheidingskostenLezingen.perTonPmd, hoog: na.grondslagTon * nascheidingskostenLezingen.perTonRestafval };
-  const velden = (band?.volgt ?? []).filter((k) => k !== 'nascheidingskosten').map((k) => (k === 'teruggewonnenNa' ? 'teruggewonnen PMD' : 'verbrandingstarief'));
+  const naKostenBand = conclusie
+    ? null
+    : {
+        laag: na.grondslagTon * nascheidingskostenLezingen.perTonPmd,
+        hoog: na.grondslagTon * nascheidingskostenLezingen.perTonRestafval,
+      };
+  const velden = (band?.volgt ?? [])
+    .filter((k) => k !== 'nascheidingskosten')
+    .map((k) => (k === 'teruggewonnenNa' ? 'teruggewonnen PMD' : 'verbrandingstarief'));
 
   const status = (eigen: boolean, bronStatus: 'officieel' | 'kental' | 'afgeleid' | 'aanname' | 'voorbeeld') => (eigen ? 'eigen waarde' : bronStatus);
   const csv = (): CsvCel[][] => [
@@ -346,11 +387,26 @@ function PmdModel() {
     ['Afronding', 'Bedragen in de uitkomst afgerond naar grootte (tientallen, honderdtallen of duizendtallen); invoer niet afgerond'],
     [],
     ['Invoer', 'Waarde', 'Status', 'Herkomst'],
-    ['Inwoners', i.inwoners, g && i.inwoners === g.inwoners ? 'officieel' : i.inwoners === pmdStandaard.inwoners ? 'voorbeeld' : 'eigen waarde', g && i.inwoners === g.inwoners ? `CBS ${cbsPmd.bronnen.inwoners.tabelId}` : ''],
-    ['Respons bronscheiding (kg per inwoner)', i.responsBron, status(i.responsBron !== bronRespons, 'officieel'), g ? `CBS ${cbsPmd.bronnen.gemeente.tabelId}` : `CBS ${cbsPmd.bronnen.landelijk.tabelId}`],
+    [
+      'Inwoners',
+      i.inwoners,
+      g && i.inwoners === g.inwoners ? 'officieel' : i.inwoners === pmdStandaard.inwoners ? 'voorbeeld' : 'eigen waarde',
+      g && i.inwoners === g.inwoners ? `CBS ${cbsPmd.bronnen.inwoners.tabelId}` : '',
+    ],
+    [
+      'Respons bronscheiding (kg per inwoner)',
+      i.responsBron,
+      status(i.responsBron !== bronRespons, 'officieel'),
+      g ? `CBS ${cbsPmd.bronnen.gemeente.tabelId}` : `CBS ${cbsPmd.bronnen.landelijk.tabelId}`,
+    ],
     ['Staffelcategorie', categorie, 'keuze', staffelPerCategorie[categorie].aandeel],
     ['Inzamelvergoeding (euro per ton PMD)', i.vergoedingBron, status(i.vergoedingBron !== vergoedingCategorie, 'officieel'), pmdBronnen.akkoord.url],
-    ['Inzamelkosten (euro per ton PMD)', i.inzamelkostenBron, status(i.inzamelkostenBron !== kostenbasisBron, 'kental'), 'kostenbasis akkoord 2025, geen raming van eigen kosten'],
+    [
+      'Inzamelkosten (euro per ton PMD)',
+      i.inzamelkostenBron,
+      status(i.inzamelkostenBron !== kostenbasisBron, 'kental'),
+      'kostenbasis akkoord 2025, geen raming van eigen kosten',
+    ],
     ['Overige kosten bronscheiding (euro per ton PMD)', i.overigeKostenBron, i.overigeKostenBron === 0 ? 'niet meegerekend' : 'eigen waarde', ''],
     ['Restafval naar nascheider (kg per inwoner)', i.restafvalNa, status(i.restafvalNa !== bronRest, 'afgeleid'), 'CBS restafval + CBS PMD'],
     [
@@ -359,14 +415,24 @@ function PmdModel() {
       conclusie ? 'eigen waarde' : 'kental, eenheid onzeker',
       `akkoord 2025 par. 7; per ton restafval ${csvBedrag(nascheidingskostenLezingen.perTonRestafval)}, per ton PMD omgerekend ${csvBedrag(nascheidingskostenLezingen.perTonPmd)}`,
     ],
-    ['Nascheidingsvergoeding (euro per ton restafval)', i.vergoedingNa, status(i.vergoedingNa !== nascheiding.vergoeding2026, 'officieel'), pmdBronnen.akkoord.url],
+    [
+      'Nascheidingsvergoeding (euro per ton restafval)',
+      i.vergoedingNa,
+      status(i.vergoedingNa !== nascheiding.vergoeding2026, 'officieel'),
+      pmdBronnen.akkoord.url,
+    ],
     [
       'Teruggewonnen PMD bij nascheiding (kg per inwoner)',
       i.teruggewonnenNa,
       i.teruggewonnenNa === null ? 'niet ingevuld' : status(i.teruggewonnenNa !== nascheidingRendement.midden, 'kental'),
       `IPR Normag 2021 (15-25 kg), ${iprBron.url}`,
     ],
-    ['Verbrandingstarief incl. afvalstoffenbelasting (euro per ton)', i.verbrandingstarief, status(i.verbrandingstarief !== kentalVerbrandingstarief, 'kental'), 'Strategy& 2025 + ASB 2026'],
+    [
+      'Verbrandingstarief incl. afvalstoffenbelasting (euro per ton)',
+      i.verbrandingstarief,
+      status(i.verbrandingstarief !== kentalVerbrandingstarief, 'kental'),
+      'Strategy& 2025 + ASB 2026',
+    ],
     [],
     ['Uitkomst (afgerond)', 'Bronscheiding', 'Nascheiding'],
     ['PMD gescheiden of teruggewonnen (ton)', bron.pmdTon === null ? null : Math.round(bron.pmdTon), na.pmdTon === null ? null : Math.round(na.pmdTon)],
@@ -383,8 +449,14 @@ function PmdModel() {
       : []),
     ['Verschil nascheiding − bronscheiding (euro, positief = bronscheiding goedkoper)', conclusie ? rnd(verschil) : 'zie bandbreedte'],
     ...(band?.verschil ? ([['Bandbreedte verschil (euro)', rnd(band.verschil.laag), rnd(band.verschil.hoog)]] as CsvCel[][]) : []),
-    ['Omslagpunt nascheidingstarief (euro per ton restafval)', omslag === null ? null : Math.round(omslag * 100) / 100, omslagBand ? `bandbreedte ${csvBedrag(omslagBand.laag)} tot ${csvBedrag(omslagBand.hoog)}` : ''],
-    ...(conclusie ? ([['Teruggewonnen PMD waarbij beide even duur zijn (kg per inwoner)', breakEven === null ? null : Math.round(breakEven * 10) / 10]] as CsvCel[][]) : []),
+    [
+      'Omslagpunt nascheidingstarief (euro per ton restafval)',
+      omslag === null ? null : Math.round(omslag * 100) / 100,
+      omslagBand ? `bandbreedte ${csvBedrag(omslagBand.laag)} tot ${csvBedrag(omslagBand.hoog)}` : '',
+    ],
+    ...(conclusie
+      ? ([['Teruggewonnen PMD waarbij beide even duur zijn (kg per inwoner)', breakEven === null ? null : Math.round(breakEven * 10) / 10]] as CsvCel[][])
+      : []),
     ...controle.fouten.map((f): CsvCel[] => ['Fout in invoer', f]),
     ...controle.signalen.map((f): CsvCel[] => ['Let op', f]),
     [],
@@ -417,8 +489,8 @@ function PmdModel() {
           Indicatief, want de nascheidingskosten zijn een kental zonder vaste eenheid in de bron: met de kentallen ligt het verschil{' '}
           {band?.verschil ? verschilTekst(band.verschil) : `rond ${euroRond(Math.abs(verschil))}`}.
         </strong>{' '}
-        Nascheiding is goedkoper als uw nascheider minder rekent dan {omslagTekst} per ton restafval. Vul het tarief van uw nascheider hieronder in
-        voor een conclusie.
+        Nascheiding is goedkoper als uw nascheider minder rekent dan {omslagTekst} per ton restafval. Vul het tarief van uw nascheider hieronder in voor een
+        conclusie.
       </>
     );
   } else {
@@ -462,7 +534,12 @@ function PmdModel() {
 
   return (
     <div className="tb-tool">
-      <Kaart titel="Uitkomst" kopNiveau={3} className="tb-uitkomst" actie={<Badge soort={conclusie ? 'status-gegund' : 'voorbeeld'}>{conclusie ? 'Met uw tarief' : 'Indicatief'}</Badge>}>
+      <Kaart
+        titel="Uitkomst"
+        kopNiveau={3}
+        className="tb-uitkomst"
+        actie={<Badge soort={conclusie ? 'status-gegund' : 'voorbeeld'}>{conclusie ? 'Met uw tarief' : 'Indicatief'}</Badge>}
+      >
         <div className="stapel" aria-live="polite">
           <Meldingen fouten={fouten} signalen={controle.signalen} />
           <p className="tb-kern">{kern}</p>
@@ -485,12 +562,22 @@ function PmdModel() {
             <Tegel
               label="Bronscheiding"
               waarde={kostRond(bron.netto ?? 0)}
-              toelichting={band?.bron && band.bron.hoog - band.bron.laag >= 1 ? `per jaar; bandbreedte ${kostBand(band.bron.laag, band.bron.hoog)}` : `per jaar; ${kostTekst(bron.perInwoner, 2)} per inwoner`}
+              toelichting={
+                band?.bron && band.bron.hoog - band.bron.laag >= 1
+                  ? `per jaar; bandbreedte ${kostBand(band.bron.laag, band.bron.hoog)}`
+                  : `per jaar; ${kostTekst(bron.perInwoner, 2)} per inwoner`
+              }
             />
             <Tegel
               label={conclusie ? 'Nascheiding' : 'Nascheiding (indicatief)'}
               waarde={na.netto === null ? '–' : conclusie ? kostRond(na.netto) : band?.na ? kostBand(band.na.laag, band.na.hoog) : kostRond(na.netto)}
-              toelichting={na.netto === null ? 'nog niet te berekenen' : conclusie ? `per jaar; ${kostTekst(na.perInwoner, 2)} per inwoner` : 'per jaar, afhankelijk van uw nascheidingstarief'}
+              toelichting={
+                na.netto === null
+                  ? 'nog niet te berekenen'
+                  : conclusie
+                    ? `per jaar; ${kostTekst(na.perInwoner, 2)} per inwoner`
+                    : 'per jaar, afhankelijk van uw nascheidingstarief'
+              }
             />
           </div>
           {tarievenVeld}
@@ -590,8 +677,14 @@ function PmdModel() {
           <UitkomstBronnen
             peildatum={PEILDATUM}
             bronnen={[
-              { titel: 'akkoord Verpact, VNG en NVRD (2025)', url: pmdBronnen.akkoord.url },
-              { titel: g ? `CBS ${cbsPmd.jaar}` : `CBS ${cbsPmd.landelijk.jaar}`, url: g ? cbsPmd.bronnen.gemeente.url : cbsPmd.bronnen.landelijk.url },
+              {
+                titel: 'akkoord Verpact, VNG en NVRD (2025)',
+                url: pmdBronnen.akkoord.url,
+              },
+              {
+                titel: g ? `CBS ${cbsPmd.jaar}` : `CBS ${cbsPmd.landelijk.jaar}`,
+                url: g ? cbsPmd.bronnen.gemeente.url : cbsPmd.bronnen.landelijk.url,
+              },
               { titel: 'IPR Normag 2021', url: iprBron.url },
               { titel: 'Strategy& 2025', url: pmdBronnen.strategy.url },
             ]}
@@ -612,8 +705,16 @@ function PmdModel() {
                   kop={<h4 className="klein">Netto per jaar</h4>}
                   formatY={(n) => euro(n)}
                   staven={[
-                    { label: 'Bronscheiding', waarde: bron.netto, kleur: reeksKleuren[0] },
-                    { label: 'Nascheiding', waarde: na.netto, kleur: reeksKleuren[1] },
+                    {
+                      label: 'Bronscheiding',
+                      waarde: bron.netto,
+                      kleur: reeksKleuren[0],
+                    },
+                    {
+                      label: 'Nascheiding',
+                      waarde: na.netto,
+                      kleur: reeksKleuren[1],
+                    },
                   ]}
                 />
                 <StaafGrafiek
@@ -621,8 +722,16 @@ function PmdModel() {
                   kop={<h4 className="klein">Netto per inwoner</h4>}
                   formatY={(n) => euro(n, 2)}
                   staven={[
-                    { label: 'Bronscheiding', waarde: bron.perInwoner ?? 0, kleur: reeksKleuren[0] },
-                    { label: 'Nascheiding', waarde: na.perInwoner ?? 0, kleur: reeksKleuren[1] },
+                    {
+                      label: 'Bronscheiding',
+                      waarde: bron.perInwoner ?? 0,
+                      kleur: reeksKleuren[0],
+                    },
+                    {
+                      label: 'Nascheiding',
+                      waarde: na.perInwoner ?? 0,
+                      kleur: reeksKleuren[1],
+                    },
                   ]}
                 />
               </div>
@@ -647,7 +756,12 @@ function PmdModel() {
                 <tbody>
                   {staffel.map((s) => (
                     <tr key={s.categorie} aria-current={s.categorie === categorie ? 'true' : undefined}>
-                      <th scope="row" style={{ fontWeight: s.categorie === categorie ? 700 : 500 }}>
+                      <th
+                        scope="row"
+                        style={{
+                          fontWeight: s.categorie === categorie ? 700 : 500,
+                        }}
+                      >
                         {s.categorie}
                         {s.categorie === categorie ? ' (uw keuze)' : ''}
                       </th>
@@ -665,9 +779,9 @@ function PmdModel() {
           <Uitklap titel="Zo ontstaat deze uitkomst" sub="formule en uitgangspunten" kopNiveau={3}>
             <code className="formule">{FORMULE}</code>
             <p className="klein muted" style={{ margin: 0 }}>
-              Bedragen per jaar, excl. btw. Een negatief bedrag is een netto opbrengst ten opzichte van de nulsituatie.
-              Inzameling van restafval zelf telt in beide routes gelijk en staat er niet in. Vervuiling in bronscheidings-PMD en
-              residu na opschoning zitten alleen in het model als u ze onder overige kosten invult.
+              Bedragen per jaar, excl. btw. Een negatief bedrag is een netto opbrengst ten opzichte van de nulsituatie. Inzameling van restafval zelf telt in
+              beide routes gelijk en staat er niet in. Vervuiling in bronscheidings-PMD en residu na opschoning zitten alleen in het model als u ze onder
+              overige kosten invult.
             </p>
           </Uitklap>
         </div>
@@ -694,12 +808,22 @@ function PmdModel() {
             voorbeeld={g ? undefined : pmdStandaard.inwoners}
             bronwaarde={g?.inwoners ?? undefined}
             bronwaardeTekst={g?.inwoners ? getal(g.inwoners) : undefined}
-            bron={g ? { titel: `CBS ${cbsPmd.bronnen.inwoners.tabelId}, 1 januari ${cbsPmd.jaar}`, url: cbsPmd.bronnen.inwoners.url } : undefined}
+            bron={
+              g
+                ? {
+                    titel: `CBS ${cbsPmd.bronnen.inwoners.tabelId}, 1 januari ${cbsPmd.jaar}`,
+                    url: cbsPmd.bronnen.inwoners.url,
+                  }
+                : undefined
+            }
           />
           <KeuzeVeld
             label="Staffelcategorie"
             waarde={categorie}
-            opties={staffel.map((s) => ({ waarde: s.categorie, label: `${s.categorie}: ${s.aandeel} (${euro(s.euroPerTon[2026])})` }))}
+            opties={staffel.map((s) => ({
+              waarde: s.categorie,
+              label: `${s.categorie}: ${s.aandeel} (${euro(s.euroPerTon[2026])})`,
+            }))}
             onChange={kiesCategorie}
             hint="Volgt uit het gemeten aandeel PMD-verpakkingen in uw ingezamelde PMD."
           />
@@ -810,7 +934,10 @@ function PmdModel() {
               status="kental"
               bronwaarde={kentalVerbrandingstarief}
               bronwaardeTekst={euro(kentalVerbrandingstarief, 2)}
-              bron={{ titel: 'Strategy& 2025 en Belastingdienst', url: pmdBronnen.strategy.url }}
+              bron={{
+                titel: 'Strategy& 2025 en Belastingdienst',
+                url: pmdBronnen.strategy.url,
+              }}
               toelichting={`Vermeden kosten: PMD dat niet wordt verbrand. Bandbreedte ${euro(verbrandingstariefBand.laag, 2)} tot ${euro(verbrandingstariefBand.hoog, 2)}. Vul het tarief uit uw verwerkingscontract in.`}
             />
           </Uitklap>

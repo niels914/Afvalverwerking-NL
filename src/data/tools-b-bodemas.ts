@@ -17,9 +17,30 @@ export interface BodemasJaar {
 }
 
 export const bodemasJaren: BodemasJaar[] = [
-  { jaar: 2022, verbrandKton: 7392, ruweBodemasKton: 1678, ferroKton: 113, nonFerroKton: 46, gestortKton: 67 },
-  { jaar: 2023, verbrandKton: 6841, ruweBodemasKton: 1766, ferroKton: 106, nonFerroKton: 36, gestortKton: 76 },
-  { jaar: 2024, verbrandKton: 6422, ruweBodemasKton: 1570, ferroKton: 109, nonFerroKton: 38, gestortKton: 60 },
+  {
+    jaar: 2022,
+    verbrandKton: 7392,
+    ruweBodemasKton: 1678,
+    ferroKton: 113,
+    nonFerroKton: 46,
+    gestortKton: 67,
+  },
+  {
+    jaar: 2023,
+    verbrandKton: 6841,
+    ruweBodemasKton: 1766,
+    ferroKton: 106,
+    nonFerroKton: 36,
+    gestortKton: 76,
+  },
+  {
+    jaar: 2024,
+    verbrandKton: 6422,
+    ruweBodemasKton: 1570,
+    ferroKton: 109,
+    nonFerroKton: 38,
+    gestortKton: 60,
+  },
 ];
 
 export interface BodemasKentallen {
@@ -95,8 +116,16 @@ export const kentalStortkosten = r2(((bodemasKostenBron.stortkostenLaag2021 + bo
 
 /** Bandbreedte voor de uitkomst. Midden = standaardwaarden van de calculator. */
 export const bodemasScenario = {
-  laag: { nettoOpwerking: bodemasKostenBron.opwerkingNetto2021, residuPct: bodemasKental.gestortPct, stortkosten: bodemasKostenBron.stortkostenLaag2021 },
-  midden: { nettoOpwerking: kentalNettoOpwerking, residuPct: bodemasKental.gestortPct, stortkosten: kentalStortkosten },
+  laag: {
+    nettoOpwerking: bodemasKostenBron.opwerkingNetto2021,
+    residuPct: bodemasKental.gestortPct,
+    stortkosten: bodemasKostenBron.stortkostenLaag2021,
+  },
+  midden: {
+    nettoOpwerking: kentalNettoOpwerking,
+    residuPct: bodemasKental.gestortPct,
+    stortkosten: kentalStortkosten,
+  },
   hoog: {
     nettoOpwerking: kentalNettoOpwerking,
     residuPct: bodemasKostenBron.residuVolgensBesluitPct,
@@ -110,11 +139,21 @@ export const gemiddeldPerAvi = Math.round((bodemasJaren[bodemasJaren.length - 1]
 
 /** Bandbreedte van de aandelen over 2022–2024, voor de plausibiliteitscontrole. */
 export const bodemasBereik = {
-  aandeelBodemasPct: [Math.min(...bodemasKentallenPerJaar.map((k) => k.aandeelBodemasPct)), Math.max(...bodemasKentallenPerJaar.map((k) => k.aandeelBodemasPct))] as [number, number],
+  aandeelBodemasPct: [
+    Math.min(...bodemasKentallenPerJaar.map((k) => k.aandeelBodemasPct)),
+    Math.max(...bodemasKentallenPerJaar.map((k) => k.aandeelBodemasPct)),
+  ] as [number, number],
   ferroPct: [Math.min(...bodemasKentallenPerJaar.map((k) => k.ferroPct)), Math.max(...bodemasKentallenPerJaar.map((k) => k.ferroPct))] as [number, number],
-  nonFerroPct: [Math.min(...bodemasKentallenPerJaar.map((k) => k.nonFerroPct)), Math.max(...bodemasKentallenPerJaar.map((k) => k.nonFerroPct))] as [number, number],
+  nonFerroPct: [Math.min(...bodemasKentallenPerJaar.map((k) => k.nonFerroPct)), Math.max(...bodemasKentallenPerJaar.map((k) => k.nonFerroPct))] as [
+    number,
+    number,
+  ],
   /** Hoogste landelijk verbrande hoeveelheid in 2022–2024, in ton. */
   verbrandMaxTon: Math.max(...bodemasJaren.map((j) => j.verbrandKton)) * 1000,
 };
 
-export const bodemasKostenBronnen = { besluit: bronnen.stb2021bodemas, cpi: bronnen.cbsCpi, asb: bronnen.asb };
+export const bodemasKostenBronnen = {
+  besluit: bronnen.stb2021bodemas,
+  cpi: bronnen.cbsCpi,
+  asb: bronnen.asb,
+};
