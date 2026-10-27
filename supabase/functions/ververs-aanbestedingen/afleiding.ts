@@ -123,7 +123,8 @@ export const STROOM_REGELS: StroomRegel[] = [
   { naam: 'Grond en baggerspecie', cpv: ['90522'], tekst: /verontreinigde grond|grondreiniging|gronddepot|(?<!op )\bgrond\b(?! van)|baggerspecie/ },
   { naam: 'Bodemas en vliegas', cpv: ['9051340'], tekst: /bodemas|vliegas|aec-?as|verbrandingsslakken|\bwte\b|reststoffen (van )?(afval)?verbranding/ },
   { naam: 'Slib en septictanks', cpv: ['905136', '905137', '905138', '905139'], tekst: /\bslib|zuiveringsslib|rioolslib|septictank|beerput/ },
-  { naam: 'Zwerfafval en straatreiniging', cpv: ['90511300'], tekst: /zwerf(afval|vuil)|veegvuil|straatvegen|afvalbakken/ },
+  // Alleen afvalbakken in de openbare ruimte; afvalbakken in gebouwen (zoals afvalscheidingsunits) vallen onder inzamelmiddelen.
+  { naam: 'Zwerfafval en straatreiniging', cpv: ['90511300'], tekst: /zwerf(afval|vuil)|veegvuil|straatvegen|straatreiniging|straat\)? ?afvalbak|(afval|prullen)bakken (in de )?openbare ruimte|openbare (afval|prullen)bak|hondenafvalbak/ },
   { naam: 'Matrassen', tekst: /matras/ },
   { naam: 'Metalen', tekst: /metalen|\bferro|schroot/ },
   { naam: 'Luiers en incontinentiemateriaal', tekst: /luier|incontinentie/ },
@@ -131,7 +132,7 @@ export const STROOM_REGELS: StroomRegel[] = [
   { naam: 'Overige monostromen', tekst: /\bgips|dakleer|tapijt|koffiedik|kunstgras|monostro|frituurvet/ },
   { naam: 'Kringloop en hergebruik', tekst: /kringloop|goedzooi|refurbish/ },
   { naam: 'Milieustraat', tekst: /milieustra|milieupark|milieustation|brengvoorziening|brengstation|recyclingstation|recyclingpark/ },
-  { naam: 'Containers en inzamelmiddelen', tekst: /minicontainer|ondergrondse (afval)?container|containerbehuizing|verzamelcontainer|afvalcontainer|inzamelvoertuig|achterlader/ },
+  { naam: 'Containers en inzamelmiddelen', tekst: /minicontainer|ondergrondse (afval)?container|containerbehuizing|verzamelcontainer|afvalcontainer|inzamelvoertuig|achterlader|afvalscheidingsunit|afvalsorteersyste|(afval|prullen)bakken/ },
   { naam: 'Bedrijfsafval', tekst: /bedrijfsafval|kantoorafval|bedrijfsafvalstoffen|afvaldienstverlening|afval(stoffen)?management/ },
 ];
 
@@ -178,10 +179,84 @@ export function provincies(nuts: string[]): string[] {
   return [...uit].sort((a, b) => a.localeCompare(b, 'nl'));
 }
 
+/** Normaliseert een gemeentenaam zoals maak-gemeenten.mjs dat doet: kleine letters, zonder accenten, punten en dubbele spaties. */
+export function normaliseerNaam(s: string): string {
+  return s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[’‘`]/g, "'")
+    .replace(/[.]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/**
+ * Provincies uit de naam van de opdrachtgever, voor aanbestedingen zonder provincie in de NUTS-code.
+ * Alleen uitdrukkelijke vermeldingen: "Gemeente X" (ook meerdere, zoals "gemeente Duiven, Westervoort en Zevenaar")
+ * en "Provincie X". Samenwerkingsverbanden en bedrijven zonder gemeentenaam blijven zonder provincie.
+ * @param gemeenten genormaliseerde gemeentenaam → provincie (gemeenten.ts, uit CBS)
+ */
+export function provinciesUitOpdrachtgever(opdrachtgever: string, gemeenten: Record<string, string>): string[] {
+  const uit = new Set<string>();
+  const naam = normaliseerNaam(opdrachtgever);
+  const provincie = /\bprovincie (\S+(?: \S+)?)/.exec(naam);
+  if (provincie) {
+    const p = PROVINCIES.find((x) => {
+      const n = normaliseerNaam(x);
+      return provincie[1].startsWith(n) || (n === 'fryslan' && provincie[1].startsWith('friesland'));
+    });
+    if (p) uit.add(p);
+  }
+  // Na elk "gemeente(n)" de langste reeks woorden die een gemeentenaam is; daarna verder na "," of "en".
+  for (const m of naam.matchAll(/\bgemeenten? (.+)/g)) {
+    const woorden = m[1].split(' ');
+    let i = 0;
+    while (i < woorden.length) {
+      let gevonden = 0;
+      for (let k = Math.min(5, woorden.length - i); k >= 1; k--) {
+        const kandidaat = woorden.slice(i, i + k).join(' ').replace(/[,;:|)]+$/, '');
+        const p = gemeenten[kandidaat] ?? gemeenten[kandidaat.replace(/[(),]/g, '')];
+        if (p) {
+          uit.add(p);
+          gevonden = k;
+          break;
+        }
+      }
+      if (!gevonden) break;
+      i += gevonden;
+      // Alleen doorgaan bij een opsomming: "Duiven, Westervoort en Zevenaar".
+      const vorig = woorden[i - 1];
+      if (vorig.endsWith(',')) continue;
+      if (woorden[i] === 'en') {
+        i++;
+        continue;
+      }
+      break;
+    }
+  }
+  return [...uit].sort((a, b) => a.localeCompare(b, 'nl'));
+}
+
 export type StatusBasis = 'aankondiging' | 'gegund' | 'beeindigd' | 'marktconsultatie' | 'vooraankondiging' | 'ingetrokken';
 export type Status = 'open' | 'gesloten' | 'onbekend' | 'gegund' | 'beeindigd' | 'marktconsultatie' | 'vooraankondiging' | 'ingetrokken';
 
 const isIngetrokken = (p: TnsLijstPublicatie) => p.publicatiestatus?.code === 'INT';
+
+/**
+ * Herkent een marktconsultatie die formeel als (voor)aankondiging is gepubliceerd. Opdrachtgevers gebruiken daar soms het
+ * formulier "Aankondiging opdracht" voor (bijvoorbeeld Rotterdam, kenmerk 618943), waardoor de sluitingsdatum de
+ * reactietermijn van de consultatie is en niet die van een inschrijving.
+ * Signalen: de titel noemt een marktconsultatie, marktverkenning of RFI, of de eerste zin van de omschrijving zegt dat de
+ * opdrachtgever een marktconsultatie houdt. Een latere vermelding ("na de marktconsultatie ...") telt niet.
+ */
+export function isMarktconsultatieTekst(titel: string | undefined | null, omschrijving?: string | null): boolean {
+  const t = (titel ?? '').toLowerCase();
+  if (/markt-?\s?(consultatie|verkenning)|market ?consultation|marketconsultation|request for information|\brfi\b|informatieverzoek/.test(t)) return true;
+  const eersteZin = (omschrijving ?? '').toLowerCase().split(/(?<=[.!?])\s/)[0] ?? '';
+  return /\b(organiseert|houdt|start|voert)\b[^.]{0,60}\been markt-?(consultatie|verkenning)/.test(eersteZin);
+}
+
 const typeVan = (p: TnsLijstPublicatie) => p.typePublicatie?.code ?? '';
 const oplopend = (a: TnsLijstPublicatie, b: TnsLijstPublicatie) =>
   a.publicatieDatum.localeCompare(b.publicatieDatum) || Number(a.publicatieId) - Number(b.publicatieId);
@@ -198,6 +273,11 @@ export function statusBasis(publicaties: TnsLijstPublicatie[]): StatusBasis {
   const laatste = beslissend[beslissend.length - 1];
   if (laatste) return typeVan(laatste) === 'VBE' || laatste.isVroegtijdigeBeeindiging ? 'beeindigd' : 'gegund';
   const typen = new Set(geldig.map(typeVan));
+  // De laatste aankondiging, rectificatie of vooraankondiging bepaalt of het om een marktconsultatie gaat.
+  const laatsteAankondiging = [...geldig].reverse().find((p) => ['AAO', 'REC', 'VAK'].includes(typeVan(p)));
+  if (laatsteAankondiging && isMarktconsultatieTekst(laatsteAankondiging.aanbestedingNaam, laatsteAankondiging.opdrachtBeschrijving)) {
+    return 'marktconsultatie';
+  }
   if (typen.has('AAO') || typen.has('REC')) return 'aankondiging';
   if (typen.has('VAK')) return 'vooraankondiging';
   return 'marktconsultatie';
@@ -245,6 +325,8 @@ export interface AanbestedingRij {
   cpv_codes: string[];
   nuts_codes: string[];
   provincies: string[];
+  /** Waar de provincie vandaan komt: NUTS-code van de plaats van uitvoering, of de naam van de opdrachtgever. */
+  provincie_bron: 'nuts' | 'opdrachtgever' | null;
   stromen: string[];
   diensten: string[];
   trefwoorden: string[];
@@ -257,7 +339,11 @@ const lokaleTijd = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/;
 const datumAlleen = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Bouwt één aanbesteding uit alle publicaties met hetzelfde kenmerk, plus (indien opgehaald) de details. */
-export function bouwAanbesteding(publicaties: TnsLijstPublicatie[], detail?: DetailSamenvatting | null): AanbestedingRij {
+export function bouwAanbesteding(
+  publicaties: TnsLijstPublicatie[],
+  detail?: DetailSamenvatting | null,
+  gemeenten?: Record<string, string>,
+): AanbestedingRij {
   if (publicaties.length === 0) throw new Error('Geen publicaties');
   const alle = [...publicaties].sort(oplopend);
   const geldig = alle.filter((p) => !isIngetrokken(p));
@@ -293,6 +379,8 @@ export function bouwAanbesteding(publicaties: TnsLijstPublicatie[], detail?: Det
   const cpvCodes = detail?.cpv.map((c) => c.code) ?? [];
   const hoofd = detail?.cpv.find((c) => c.hoofd) ?? detail?.cpv[0];
   const trefwoorden = detail?.trefwoorden ?? [];
+  const uitNuts = provincies(detail?.nuts ?? []);
+  const uitOpdrachtgever = uitNuts.length === 0 && gemeenten ? provinciesUitOpdrachtgever(opdrachtgever, gemeenten) : [];
   const tekst = [titel, omschrijving ?? '', trefwoorden.join(' ')].join(' ');
 
   return {
@@ -316,7 +404,8 @@ export function bouwAanbesteding(publicaties: TnsLijstPublicatie[], detail?: Det
     cpv_hoofd_omschrijving: hoofd?.omschrijving ?? null,
     cpv_codes: cpvCodes,
     nuts_codes: detail?.nuts ?? [],
-    provincies: provincies(detail?.nuts ?? []),
+    provincies: uitNuts.length ? uitNuts : uitOpdrachtgever,
+    provincie_bron: uitNuts.length ? 'nuts' : uitOpdrachtgever.length ? 'opdrachtgever' : null,
     stromen: afvalstromen(cpvCodes, tekst),
     diensten: detail ? diensten(cpvCodes) : [],
     trefwoorden,

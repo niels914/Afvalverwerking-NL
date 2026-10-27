@@ -16,6 +16,7 @@ import {
   type DetailSamenvatting,
   type TnsLijstPublicatie,
 } from './afleiding.ts';
+import { GEMEENTE_PROVINCIE } from './gemeenten.ts';
 
 const TNS = 'https://www.tenderned.nl/papi/tenderned-rs-tns/v2/publicaties';
 const PAGINA = 100; // maximum dat de webservice toestaat
@@ -149,7 +150,7 @@ Deno.serve(async (req) => {
     const nu = new Date().toISOString();
     for (const [kenmerk, ps] of perKenmerk) {
       const detail = bestaand.get(kenmerk) ?? null;
-      rijen.push({ ...bouwAanbesteding(ps, detail), cpv_details: detail?.cpv ?? [], bron_opgehaald: nu });
+      rijen.push({ ...bouwAanbesteding(ps, detail, GEMEENTE_PROVINCIE), cpv_details: detail?.cpv ?? [], bron_opgehaald: nu });
     }
     for (let i = 0; i < rijen.length; i += 250) {
       const { error } = await db.from('aanbestedingen').upsert(rijen.slice(i, i + 250), { onConflict: 'kenmerk' });
