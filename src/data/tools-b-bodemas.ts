@@ -60,3 +60,59 @@ export const bodemasContext = {
   betaling: 'AVI’s betalen doorgaans voor het opwerken van bodemas; de waarde komt vooral uit de metalen.',
   bron: bronnen.strategyVa2025,
 };
+
+/* ---------- Kosten (rekenwijze "kental") ---------- */
+
+/** Afvalstoffenbelasting 2026 op storten en verbranden, euro per 1.000 kg (één tarief). Bron: Belastingdienst. */
+export const stortbelasting2026 = 40.85;
+
+/** CBS-consumentenprijsindex (2015 = 100), jaargemiddelde alle bestedingen. Bron: CBS 83131NED. */
+export const cpi = { 2021: 110.39, 2025: 134.56 } as const;
+/** Prijsontwikkeling 2021 → 2025 volgens de CPI. */
+export const cpiFactor2021naar2025 = cpi[2025] / cpi[2021];
+
+const r2 = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * Kostenkentallen uit de nota van toelichting bij het Besluit vrijstellingen stortverbod (Staatsblad 2021, 235):
+ * - opwerking kost de ontdoener (de AVI) per saldo ongeveer € 10 per ton bodemas: de reiniging is duurder, maar de
+ *   opbrengst van metalen en gereinigde bodemas maakt dat goed;
+ * - daarbovenop komt het storten van het residu (ongeveer 15 % van het materiaal), doorgaans € 30–40 per ton plus
+ *   stortbelasting.
+ * Bedragen in prijspeil 2021; KplusV rekent ze met de CPI om naar 2025.
+ */
+export const bodemasKostenBron = {
+  opwerkingNetto2021: 10,
+  stortkostenLaag2021: 30,
+  stortkostenHoog2021: 40,
+  residuVolgensBesluitPct: 15,
+};
+
+/** Netto kosten opwerking per ton ruwe bodemas, metaalopbrengst verrekend, prijspeil 2025. */
+export const kentalNettoOpwerking = r2(bodemasKostenBron.opwerkingNetto2021 * cpiFactor2021naar2025);
+/** Stortkosten residu excl. belasting, midden van € 30–40 (2021), prijspeil 2025. */
+export const kentalStortkosten = r2(((bodemasKostenBron.stortkostenLaag2021 + bodemasKostenBron.stortkostenHoog2021) / 2) * cpiFactor2021naar2025);
+
+/** Bandbreedte voor de uitkomst. Midden = standaardwaarden van de calculator. */
+export const bodemasScenario = {
+  laag: { nettoOpwerking: bodemasKostenBron.opwerkingNetto2021, residuPct: bodemasKental.gestortPct, stortkosten: bodemasKostenBron.stortkostenLaag2021 },
+  midden: { nettoOpwerking: kentalNettoOpwerking, residuPct: bodemasKental.gestortPct, stortkosten: kentalStortkosten },
+  hoog: {
+    nettoOpwerking: kentalNettoOpwerking,
+    residuPct: bodemasKostenBron.residuVolgensBesluitPct,
+    stortkosten: r2(bodemasKostenBron.stortkostenHoog2021 * cpiFactor2021naar2025),
+  },
+};
+
+/** Landelijk gemiddelde per afvalverbrandingsinstallatie in 2024: 6.422 kton in 13 AVI's (Rijkswaterstaat, p. 26). */
+export const aantalAvis2024 = 13;
+export const gemiddeldPerAvi = Math.round((bodemasJaren[bodemasJaren.length - 1].verbrandKton * 1000) / aantalAvis2024 / 1000) * 1000;
+
+/** Bandbreedte van de aandelen over 2022–2024, voor de plausibiliteitscontrole. */
+export const bodemasBereik = {
+  aandeelBodemasPct: [Math.min(...bodemasKentallenPerJaar.map((k) => k.aandeelBodemasPct)), Math.max(...bodemasKentallenPerJaar.map((k) => k.aandeelBodemasPct))] as [number, number],
+  ferroPct: [Math.min(...bodemasKentallenPerJaar.map((k) => k.ferroPct)), Math.max(...bodemasKentallenPerJaar.map((k) => k.ferroPct))] as [number, number],
+  nonFerroPct: [Math.min(...bodemasKentallenPerJaar.map((k) => k.nonFerroPct)), Math.max(...bodemasKentallenPerJaar.map((k) => k.nonFerroPct))] as [number, number],
+};
+
+export const bodemasKostenBronnen = { besluit: bronnen.stb2021bodemas, cpi: bronnen.cbsCpi, asb: bronnen.asb };

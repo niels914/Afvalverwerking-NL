@@ -2,7 +2,7 @@
 // Elke bron is op de peildatum opgehaald en gelezen. Werk PEILDATUM bij als u de cijfers opnieuw controleert.
 // Onderhoud: zie docs/stukken/tools-b.md.
 
-export const PEILDATUM = '2026-10-19';
+export const PEILDATUM = '2026-10-27';
 
 export interface Bron {
   titel: string;
@@ -78,6 +78,24 @@ export const bronnen = {
     uitgever: 'PIANOo',
     datum: 'geraadpleegd op peildatum',
     url: 'https://www.pianoo.nl/nl/inkoopproces/fase-1-voorbereiden/aanbestedingsplicht',
+  },
+  stb2021bodemas: {
+    titel: 'Besluit van 2021 over vrijstelling van het stortverbod voor AVI-bodemas, nota van toelichting (kosten opwerking en storten)',
+    uitgever: 'Staatsblad 2021, 235 (Officiële bekendmakingen)',
+    datum: '2021',
+    url: 'https://zoek.officielebekendmakingen.nl/stb-2021-235.html',
+  },
+  cbsCpi: {
+    titel: 'Consumentenprijzen; prijsindex 2015=100 (tabel 83131NED), jaarcijfers alle bestedingen',
+    uitgever: 'CBS',
+    datum: 'gewijzigd 12 februari 2026',
+    url: 'https://opendata.cbs.nl/statline/#/CBS/nl/dataset/83131NED/table',
+  },
+  iprMarn2021: {
+    titel: 'Onderzoek bron- en nascheiden Plastic+ in de MARN-gemeenten (par. 3.3)',
+    uitgever: 'IPR Normag in opdracht van MARN (regio Nijmegen)',
+    datum: '27 juli 2021',
+    url: 'https://nijmegen.bestuurlijkeinformatie.nl/Document/View/766b277b-ba1e-457d-96bf-331e7fafec0a',
   },
   pianooMvi: {
     titel: 'Maatschappelijk verantwoord opdrachtgeven en inkopen',

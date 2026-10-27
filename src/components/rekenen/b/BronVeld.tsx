@@ -24,17 +24,23 @@ interface Props {
   magLeeg?: boolean;
   /** Voorbeeldwaarde zonder bron: zolang de waarde hieraan gelijk is, staat er "Voorbeeld, vul eigen waarde in". */
   voorbeeld?: number;
+  /** Meldt of het veld een ongeldige waarde bevat; de tool kan dan zeggen dat de uitkomst niet is bijgewerkt. */
+  onFout?: (fout: boolean) => void;
 }
 
 /**
  * Getalveld dat laat zien waar de standaardwaarde vandaan komt: officiële bron, kental of eigen invoer.
  * Accepteert komma en punt. Een leeg veld is toegestaan als `magLeeg`; de tool toont dan wat er nog ontbreekt.
  */
-export function BronVeld({ label, waarde, onChange, eenheid, status, bronwaarde, bronwaardeTekst, bron, peildatum, toelichting, min = 0, max, magLeeg, voorbeeld }: Props) {
+export function BronVeld({ label, waarde, onChange, eenheid, status, bronwaarde, bronwaardeTekst, bron, peildatum, toelichting, min = 0, max, magLeeg, voorbeeld, onFout }: Props) {
   const id = useId();
   const leegToegestaan = magLeeg ?? status === 'aanname';
   const [tekst, setTekst] = useState(waarde === null ? '' : toonInInvoer(waarde));
   const [fout, setFout] = useState<string | null>(null);
+  useEffect(() => {
+    onFout?.(fout !== null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fout]);
 
   useEffect(() => {
     const huidig = tekst.trim() === '' ? null : leesGetal(tekst);

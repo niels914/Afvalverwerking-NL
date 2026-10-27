@@ -5,7 +5,7 @@
 
 import type { BodemasInvoer } from '../lib/calc/bodemas';
 import type { PmdInvoer } from '../lib/calc/pmd';
-import { bodemasKental } from './tools-b-bodemas';
+import { bodemasKental, bodemasScenario, gemiddeldPerAvi, stortbelasting2026 } from './tools-b-bodemas';
 import { cbsPmd, kentalNascheidingskosten, kentalVerbrandingstarief, kostenbasisBron, nascheiding, staffelPerCategorie, type StaffelCategorie } from './tools-b-pmd';
 import { prijsPuntenVoorstel, standaardSelectie, type DrempelId, type StroomId } from './tools-b-aanbesteding';
 
@@ -29,12 +29,20 @@ export const co2Standaard = {
   stijgingPerJaar: 10,
 };
 
-/** Bodemas: aandelen uit Rijkswaterstaat 2024; tonnage is een voorbeeld; tarieven en prijzen vult de gebruiker in. */
+/**
+ * Bodemas: aandelen uit Rijkswaterstaat 2024, tonnage = landelijk gemiddelde per AVI 2024, kosten volgens de
+ * kentallen (midden van de bandbreedte). Tarief en metaalprijzen voor de rekenwijze "contract" vult de gebruiker in.
+ */
 export const bodemasStandaard: BodemasInvoer = {
-  tonnageVerbrand: 100000, // voorbeeld, vul uw eigen tonnage in
+  tonnageVerbrand: gemiddeldPerAvi,
   aandeelBodemasPct: bodemasKental.aandeelBodemasPct,
   ferroPct: bodemasKental.ferroPct,
   nonFerroPct: bodemasKental.nonFerroPct,
+  rekenwijze: 'kental',
+  nettoOpwerking: bodemasScenario.midden.nettoOpwerking,
+  residuPct: bodemasScenario.midden.residuPct,
+  stortkosten: bodemasScenario.midden.stortkosten,
+  stortbelasting: stortbelasting2026,
   verwerkingstarief: null, // geen openbare bron
   prijsFerro: null, // geen openbare bron
   prijsNonFerro: null, // geen openbare bron

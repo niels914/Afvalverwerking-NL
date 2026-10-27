@@ -510,3 +510,35 @@ h3.tb-uitklap-titel {
 .ab-mvi-andere {
   font-style: normal;
 }
+.tb-deellink > summary {
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--link);
+  text-decoration: underline;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+}
+.tb-bronlijst {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.tb-bronlijst > li {
+  display: grid;
+  gap: 3px;
+  border-top: 1px solid var(--rij);
+  padding-top: 10px;
+  min-width: 0;
+}
+.tb-bron-kop {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: baseline;
+}
+.tb-bron-kop strong {
+  font-weight: 600;
+}
