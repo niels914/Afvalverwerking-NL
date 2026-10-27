@@ -3,13 +3,27 @@ import {
   afvalstromen,
   bouwAanbesteding,
   diensten,
+  isMarktconsultatieTekst,
   provincies,
+  provinciesUitOpdrachtgever,
   statusBasis,
   statusOp,
   vatDetailSamen,
   type TnsLijstPublicatie,
 } from '../../supabase/functions/ververs-aanbestedingen/afleiding';
-import { dagenTot, filtersNaarUrl, filtersUitUrl, LEGE_FILTERS, sluitingTijd, tijdstempel, vandaagNl } from './aanbestedingen';
+import { GEMEENTE_PROVINCIE } from '../../supabase/functions/ververs-aanbestedingen/gemeenten';
+import {
+  dagenTot,
+  filtersNaarUrl,
+  filtersUitUrl,
+  LEGE_FILTERS,
+  maakCsv,
+  procedureAfbreekbaar,
+  sluitingTijd,
+  tijdstempel,
+  vandaagNl,
+  type AanbestedingRegel,
+} from './aanbestedingen';
 
 // Publicaties in de vorm van de TenderNed-webservice (velden ingekort).
 const pub = (id: number, datum: string, type: string, extra: Partial<TnsLijstPublicatie> = {}): TnsLijstPublicatie => ({
@@ -150,7 +164,7 @@ describe('filters in de URL', () => {
   });
   it('laat standaardwaarden weg en is omkeerbaar', () => {
     expect(filtersNaarUrl(LEGE_FILTERS).toString()).toBe('');
-    const f = { ...LEGE_FILTERS, zoek: 'restafval', provincie: 'landelijk', sortering: 'sluiting-op' as const, pagina: 3 };
+    const f = { ...LEGE_FILTERS, zoek: 'restafval', provincie: 'landelijk', hoofd: true, sortering: 'laatste-nieuw' as const, pagina: 3 };
     expect(filtersUitUrl(filtersNaarUrl(f))).toEqual(f);
   });
 });
@@ -178,5 +192,125 @@ describe('afvalstroom: juridische formuleringen en monostromen', () => {
     expect(afvalstromen([], 'Afvoer en verwerking van matrassen')).toEqual(['Matrassen']);
     expect(afvalstromen([], 'Exploitatie milieustraat gemeente X')).toEqual(['Milieustraat']);
     expect(afvalstromen([], 'Recycling luier- en incontinentiemateriaal')).toEqual(['Luiers en incontinentiemateriaal']);
+  });
+});
+
+describe('marktconsultatie die als aankondiging is gepubliceerd (ronde 2)', () => {
+  it('Rotterdam 618943: aankondiging opdracht met "Marktconsultatie" in de titel is geen open inschrijving', () => {
+    const ps = [
+      pub(444827, '2026-10-17', 'AAO', {
+        kenmerk: 618943,
+        aanbestedingNaam: '8-D-82288-26 Marktconsultatie Verwerking huishoudelijk restafval',
+        opdrachtBeschrijving: 'Ter voorbereiding op de voorgenomen aanbesteding organiseert de gemeente Rotterdam een marktconsultatie. Daarna volgt de aanbesteding.',
+        sluitingsDatum: '2026-11-17T10:00:03',
+      }),
+    ];
+    expect(statusBasis(ps)).toBe('marktconsultatie');
+    const a = bouwAanbesteding(ps);
+    expect(a.status_basis).toBe('marktconsultatie');
+    expect(statusOp(a.status_basis, a.sluitingsdatum, '2026-10-27T12:00:00')).toBe('marktconsultatie');
+  });
+  it('herkent de omschrijving, ook zonder titel', () => {
+    expect(isMarktconsultatieTekst('Verwerking restafval', 'Ter voorbereiding organiseert de gemeente een marktconsultatie.')).toBe(true);
+    expect(isMarktconsultatieTekst('Market consultation phosphate recovery')).toBe(true);
+    expect(isMarktconsultatieTekst('Marktverkenning hergebruik ICT')).toBe(true);
+    expect(isMarktconsultatieTekst('RFI inzameling textiel')).toBe(true);
+  });
+  it('een aanbesteding die naar een eerdere marktconsultatie verwijst blijft een aanbesteding', () => {
+    expect(isMarktconsultatieTekst('Inzameling GFT', 'Na de marktconsultatie van maart start de gemeente deze openbare aanbesteding.')).toBe(false);
+    expect(isMarktconsultatieTekst('Open house: inzameling scheepsafval')).toBe(false);
+    expect(statusBasis([pub(1, '2026-01-01', 'AAO', { aanbestedingNaam: 'Inzameling GFT' })])).toBe('aankondiging');
+  });
+  it('vooraankondiging met "Marktconsultatie" in de titel telt als marktconsultatie', () => {
+    expect(statusBasis([pub(1, '2026-01-01', 'VAK', { aanbestedingNaam: 'Marktconsultatie slibtransport' })])).toBe('marktconsultatie');
+  });
+  it('een gunning gaat voor', () => {
+    expect(statusBasis([pub(1, '2026-01-01', 'AAO', { aanbestedingNaam: 'Marktconsultatie X' }), pub(2, '2026-03-01', 'AGO')])).toBe('gegund');
+  });
+});
+
+describe('provincie uit de opdrachtgever (CBS-gemeenten)', () => {
+  const p = (naam: string) => provinciesUitOpdrachtgever(naam, GEMEENTE_PROVINCIE);
+  it('"Gemeente X", ook met afdeling of hoofdletters', () => {
+    expect(p('Gemeente Losser')).toEqual(['Overijssel']);
+    expect(p('Gemeente Amsterdam, Ingenieursbureau')).toEqual(['Noord-Holland']);
+    expect(p("gemeente 's-Hertogenbosch")).toEqual(['Noord-Brabant']);
+    expect(p('Gemeente Den Haag')).toEqual(['Zuid-Holland']);
+    expect(p('Gemeente Súdwest-Fryslân')).toEqual(['Fryslân']);
+    expect(p('Gemeente Alphen aan den Rijn')).toEqual(['Zuid-Holland']);
+    expect(p('Gemeente Utrechtse Heuvelrug')).toEqual(['Utrecht']);
+  });
+  it('opsommingen en meerdere gemeenten', () => {
+    expect(p('RID De Liemers namens de gemeente Duiven, Westervoort en Zevenaar')).toEqual(['Gelderland']);
+    expect(p('Gemeente Etten-Leur en Gemeente Breda (waarbij gemeente Etten-Leur penvoerder is)')).toEqual(['Noord-Brabant']);
+  });
+  it('provincie als opdrachtgever', () => {
+    expect(p('Provincie Fryslân')).toEqual(['Fryslân']);
+    expect(p('Provincie Limburg')).toEqual(['Limburg']);
+  });
+  it('geen gok bij organisaties zonder gemeentenaam', () => {
+    expect(p('Twente Milieu N.V.')).toEqual([]);
+    expect(p('Vereniging van Nederlandse Gemeenten')).toEqual([]);
+    expect(p('MijnGemeenteDichtbij')).toEqual([]);
+    expect(p('Gemeente Rheden, gemeentehuis')).toEqual(['Gelderland']);
+  });
+  it('NUTS gaat voor; anders opdrachtgever, met bron', () => {
+    const zonderNuts = bouwAanbesteding([pub(1, '2026-01-01', 'AAO', { opdrachtgeverNaam: 'Gemeente Losser' })], null, GEMEENTE_PROVINCIE);
+    expect(zonderNuts.provincies).toEqual(['Overijssel']);
+    expect(zonderNuts.provincie_bron).toBe('opdrachtgever');
+    const metNuts = bouwAanbesteding(
+      [pub(1, '2026-01-01', 'AAO', { opdrachtgeverNaam: 'Gemeente Losser' })],
+      { publicatieId: 1, cpv: [], nuts: ['NL42'], trefwoorden: [] },
+      GEMEENTE_PROVINCIE,
+    );
+    expect(metNuts.provincies).toEqual(['Limburg']);
+    expect(metNuts.provincie_bron).toBe('nuts');
+  });
+});
+
+describe('afvalstroom: afvalbakken (ronde 2)', () => {
+  it('afvalscheidingsunits in een gebouw zijn geen zwerfafval', () => {
+    expect(afvalstromen(['90510000-5'], 'Vooraankondiging Afvalscheidingsunits TU Delft Afvalbakken')).toEqual(['Containers en inzamelmiddelen']);
+  });
+  it('afvalbakken in de openbare ruimte wel', () => {
+    expect(afvalstromen([], 'Digitaliseren (straat) afvalbakken openbare ruimte')).toContain('Zwerfafval en straatreiniging');
+    expect(afvalstromen([], 'Beheer hondenafvalbakken')).toContain('Zwerfafval en straatreiniging');
+  });
+});
+
+describe('CSV en weergave (ronde 2)', () => {
+  const regel: AanbestedingRegel = {
+    kenmerk: 1,
+    titel: 'Inzameling "GFT"; papier',
+    opdrachtgever: 'Gemeente Losser',
+    omschrijving: null,
+    procedure: 'Openbaar',
+    type_opdracht: 'Diensten',
+    europees: true,
+    publicatiedatum: '2026-10-01',
+    laatste_publicatie: '2026-10-01',
+    sluitingsdatum: '2026-11-03T12:00:00',
+    sluiting_tijd_bekend: true,
+    tenderned_url: 'https://www.tenderned.nl/aankondigingen/overzicht/1',
+    tsender_naam: null,
+    tsender_url: null,
+    cpv_hoofd: '90513000-6',
+    cpv_hoofd_omschrijving: 'Diensten voor het verwerken en storten van niet-gevaarlijk afval en vuilnis',
+    provincies: ['Overijssel'],
+    provincie_bron: 'opdrachtgever',
+    stromen: ['GFT en etensresten', 'Papier en karton'],
+    diensten: ['Verwerking'],
+    publicaties: [],
+    status: 'open',
+    afval_hoofd: true,
+  };
+  it('CSV met puntkomma, BOM en ontsnapte aanhalingstekens', () => {
+    const csv = maakCsv([regel]);
+    expect(csv.startsWith('\uFEFFKenmerk;Opdrachtgever;Titel')).toBe(true);
+    expect(csv).toContain('1;Gemeente Losser;"Inzameling ""GFT""; papier";GFT en etensresten, Papier en karton;Openbaar;2026-10-01;2026-11-03 12:00;Open voor inschrijving;Overijssel;');
+  });
+  it('lange procedurenamen kunnen afbreken', () => {
+    expect(procedureAfbreekbaar('Onderhandelingsprocedure zonder voorafgaande oproep tot mededinging')).toBe('Onderhandelings\u00ADprocedure zonder voorafgaande oproep tot mededinging');
+    expect(procedureAfbreekbaar('Openbaar')).toBe('Openbaar');
   });
 });

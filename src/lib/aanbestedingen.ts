@@ -1,4 +1,4 @@
-// Aanbestedingsarchief: ophalen uit Supabase (public.zoek_aanbestedingen), filters in de URL en weergave-hulpjes.
+// Aanbestedingsarchief: ophalen uit Supabase (public.aanbestedingen_zoeken), filters in de URL en weergave-hulpjes.
 // De afleiding van afvalstroom, dienst, provincie en status staat in
 // supabase/functions/ververs-aanbestedingen/afleiding.ts (gedeeld met de Edge Function).
 
@@ -35,10 +35,13 @@ export interface AanbestedingRegel {
   cpv_hoofd: string | null;
   cpv_hoofd_omschrijving: string | null;
   provincies: string[];
+  provincie_bron: 'nuts' | 'opdrachtgever' | null;
   stromen: string[];
   diensten: string[];
   publicaties: Publicatie[];
   status: Status;
+  /** Hoofd-CPV is een afvalcode (905..., 90000000) of onbekend. Anders is afval een nevenonderdeel. */
+  afval_hoofd: boolean;
 }
 
 export const STATUS_LABEL: Record<Status, string> = {
@@ -55,11 +58,11 @@ export const STATUS_LABEL: Record<Status, string> = {
 /** Korte uitleg per status (title en legenda). */
 export const STATUS_UITLEG: Record<Status, string> = {
   open: 'De sluitingsdatum voor inschrijving ligt in de toekomst.',
-  gesloten: 'De sluitingsdatum is voorbij; op TenderNed staat nog geen gunning of beëindiging.',
+  gesloten: 'De sluitingsdatum is voorbij; op TenderNed staat (nog) geen gunning of beëindiging. Bij oudere aanbestedingen is de gunning vaak niet gepubliceerd.',
   onbekend: 'De aankondiging noemt geen sluitingsdatum.',
-  gegund: 'Er is een aankondiging van een gegunde opdracht (of een wijziging daarvan) gepubliceerd.',
+  gegund: 'Op TenderNed staat een aankondiging van een gegunde opdracht of een wijziging daarvan. De winnaar staat in die aankondiging.',
   beeindigd: 'De opdrachtgever heeft de aanbesteding vroegtijdig beëindigd.',
-  marktconsultatie: 'Alleen een marktconsultatie, nog geen aanbesteding.',
+  marktconsultatie: 'Een marktconsultatie of marktverkenning: de opdrachtgever vraagt de markt om informatie. Inschrijven kan nog niet; de datum is de reactietermijn.',
   vooraankondiging: 'Alleen een vooraankondiging, nog geen aanbesteding.',
   ingetrokken: 'Alle publicaties zijn ingetrokken.',
 };
@@ -71,6 +74,7 @@ export const SORTERINGEN = [
   { waarde: 'publicatie-oud', label: 'Publicatiedatum, oudste eerst' },
   { waarde: 'sluiting-op', label: 'Sluitingsdatum, vroegste eerst' },
   { waarde: 'sluiting-af', label: 'Sluitingsdatum, laatste eerst' },
+  { waarde: 'laatste-nieuw', label: 'Laatste publicatie, nieuwste eerst' },
   { waarde: 'opdrachtgever', label: 'Opdrachtgever, A tot Z' },
 ] as const;
 export type Sortering = (typeof SORTERINGEN)[number]['waarde'];
@@ -83,11 +87,20 @@ export interface Filters {
   status: string;
   provincie: string; // '' = alle, 'landelijk' = geen provincie bekend
   dienst: string;
+  /** Alleen aanbestedingen met afval als hoofdopdracht (hoofd-CPV 905... of 90000000). */
+  hoofd: boolean;
   sortering: Sortering;
   pagina: number; // vanaf 1
 }
 
-export const LEGE_FILTERS: Filters = { zoek: '', stroom: '', status: '', provincie: '', dienst: '', sortering: 'publicatie-nieuw', pagina: 1 };
+export const LEGE_FILTERS: Filters = { zoek: '', stroom: '', status: '', provincie: '', dienst: '', hoofd: false, sortering: 'publicatie-nieuw', pagina: 1 };
+
+/** Snelkeuzes boven de filters. */
+export const SNELKEUZES: { label: string; filters: Partial<Filters> }[] = [
+  { label: 'Open voor inschrijving, vroegste sluiting eerst', filters: { status: 'open', sortering: 'sluiting-op' } },
+  { label: 'Marktconsultaties', filters: { status: 'marktconsultatie', sortering: 'publicatie-nieuw' } },
+  { label: 'Recent gegund', filters: { status: 'gegund', sortering: 'laatste-nieuw' } },
+];
 
 const geldigeStatus = new Set<string>(STATUS_VOLGORDE);
 const geldigeSortering = new Set<string>(SORTERINGEN.map((s) => s.waarde));
@@ -106,6 +119,7 @@ export function filtersUitUrl(params: URLSearchParams): Filters {
     status: geldigeStatus.has(status) ? status : '',
     provincie: provincie === 'landelijk' || (PROVINCIES as readonly string[]).includes(provincie) ? provincie : '',
     dienst: (DIENSTEN as readonly string[]).includes(dienst) ? dienst : '',
+    hoofd: params.get('hoofd') === '1',
     sortering: geldigeSortering.has(sortering) ? (sortering as Sortering) : 'publicatie-nieuw',
     pagina: Number.isFinite(pagina) && pagina > 0 ? pagina : 1,
   };
@@ -119,6 +133,7 @@ export function filtersNaarUrl(f: Filters): URLSearchParams {
   if (f.status) p.set('status', f.status);
   if (f.provincie) p.set('provincie', f.provincie);
   if (f.dienst) p.set('dienst', f.dienst);
+  if (f.hoofd) p.set('hoofd', '1');
   if (f.sortering !== 'publicatie-nieuw') p.set('sortering', f.sortering);
   if (f.pagina > 1) p.set('pagina', String(f.pagina));
   return p;
@@ -130,42 +145,88 @@ export interface Resultaat {
 }
 
 const KOLOMMEN =
-  'kenmerk,titel,opdrachtgever,omschrijving,procedure,type_opdracht,europees,publicatiedatum,laatste_publicatie,sluitingsdatum,sluiting_tijd_bekend,tenderned_url,tsender_naam,tsender_url,cpv_hoofd,cpv_hoofd_omschrijving,provincies,stromen,diensten,publicaties,status';
+  'kenmerk,titel,opdrachtgever,omschrijving,procedure,type_opdracht,europees,publicatiedatum,laatste_publicatie,sluitingsdatum,sluiting_tijd_bekend,tenderned_url,tsender_naam,tsender_url,cpv_hoofd,cpv_hoofd_omschrijving,provincies,provincie_bron,stromen,diensten,publicaties,status,afval_hoofd';
+
+const rpcArgumenten = (f: Filters) => ({
+  p_zoek: f.zoek.trim() || null,
+  p_stroom: f.stroom || null,
+  p_status: f.status || null,
+  p_provincie: f.provincie || null,
+  p_dienst: f.dienst || null,
+  p_sortering: f.sortering,
+  p_alleen_hoofd: f.hoofd,
+});
 
 /** Haalt één pagina aanbestedingen op. Alleen leden krijgen rijen terug (RLS). */
 export async function zoekAanbestedingen(f: Filters): Promise<Resultaat> {
   const van = (f.pagina - 1) * PER_PAGINA;
   const { data, error, count } = await supabase
-    .rpc(
-      'zoek_aanbestedingen',
-      {
-        p_zoek: f.zoek.trim() || null,
-        p_stroom: f.stroom || null,
-        p_status: f.status || null,
-        p_provincie: f.provincie || null,
-        p_dienst: f.dienst || null,
-        p_sortering: f.sortering,
-      },
-      { count: 'exact' },
-    )
+    .rpc('aanbestedingen_zoeken', rpcArgumenten(f), { count: 'exact' })
     .select(KOLOMMEN)
     .range(van, van + PER_PAGINA - 1);
   if (error) throw error;
   return { regels: (data ?? []) as unknown as AanbestedingRegel[], totaal: count ?? 0 };
 }
 
+/** Maximaal aantal rijen in een CSV-bestand. */
+export const CSV_MAX = 2000;
+
+/** Alle rijen voor de huidige filters (tot CSV_MAX), voor de CSV-download. */
+export async function haalAlleVoorCsv(f: Filters): Promise<AanbestedingRegel[]> {
+  const { data, error } = await supabase
+    .rpc('aanbestedingen_zoeken', rpcArgumenten(f))
+    .select(KOLOMMEN)
+    .range(0, CSV_MAX - 1);
+  if (error) throw error;
+  return (data ?? []) as unknown as AanbestedingRegel[];
+}
+
+const csvVeld = (v: string) => (/[";\r\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v);
+
+/**
+ * CSV met puntkomma als scheidingsteken en een BOM, zodat Excel in Nederlandse instellingen de kolommen en accenten goed leest.
+ * Datums als jjjj-mm-dd (sorteerbaar); sluiting met tijd als jjjj-mm-dd uu:mm.
+ */
+export function maakCsv(regels: AanbestedingRegel[]): string {
+  const kop = ['Kenmerk', 'Opdrachtgever', 'Titel', 'Afvalstroom', 'Procedure', 'Publicatiedatum', 'Sluitingsdatum', 'Status', 'Provincie', 'Hoofd-CPV', 'Aankondiging op TenderNed'];
+  const rijen = regels.map((a) => [
+    String(a.kenmerk),
+    a.opdrachtgever,
+    a.titel,
+    a.stromen.join(', '),
+    a.procedure,
+    a.publicatiedatum,
+    a.sluitingsdatum ? (a.sluiting_tijd_bekend ? a.sluitingsdatum.slice(0, 16).replace('T', ' ') : a.sluitingsdatum.slice(0, 10)) : '',
+    STATUS_LABEL[a.status],
+    a.provincies.join(', '),
+    a.cpv_hoofd ? `${a.cpv_hoofd} ${a.cpv_hoofd_omschrijving ?? ''}`.trim() : '',
+    a.tenderned_url,
+  ]);
+  return '\uFEFF' + [kop, ...rijen].map((r) => r.map(csvVeld).join(';')).join('\r\n') + '\r\n';
+}
+
+/**
+ * Lange procedurenamen met zachte afbreekstreepjes, zodat ze in een smalle kolom netjes afbreken
+ * (bijvoorbeeld "Onderhandelingsprocedure zonder voorafgaande oproep tot mededinging").
+ */
+export function procedureAfbreekbaar(procedure: string): string {
+  return procedure.replace(/(Onderhandelings|Mededingings|Concurrentie|Innovatie)(procedure|gerichte|partnerschap)/g, '$1\u00AD$2');
+}
+
 export interface Kerncijfers {
   perStatus: Partial<Record<Status, number>>;
+  perStroom: Record<string, number>;
   totaal: number;
   laatsteVerversing: string | null; // ISO-tijdstempel van de laatste gelukte verversing
   oudste: string | null; // vroegste publicatiedatum in het archief
 }
 
 export async function haalKerncijfers(): Promise<Kerncijfers> {
-  const [telling, ververs, oudste] = await Promise.all([
+  const [telling, ververs, oudste, stromen] = await Promise.all([
     supabase.rpc('aanbestedingen_telling'),
     supabase.from('aanbestedingen_verversingen').select('klaar').eq('gelukt', true).order('klaar', { ascending: false }).limit(1),
-    supabase.rpc('zoek_aanbestedingen', { p_sortering: 'publicatie-oud' }).select('publicatiedatum').range(0, 0),
+    supabase.rpc('aanbestedingen_zoeken', { p_sortering: 'publicatie-oud' }).select('publicatiedatum').range(0, 0),
+    supabase.rpc('aanbestedingen_telling_stromen'),
   ]);
   if (telling.error) throw telling.error;
   const perStatus: Partial<Record<Status, number>> = {};
@@ -176,7 +237,9 @@ export async function haalKerncijfers(): Promise<Kerncijfers> {
   }
   const laatste = ververs.data?.[0]?.klaar ?? null;
   const eerste = (oudste.data as { publicatiedatum: string }[] | null)?.[0]?.publicatiedatum ?? null;
-  return { perStatus, totaal, laatsteVerversing: laatste, oudste: eerste };
+  const perStroom: Record<string, number> = {};
+  for (const r of (stromen.data ?? []) as { stroom: string; aantal: number }[]) perStroom[r.stroom] = Number(r.aantal);
+  return { perStatus, perStroom, totaal, laatsteVerversing: laatste, oudste: eerste };
 }
 
 /* ---------- Weergave ---------- */
