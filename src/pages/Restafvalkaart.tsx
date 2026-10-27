@@ -334,7 +334,7 @@ function GemeentePaneel({
 
       <div className="aanbesteding-link">
         <h3>Aanbestedingen van {g.naam}</h3>
-        <p>Zoek in het aanbestedingsarchief naar opdrachten van deze gemeente. Het archief is beschikbaar voor leden.</p>
+        <p>Zoek in het aanbestedingsarchief naar opdrachten van deze gemeente. Open aanbestedingen kan iedereen zien; het volledige archief is voor leden.</p>
         <Link className="link-pijl" to={`/aanbestedingsarchief?zoek=${encodeURIComponent(g.naam)}`}>
           Zoek “{g.naam}” in het aanbestedingsarchief
         </Link>

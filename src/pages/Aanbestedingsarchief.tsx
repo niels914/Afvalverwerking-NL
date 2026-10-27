@@ -65,20 +65,29 @@ export function Aanbestedingsarchief() {
           : ' Iedereen kan zoeken in de aanbestedingen die nu open zijn voor inschrijving. Leden zien ook gesloten en gegunde aanbestedingen, met filters, details en export.'}
       </PaginaKop>
 
-      {/* Niet zolang de toegang van een ingelogde gebruiker nog wordt gecontroleerd: dat is meestal een lid. */}
-      {!isLid && !isToegangOnbekend(auth) && <OpenAanbestedingen />}
+      {/* Zolang de toegang nog wordt gecontroleerd, houden we een schermhoogte vrij: zo verspringt de betaalmuur niet als
+          de open lijst erboven verschijnt (een ingelogde gebruiker is meestal lid en ziet die lijst niet). */}
+      {isToegangOnbekend(auth) ? (
+        <p className="sectie muted" style={{ minHeight: '100vh' }}>
+          Toegang controleren…
+        </p>
+      ) : (
+        <>
+          {!isLid && <OpenAanbestedingen />}
 
-      <Vergrendeld
-        titel="Volledig aanbestedingsarchief"
-        ledenKrijgen={[
-          'Ook gesloten, gegunde en beëindigde aanbestedingen en marktconsultaties, terug tot 2013',
-          'Filters op afvalstroom, status, provincie en soort dienst, en sorteren',
-          'Per aanbesteding de omschrijving, CPV-codes, het documentenplatform en de tijdlijn van publicaties',
-          'Download als CSV voor Excel',
-        ]}
-      >
-        {isLid ? <Archief /> : <Voorbeeldweergave />}
-      </Vergrendeld>
+          <Vergrendeld
+            titel="Volledig aanbestedingsarchief"
+            ledenKrijgen={[
+              'Ook gesloten, gegunde en beëindigde aanbestedingen en marktconsultaties, terug tot 2013',
+              'Filters op afvalstroom, status, provincie en soort dienst, en sorteren',
+              'Per aanbesteding de omschrijving, CPV-codes, het documentenplatform en de tijdlijn van publicaties',
+              'Download als CSV voor Excel',
+            ]}
+          >
+            {isLid ? <Archief /> : <Voorbeeldweergave />}
+          </Vergrendeld>
+        </>
+      )}
     </>
   );
 }
