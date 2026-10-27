@@ -1,6 +1,6 @@
 {
-  "bijgewerkt": "2026-10-19",
-  "gecontroleerd": "2026-10-19",
+  "bijgewerkt": "2026-10-27",
+  "gecontroleerd": "2026-10-27",
   "filter": "(?<!rioolw)afval(?!water)|recycl|circulai|grondstof|verpakking|statiegeld|zwerfafval|textiel|kunststof|plastic|verbrand|gft|pmd|luier|hergebruik|storten|bodemas",
   "bronnen": [
     {
@@ -9,7 +9,7 @@
       "site": "https://www.rijksoverheid.nl/themas/klimaat-milieu-en-natuur/afval",
       "feed": "https://www.rijksoverheid.nl/api/rss?query=%7B%22filters%22%3A%5B%7B%22field%22%3A%22topic%22%2C%22values%22%3A%5B%22Afval%22%5D%2C%22type%22%3A%22all%22%7D%2C%7B%22field%22%3A%22information_type%22%2C%22values%22%3A%5B%22Nieuwsbericht%22%5D%2C%22type%22%3A%22all%22%7D%5D%2C%22resultSearchTerm%22%3A%22%22%2C%22pageTitle%22%3A%22Nieuws%22%7D",
       "status": "ok",
-      "laatstGelukt": "2026-10-19",
+      "laatstGelukt": "2026-10-27",
       "aantal": 12
     },
     {
@@ -18,7 +18,7 @@
       "site": "https://www.rijksoverheid.nl/actueel/nieuws",
       "feed": "https://www.rijksoverheid.nl/api/rss?query=%7B%22filters%22%3A%5B%7B%22field%22%3A%22information_type%22%2C%22values%22%3A%5B%22Nieuwsbericht%22%5D%2C%22type%22%3A%22all%22%7D%5D%2C%22resultSearchTerm%22%3A%22circulaire%20economie%22%2C%22pageTitle%22%3A%22Nieuws%22%7D",
       "status": "ok",
-      "laatstGelukt": "2026-10-19",
+      "laatstGelukt": "2026-10-27",
       "aantal": 10
     },
     {
@@ -27,8 +27,26 @@
       "site": "https://www.rijksoverheid.nl/actueel/nieuws",
       "feed": "https://www.rijksoverheid.nl/api/rss?query=%7B%22filters%22%3A%5B%7B%22field%22%3A%22information_type%22%2C%22values%22%3A%5B%22Nieuwsbericht%22%5D%2C%22type%22%3A%22all%22%7D%5D%2C%22resultSearchTerm%22%3A%22recycling%22%2C%22pageTitle%22%3A%22Nieuws%22%7D",
       "status": "ok",
-      "laatstGelukt": "2026-10-19",
-      "aantal": 16
+      "laatstGelukt": "2026-10-27",
+      "aantal": 13
+    },
+    {
+      "id": "rijksoverheid-verpakkingen",
+      "naam": "Rijksoverheid",
+      "site": "https://www.rijksoverheid.nl/actueel/nieuws",
+      "feed": "https://www.rijksoverheid.nl/api/rss?query=%7B%22filters%22%3A%5B%7B%22field%22%3A%22information_type%22%2C%22values%22%3A%5B%22Nieuwsbericht%22%5D%2C%22type%22%3A%22all%22%7D%5D%2C%22resultSearchTerm%22%3A%22verpakkingen%22%2C%22pageTitle%22%3A%22Nieuws%22%7D",
+      "status": "ok",
+      "laatstGelukt": "2026-10-27",
+      "aantal": 6
+    },
+    {
+      "id": "rijksoverheid-textiel",
+      "naam": "Rijksoverheid",
+      "site": "https://www.rijksoverheid.nl/actueel/nieuws",
+      "feed": "https://www.rijksoverheid.nl/api/rss?query=%7B%22filters%22%3A%5B%7B%22field%22%3A%22information_type%22%2C%22values%22%3A%5B%22Nieuwsbericht%22%5D%2C%22type%22%3A%22all%22%7D%5D%2C%22resultSearchTerm%22%3A%22textiel%22%2C%22pageTitle%22%3A%22Nieuws%22%7D",
+      "status": "ok",
+      "laatstGelukt": "2026-10-27",
+      "aantal": 4
     },
     {
       "id": "pianoo-nieuws",
@@ -36,7 +54,7 @@
       "site": "https://www.pianoo.nl/nl/actueel/nieuws",
       "feed": "https://www.pianoo.nl/nl/rss/nieuws.rss",
       "status": "ok",
-      "laatstGelukt": "2026-10-19",
+      "laatstGelukt": "2026-10-27",
       "aantal": 1
     },
     {
@@ -45,7 +63,16 @@
       "site": "https://www.pianoo.nl/nl/jurisprudentie",
       "feed": "https://www.pianoo.nl/nl/rss/jurisprudentie.rss",
       "status": "ok",
-      "laatstGelukt": "2026-10-19",
+      "laatstGelukt": "2026-10-27",
+      "aantal": 0
+    },
+    {
+      "id": "rivm",
+      "naam": "RIVM",
+      "site": "https://www.rivm.nl/nieuws",
+      "feed": "https://www.rivm.nl/nieuws/rss.xml",
+      "status": "ok",
+      "laatstGelukt": "2026-10-27",
       "aantal": 1
     },
     {
@@ -54,66 +81,76 @@
       "site": "https://www.cbs.nl/nl-nl/nieuws",
       "feed": "https://www.cbs.nl/nl-nl/rss-feeds/alle-nieuwsberichten",
       "status": "ok",
-      "laatstGelukt": "2026-10-19",
+      "laatstGelukt": "2026-10-27",
       "aantal": 0
     }
   ],
   "berichten": [
     {
+      "id": "e62d871e6e55",
+      "titel": "Factsheet voor aanbesteden verwerking van groenfval",
+      "link": "https://www.pianoo.nl/nl/actueel/nieuws/factsheet-voor-aanbesteden-verwerking-van-groenfval",
+      "inleiding": "In de factsheet Groenafval als groene grondstof biedt de Branchevereniging Organische Reststoffen (BVOR) handvatten voor bestuurders en inkopers die via aanbesteding willen sturen op hoogwaardige verwerking van …",
+      "datum": "2026-10-26",
+      "bron": "PIANOo",
+      "bronId": "pianoo-nieuws",
+      "thema": "Aanbesteden"
+    },
+    {
+      "id": "fe1a1f17e9b7",
+      "titel": "Nieuwe afspraken voor meer recycling van oude matrassen",
+      "link": "https://www.rijksoverheid.nl/actueel/nieuws/2026/10/26/nieuwe-afspraken-voor-meer-recycling-van-oude-matrassen",
+      "inleiding": "Oude matrassen bevatten waardevolle grondstoffen, zoals staal en schuim, die opnieuw kunnen worden gebruikt. Inmiddels wordt bijna 2/3 van de oude matrassen ingezameld voor recycling.",
+      "datum": "2026-10-26",
+      "bron": "Rijksoverheid",
+      "bronId": "rijksoverheid-afval",
+      "thema": "Circulaire economie"
+    },
+    {
       "id": "644d90658095",
       "titel": "Meld je aan voor een webinar over de MVI-ciriteriatool",
       "link": "https://www.pianoo.nl/nl/actueel/nieuws/meld-je-aan-voor-een-webinar-over-de-mvi-ciriteriatool",
-      "inleiding": "Eén van de krachtigste hulpmiddelen voor circulair en maatschappelijk verantwoord inkopen is de MVI‑criteriatool. Wil je weten hoe de tool kan helpen om duurzaamheid eenvoudig in je aanbesteding op te nemen? Meld je dan …",
+      "inleiding": "Eén van de krachtigste hulpmiddelen voor circulair en maatschappelijk verantwoord inkopen is de MVI‑criteriatool. Wil je weten hoe de tool kan helpen om duurzaamheid eenvoudig in je aanbesteding op te nemen?",
       "datum": "2026-10-14",
       "bron": "PIANOo",
       "bronId": "pianoo-nieuws",
       "thema": "Aanbesteden"
     },
     {
-      "id": "a3c0375889d7",
-      "titel": "EU wijst 4 Nederlandse projecten aan als strategisch voor kritieke grondstoffen",
-      "link": "https://www.rijksoverheid.nl/actueel/nieuws/2026/10/09/eu-wijst-4-nederlandse-projecten-aan-als-strategisch-voor-kritieke-grondstoffen",
-      "inleiding": "De Europese Commissie heeft vier Nederlandse projecten aangewezen als strategisch voor het versterken van de leveringszekerheid van kritieke grondstoffen in Europa. Het gaat om projecten bij Myne Circular Metals, …",
-      "datum": "2026-10-09",
-      "bron": "Rijksoverheid",
-      "bronId": "rijksoverheid-recycling",
-      "thema": "Circulaire economie"
-    },
-    {
       "id": "a5ca5165ddba",
       "titel": "Niet voldaan aan de voorwaarden voor de quasi-inhouse uitzondering (week 40)",
       "link": "https://www.pianoo.nl/nl/niet-voldaan-aan-de-voorwaarden-voor-de-quasi-inhouse-uitzondering-week-40",
-      "inleiding": "Quasi-inhouse-uitzondering | aanbestedingsplichtDeze zaak gaat over opdrachten van de BAR-gemeenten (Barendrecht, Albrandswaard en Ridderkerk) aan Irado en van Irado aan AF (Afvalsturing Friesland N.V.) voor de …",
+      "inleiding": "Deze zaak gaat over opdrachten van de BAR-gemeenten (Barendrecht, Albrandswaard en Ridderkerk) aan Irado en van Irado aan AF (Afvalsturing Friesland N.V.) voor de …",
       "datum": "2026-10-07",
       "bron": "PIANOo",
       "bronId": "pianoo-jurisprudentie",
       "thema": "Aanbesteden"
     },
     {
+      "id": "ea159d6b610a",
+      "titel": "Minder kleding produceren en kopen is belangrijkste stap richting een circulaire sector",
+      "link": "https://www.rivm.nl/nieuws/minder-kleding-produceren-en-kopen-is-belangrijkste-stap-richting-circulaire-sector",
+      "inleiding": "De grootste winst op weg naar een circulaire kleding- en textielsector ligt in het verminderen van de hoeveelheid nieuw geproduceerd textiel. Ook moet de kwaliteit van nieuwe kleding beter worden.",
+      "datum": "2026-10-02",
+      "bron": "RIVM",
+      "bronId": "rivm",
+      "thema": "Textiel"
+    },
+    {
       "id": "2ba87c5d5255",
       "titel": "Kabinet stelt makkelijker statiegeldsysteem voor",
       "link": "https://www.rijksoverheid.nl/actueel/nieuws/2026/09/04/kabinet-stelt-makkelijker-statiegeldsysteem-voor",
-      "inleiding": "Het kabinet stelt nieuwe maatregelen voor om het statiegeldsysteem eenvoudiger en gebruiksvriendelijker te maken. Consumenten moeten lege flessen en blikjes straks makkelijker kunnen inleveren: dichter bij huis en met …",
+      "inleiding": "Het kabinet stelt nieuwe maatregelen voor om het statiegeldsysteem eenvoudiger en gebruiksvriendelijker te maken.",
       "datum": "2026-09-04",
       "bron": "Rijksoverheid",
       "bronId": "rijksoverheid-afval",
       "thema": "Verpakkingen en statiegeld"
     },
     {
-      "id": "5d78bd5f5240",
-      "titel": "Kritieke Grondstoffenlijst vastgesteld, snellere uitvoering Grondstoffenstrategie",
-      "link": "https://www.rijksoverheid.nl/actueel/nieuws/2026/07/07/kritieke-grondstoffenlijst-vastgesteld-snellere-uitvoering-grondstoffenstrategie",
-      "inleiding": "De leveringszekerheid van kritieke grondstoffen en (half)producten staat onder druk. Dat raakt Nederlandse bedrijven, economie en veiligheid. Minister Heleen Herbert (Economische Zaken en Klimaat) zet daarom in op het …",
-      "datum": "2026-07-07",
-      "bron": "Rijksoverheid",
-      "bronId": "rijksoverheid-recycling",
-      "thema": "Circulaire economie"
-    },
-    {
       "id": "ed1f285d559e",
       "titel": "Overheden versterken samenwerking aan circulaire economie met eerste concrete resultaten",
       "link": "https://www.rijksoverheid.nl/actueel/nieuws/2026/06/29/overheden-versterken-samenwerking-aan-circulaire-economie-met-eerste-concrete-resultaten",
-      "inleiding": "Rijk, provincies, gemeenten en waterschappen zetten een volgende stap in hun samenwerking aan de circulaire economie. Sinds de ondertekening van de overeenkomst Krachtenbundeling Circulaire Economie op 20 maart 2025 …",
+      "inleiding": "Rijk, provincies, gemeenten en waterschappen zetten een volgende stap in hun samenwerking aan de circulaire economie.",
       "datum": "2026-06-29",
       "bron": "Rijksoverheid",
       "bronId": "rijksoverheid-circulair",
@@ -123,7 +160,7 @@
       "id": "809a2533ad7f",
       "titel": "€ 135 miljoen voor circulaire textiel-tot-textiel recycling: impuls voor duurzame industrie in Nederland",
       "link": "https://www.rijksoverheid.nl/actueel/nieuws/2026/04/01/euro-135-miljoen-voor-circulaire-textiel-tot-textiel-recycling-impuls-voor-duurzame-industrie-in-nederland",
-      "inleiding": "Het kabinet investeert € 135 miljoen in het innovatieve textiel-tot-textiel recyclingbedrijf Reju via de Nationale Investeringsregeling Klimaatprojecten Industrie (NIKI). Met deze steun zet Nederland een belangrijke …",
+      "inleiding": "Het kabinet investeert € 135 miljoen in het innovatieve textiel-tot-textiel recyclingbedrijf Reju via de Nationale Investeringsregeling Klimaatprojecten Industrie (NIKI).",
       "datum": "2026-04-01",
       "bron": "Rijksoverheid",
       "bronId": "rijksoverheid-circulair",
@@ -133,7 +170,7 @@
       "id": "9e78b3467f7a",
       "titel": "Europees pakket plasticrecyclers: “broodnodige stap”",
       "link": "https://www.rijksoverheid.nl/actueel/nieuws/2025/12/23/europees-pakket-plasticrecyclers-broodnodige-stap",
-      "inleiding": "De Europese Commissie heeft vandaag een pakket aan maatregelen gepubliceerd om de Europese plasticrecyclingindustrie te ondersteunen. Het pakket is in lijn met een oproep van Nederland met steun van België, Frankrijk, …",
+      "inleiding": "De Europese Commissie heeft vandaag een pakket aan maatregelen gepubliceerd om de Europese plasticrecyclingindustrie te ondersteunen.",
       "datum": "2025-12-23",
       "bron": "Rijksoverheid",
       "bronId": "rijksoverheid-recycling",
@@ -143,7 +180,7 @@
       "id": "c18316b0c591",
       "titel": "Extra maatregelen om problemen met statiegeld en zwerfafval aan te pakken",
       "link": "https://www.rijksoverheid.nl/actueel/nieuws/2025/11/27/extra-maatregelen-om-problemen-met-statiegeld-en-zwerfafval-aan-te-pakken",
-      "inleiding": "In de strijd tegen zwerfafval en om de problemen rondom statiegeld aan te pakken komt er een fors pakket met tal van maatregelen. Zo komen er duizenden extra plekken waar mensen flesjes en blikjes kunnen inleveren, …",
+      "inleiding": "In de strijd tegen zwerfafval en om de problemen rondom statiegeld aan te pakken komt er een fors pakket met tal van maatregelen.",
       "datum": "2025-11-27",
       "bron": "Rijksoverheid",
       "bronId": "rijksoverheid-afval",
@@ -163,7 +200,7 @@
       "id": "c68fb9b63953",
       "titel": "Aartsen gooit circulair over economische boeg: “Volop kansen voor ondernemers”",
       "link": "https://www.rijksoverheid.nl/actueel/nieuws/2025/10/14/aartsen-gooit-circulair-over-economische-boeg-volop-kansen-voor-ondernemers",
-      "inleiding": "Een goede beschikbaarheid van grondstoffen is cruciaal voor onze economie, veiligheid en een gezonde leefomgeving. Maar Nederland is voor die grondstoffen nog te veel afhankelijk van landen buiten Europa. Dat kan en …",
+      "inleiding": "Een goede beschikbaarheid van grondstoffen is cruciaal voor onze economie, veiligheid en een gezonde leefomgeving. Maar Nederland is voor die grondstoffen nog te veel afhankelijk van landen buiten Europa.",
       "datum": "2025-10-14",
       "bron": "Rijksoverheid",
       "bronId": "rijksoverheid-afval",
@@ -180,20 +217,10 @@
       "thema": "Verpakkingen en statiegeld"
     },
     {
-      "id": "b65689b0d027",
-      "titel": "Nederland gaat leveringsrisico’s kritieke grondstoffen beter in de gaten houden",
-      "link": "https://www.rijksoverheid.nl/actueel/nieuws/2025/02/12/nederland-gaat-leveringsrisicos-kritieke-grondstoffen-beter-in-de-gaten-houden",
-      "inleiding": "Ongewenste afhankelijkheden afbouwen en nieuwe voorkomen, is een speerpunt van het kabinet. De leveringszekerheid voor onze industrie van kritieke grondstoffen en (half)producten is essentieel voor onze economie en …",
-      "datum": "2025-02-12",
-      "bron": "Rijksoverheid",
-      "bronId": "rijksoverheid-recycling",
-      "thema": "Circulaire economie"
-    },
-    {
       "id": "1796105d710d",
       "titel": "Kabinet wil afspraken maken met afvalverbranders over uitstoot en verduurzaming",
       "link": "https://www.rijksoverheid.nl/actueel/nieuws/2025/01/17/kabinet-wil-afspraken-maken-met-afvalverbranders-over-uitstoot-en-verduurzaming",
-      "inleiding": "Het kabinet gaat maatwerkgesprekken opstarten met bedrijven met afvalverbrandingsinstallaties. Dat melden staatssecretaris Jansen (Infrastructuur en Waterstaat) en minister Hermans (Klimaat en Groene Groei) in een brief …",
+      "inleiding": "Het kabinet gaat maatwerkgesprekken opstarten met bedrijven met afvalverbrandingsinstallaties.",
       "datum": "2025-01-17",
       "bron": "Rijksoverheid",
       "bronId": "rijksoverheid-afval",
@@ -203,21 +230,11 @@
       "id": "2c19791f0d98",
       "titel": "Regels wegwerpbekers en bakjes geëvalueerd, kleine aanpassing",
       "link": "https://www.rijksoverheid.nl/actueel/nieuws/2024/12/13/regels-wegwerpbekers-en-bakjes-geevalueerd-kleine-aanpassing",
-      "inleiding": "De maatregelen om het gebruik van wegwerpbekers en -bakjes die plastic bevatten te verminderen, lijken te werken. Dat blijkt uit een evaluatie die het ministerie van IenW heeft laten uitvoeren. Wel ervaren ondernemers …",
+      "inleiding": "De maatregelen om het gebruik van wegwerpbekers en -bakjes die plastic bevatten te verminderen, lijken te werken. Dat blijkt uit een evaluatie die het ministerie van IenW heeft laten uitvoeren.",
       "datum": "2024-12-13",
       "bron": "Rijksoverheid",
       "bronId": "rijksoverheid-afval",
       "thema": "Verpakkingen en statiegeld"
-    },
-    {
-      "id": "beb78f5de609",
-      "titel": "Aandelen Dodewaard overgenomen door staat en overgedragen aan COVRA",
-      "link": "https://www.rijksoverheid.nl/actueel/nieuws/2024/12/12/aandelen-dodewaard-overgenomen-door-staat-en-overgedragen-aan-covra",
-      "inleiding": "De staat heeft vandaag de aandelen van de voormalige kerncentrale Dodewaard overgenomen. De aandelen zijn daarop meteen overgedragen aan COVRA. Het door GKN opgebouwde vermogen wordt in de toekomst gebruikt om de …",
-      "datum": "2024-12-12",
-      "bron": "Rijksoverheid",
-      "bronId": "rijksoverheid-afval",
-      "thema": "Afval algemeen"
     },
     {
       "id": "7efa4262c868",
@@ -230,10 +247,20 @@
       "thema": "Textiel"
     },
     {
+      "id": "cf98c68252a5",
+      "titel": "Neutrale verpakking wordt verplicht voor vapes en sigaren",
+      "link": "https://www.rijksoverheid.nl/actueel/nieuws/2024/06/07/neutrale-verpakking-wordt-verplicht-voor-vapes-en-sigaren",
+      "inleiding": "Sinds 2020 moeten sigaretten en shagtabak in een neutrale verpakking verkocht worden.",
+      "datum": "2024-06-07",
+      "bron": "Rijksoverheid",
+      "bronId": "rijksoverheid-verpakkingen",
+      "thema": "Verpakkingen en statiegeld"
+    },
+    {
       "id": "0d9c38328f26",
       "titel": "Benoeming Speciaal Regeringsvertegenwoordiger Circulaire Economie",
       "link": "https://www.rijksoverheid.nl/actueel/nieuws/2024/05/24/benoeming-speciaal-regeringsvertegenwoordiger-circulaire-economie",
-      "inleiding": "Nederland heeft de ambitie om in 2050 volledig circulair te zijn. De afgelopen jaren zijn daar de nodige stappen in gezet, maar er is nog veel werk aan de winkel. Daarom heeft de ministerraad op voorstel van …",
+      "inleiding": "Nederland heeft de ambitie om in 2050 volledig circulair te zijn. De afgelopen jaren zijn daar de nodige stappen in gezet, maar er is nog veel werk aan de winkel.",
       "datum": "2024-05-24",
       "bron": "Rijksoverheid",
       "bronId": "rijksoverheid-circulair",
@@ -243,21 +270,11 @@
       "id": "36bd12a295a1",
       "titel": "Pilot voor problemen rondom lachgascilinders",
       "link": "https://www.rijksoverheid.nl/actueel/nieuws/2024/04/16/pilot-voor-problemen-rondom-lachgascilinders",
-      "inleiding": "Het kabinet stelt € 450.000 beschikbaar voor een pilot rond innovatieve technieken om lachgascilinders in afvalstromen op te sporen en te verwijderen. De afvalsector heeft te maken met ontploffende lachgascilinders in …",
+      "inleiding": "Het kabinet stelt € 450.000 beschikbaar voor een pilot rond innovatieve technieken om lachgascilinders in afvalstromen op te sporen en te verwijderen.",
       "datum": "2024-04-16",
       "bron": "Rijksoverheid",
       "bronId": "rijksoverheid-afval",
       "thema": "Afval algemeen"
-    },
-    {
-      "id": "ceda01bf8f60",
-      "titel": "Allard Castelein start als Speciaal Vertegenwoordiger Grondstoffenstrategie",
-      "link": "https://www.rijksoverheid.nl/actueel/nieuws/2024/03/27/allard-castelein-start-als-speciaal-vertegenwoordiger-grondstoffenstrategie",
-      "inleiding": "De beschikbaarheid van kritieke grondstoffen en halfproducten voor de Nederlandse en Europese industrie is niet alleen de basis van de economie, maar ook essentieel voor onze veiligheid, de energietransitie en …",
-      "datum": "2024-03-27",
-      "bron": "Rijksoverheid",
-      "bronId": "rijksoverheid-recycling",
-      "thema": "Circulaire economie"
     },
     {
       "id": "20c287cef7da",

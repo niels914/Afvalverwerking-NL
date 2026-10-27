@@ -1,4 +1,37 @@
-# Inhoud: Restafvalkaart, nieuws, kennisbank en homepage (ronde 1)
+# Inhoud: Restafvalkaart, nieuws, kennisbank en homepage
+
+Stand: 27 oktober 2026 (ronde 2). Ronde 1 staat hieronder; deze paragraaf beschrijft wat in ronde 2 is veranderd.
+
+## Ronde 2: wijzigingen
+
+**Kaart zonder Leaflet (blokkades toetsenbordval en laadtijd).**
+- De kaart is nu een eigen SVG (`src/components/kaart/RestafvalKaart.tsx`). Leaflet en react-leaflet worden niet meer geïmporteerd; de kaartcode is ongeveer 5 kB.
+- De gemeentevlakken komen uit `public/data/gemeentekaart.json` (105 kB, 40 kB gzip): al geprojecteerde, afgeronde SVG-paden met omhullende rechthoek per gemeente. Gemaakt door `scripts/pdok-gemeentekaart.mjs`, dat aan het eind van `scripts/pdok-gemeentegrenzen.mjs` meedraait.
+- Toetsenbord: de 342 vlakken zijn geen tabstops meer. De SVG is één afbeelding (`role="img"`) met titel en beschrijving; alleen de knoppen Inzoomen, Uitzoomen en Heel Nederland zijn bedienbaar. Onder de kaart staat zichtbaar welke gemeente gekozen is en dat je zonder muis het zoekveld of de tabel gebruikt.
+- Muis en aanraking: klikken kiest een gemeente, zweven toont naam en waarde, slepen verschuift de ingezoomde kaart. Zoeken, kiezen in de tabel of een link met `?gemeente=` zoomt naar de gemeente.
+- Laadtijd: kop, intro, bronregel, paneel en tabel staan direct in de pagina; de kaart heeft een vaste hoogte en vult zich zodra de paden binnen zijn (CLS 0). Lighthouse mobiel `/restafvalkaart`: prestaties 95 (was 74), toegankelijkheid 100.
+
+**Overige punten van de inspectie.**
+- Scheidingspercentage: tegel zegt "bij inzameling; nascheiding telt niet mee". Bij gemeenten met minder dan 2 kg apart ingezameld PMD per inwoner (50 gemeenten, o.a. Amsterdam, Rotterdam, Utrecht) staat een kanttekening dat nascheiding niet meetelt.
+- Zoeken: Den Bosch, Den Haag en The Hague werken (`ALIASSEN` in `kaartdata.ts`). Bij een dubbelzinnige naam (Bergen) kiest Enter niet zelf maar vraagt de pagina om een keuze uit de lijst. Een onbekende gemeente in de link geeft een melding.
+- Tabel: eerst 25 gemeenten met knop "Toon alle 342"; per provincie alles. Op 400 px staan provincie onder de naam en verdwijnt de kolom inwoners, zodat restafval, gescheiden en totaal zonder scrollen in beeld blijven.
+- Bron en peiljaar staan direct onder de kop; definities en controle zijn inklapbaar. De afvalstromen in het paneel zijn op smalle schermen ingeklapt.
+- Homepage: landelijke cijfers zijn nu van het nieuwste jaar (2025, CBS 83558NED, voorlopig: 175 kg restafval, 60 %, 449 kg), met de definitie erbij: CBS-nieuws noemt 179 kg omdat het 4 kg verbouwingsrestafval meetelt. Elk kengetal linkt naar de tabel op de kaartpagina. De kleine kaart heeft een tekstalternatief (laagste en hoogste gemeente) en een link naar de tabel. Het lidmaatschapsblok toont de staffels met conceptprijzen uit `src/data/lidmaatschap.ts`.
+- Nieuws: zoeken, periodefilter (3 of 12 maanden, per jaar), bronfilter alleen met bronnen die berichten hebben, 10 per keer. Inleidingen worden afgekapt op hele zinnen en de vastgeplakte trefwoorden van PIANOo-jurisprudentie zijn weg. Niet-relevante berichten (radioactief afval, kritieke grondstoffen, microplastics) worden weggefilterd, ook uit eerder opgeslagen berichten. Nieuwe bronnen: RIVM en de Rijksoverheid-zoekfeeds "verpakkingen" en "textiel". CBS blijft in het script, maar staat alleen in de bronnenlijst ("nu geen berichten") zolang er geen afvalbericht is. Is de lijst ouder dan 14 dagen, dan meldt de pagina dat.
+- Kennisbank: filters inklapbaar op smalle schermen, eerst 8 publicaties met "Toon alle", datums overal als maand en jaar, geen dubbel label "Cijfers". MVI-link wijst nu naar productgroep Verwerking huishoudelijk afval (`#//54/5//nl`), NPCE-link naar de definitieve URL zonder doorverwijzing. Verpact-publicaties hebben een datum (aanmaakdatum van de pdf). Alle 18 links op 27-10-2026 gecontroleerd: HTTP 200, geen doorverwijzingen.
+
+**Controles ronde 2:** `npx tsc --noEmit -p .` zonder fouten; `npx vitest run` 272 tests groen (waarvan 16 in `kaartdata.test.ts`, nieuw: aliassen, Bergen, SVG-kaartbestand, landelijk cijfer); build in eigen outDir geslaagd; `e2e/inhoud.spec.ts` 19 geslaagd, 1 overgeslagen (zweven/klikken alleen desktop). Lighthouse mobiel: `/` 96/100, `/restafvalkaart` 95/100, `/nieuws` 98/100, `/kennisbank` 98/100 (prestaties/toegankelijkheid).
+
+**Open punten ronde 2.**
+1. Nieuws veroudert zonder herbouw. Nodig: een geplande build (bijv. Netlify build hook die dagelijks wordt aangeroepen vanuit een GitHub Action of een Netlify Scheduled Function). Dat is configuratie buiten mijn bestanden.
+2. `leaflet`, `react-leaflet` en `@types/leaflet` in `package.json` worden niet meer gebruikt en kunnen weg (niet door mij gedaan: alleen het build-script is van mij). `src/data/types.ts` gebruikt nog het type `GeoJSON`; daarvoor staat een verwijzing naar `@types/geojson` in `src/data/gemeenten.ts`.
+3. `public/data/gemeentegrenzen.geojson` blijft als open tussenbestand bestaan, maar de site laadt het niet meer.
+4. CBS verwacht nader voorlopige cijfers over 2025; zodra tabel 83452NED gemeentecijfers over 2025 heeft, de scripts opnieuw draaien.
+
+---
+
+# Ronde 1
+
 
 Stand: 19 oktober 2026. Alle fictieve inhoud op deze vier onderdelen is vervangen door echte, openbare inhoud met bron en peildatum.
 

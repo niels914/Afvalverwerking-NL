@@ -3,7 +3,7 @@
 // De samenvattingen zijn eigen tekst van de redactie, geen overgenomen teksten van de uitgever.
 // Onderhoud: zie docs/stukken/inhoud.md (paragraaf Kennisbank).
 
-export const linksGecontroleerd = '2026-10-19';
+export const linksGecontroleerd = '2026-10-27';
 
 export const kennisbankThemas = [
   'Verwerking en capaciteit',
@@ -227,7 +227,7 @@ export const publicaties: Publicatie[] = [
     samenvatting:
       'Het overkoepelende programma van het kabinet met maatregelen voor zuiniger grondstoffengebruik, op weg naar een volledig circulaire economie in 2050. In 2025 verscheen een geactualiseerde versie; die staat via dezelfde pagina.',
     bruikbaarVoor: 'Aansluiten van gemeentelijk afval- en grondstoffenbeleid op landelijke doelen.',
-    url: 'https://www.rijksoverheid.nl/documenten/beleidsnotas/2023/02/03/nationaal-programma-circulaire-economie-2023-2030',
+    url: 'https://www.rijksoverheid.nl/documenten/2023/02/03/nationaal-programma-circulaire-economie-2023-2030',
     formaat: 'Webpagina met PDF',
   },
   {
@@ -250,6 +250,7 @@ export const publicaties: Publicatie[] = [
     titel: 'Publieksverslag 2024',
     uitgever: 'Verpact',
     jaar: 2025,
+    datum: '2025-09-09', // aanmaakdatum van de pdf
     type: 'Rapport',
     themas: ['Verpakkingen', 'Cijfers'],
     samenvatting:
@@ -263,6 +264,7 @@ export const publicaties: Publicatie[] = [
     titel: 'Voorlopige resultaten 2025',
     uitgever: 'Verpact',
     jaar: 2026,
+    datum: '2026-04-29', // aanmaakdatum van de pdf
     type: 'Rapport',
     themas: ['Verpakkingen', 'Cijfers'],
     samenvatting:
@@ -294,7 +296,8 @@ export const publicaties: Publicatie[] = [
     samenvatting:
       'Online tool met criteria voor maatschappelijk verantwoord inkopen. De productgroep Verwerking huishoudelijk afval gaat over inzamelen en verwerken van fijn en grof restafval en gft, via verbranding met metaalterugwinning uit bodemas of via nascheiding.',
     bruikbaarVoor: 'Eisen en gunningscriteria kiezen voor een aanbesteding van afvalverwerking.',
-    url: 'https://www.mvicriteria.nl/nl',
+    // Directe link naar productgroep 54 (cluster Energie en afval); de tool leest het deel na # zelf.
+    url: 'https://www.mvicriteria.nl/nl/webtool#//54/5//nl',
     formaat: 'Online tool',
   },
 ];

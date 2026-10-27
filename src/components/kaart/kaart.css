@@ -313,6 +313,27 @@
   .kaarttabel td {
     padding-left: 6px;
     padding-right: 6px;
+    white-space: normal;
+  }
+  .kaarttabel thead th {
+    letter-spacing: 0;
+    font-size: 11px;
+    vertical-align: bottom;
+  }
+  .kaarttabel tbody th {
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+}
+.kop-kort {
+  display: none;
+}
+@media (max-width: 640px) {
+  .kop-lang {
+    display: none;
+  }
+  .kop-kort {
+    display: inline;
   }
 }
 .tabel-meer {

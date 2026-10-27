@@ -5,7 +5,7 @@ import { Home } from './pages/Home';
 import { NietGevonden } from './pages/NietGevonden';
 import { navigatie, platform } from './data/site';
 
-// Elke pagina behalve de homepage laadt pas als je hem opent; de kaartpagina laadt zo ook Leaflet pas dan.
+// Elke pagina behalve de homepage laadt pas als je hem opent.
 const Restafvalkaart = lazy(() => import('./pages/Restafvalkaart'));
 const Nieuws = lazy(() => import('./pages/Nieuws').then((m) => ({ default: m.Nieuws })));
 const Kennisbank = lazy(() => import('./pages/Kennisbank').then((m) => ({ default: m.Kennisbank })));

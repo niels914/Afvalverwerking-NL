@@ -383,12 +383,19 @@ function Tabelweergave({ indicator, gekozen, onKies }: { indicator: IndicatorId;
     URL.revokeObjectURL(url);
   };
 
-  const kop = (kolom: SorteerKolom, label: string, extra = 'num') => {
+  const kop = (kolom: SorteerKolom, label: string, extra = 'num', kort?: string) => {
     const actief = sortering.kolom === kolom;
     return (
       <th scope="col" className={extra || undefined} aria-sort={actief ? (sortering.op ? 'ascending' : 'descending') : 'none'}>
         <button type="button" onClick={() => setSortering({ kolom, op: actief ? !sortering.op : kolom === 'naam' })}>
-          {label}
+          {kort ? (
+            <>
+              <span className="kop-lang">{label}</span>
+              <span className="kop-kort">{kort}</span>
+            </>
+          ) : (
+            label
+          )}
           <span aria-hidden="true">{actief ? (sortering.op ? ' ▲' : ' ▼') : ''}</span>
         </button>
       </th>
@@ -428,8 +435,8 @@ function Tabelweergave({ indicator, gekozen, onKies }: { indicator: IndicatorId;
                 Provincie
               </th>
               {kop('inwoners', 'Inwoners', 'num kol-breed')}
-              {kop('restafval', 'Restafval kg')}
-              {kop('scheidingsPct', 'Gescheiden %')}
+              {kop('restafval', 'Restafval kg', 'num', 'Rest kg')}
+              {kop('scheidingsPct', 'Gescheiden %', 'num', 'Gesch. %')}
               {kop('totaal', 'Totaal kg')}
             </tr>
           </thead>

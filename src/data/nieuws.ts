@@ -39,5 +39,12 @@ export const nieuwsThemas: string[] = [
   ...VOLGORDE.filter((t) => aanwezig.has(t)),
   ...[...aanwezig].filter((t) => !VOLGORDE.includes(t)),
 ];
-/** Unieke bronnamen (Rijksoverheid, PIANOo, CBS). */
-export const nieuwsBronNamen: string[] = [...new Set(nieuwsBronnen.map((b) => b.naam))];
+/** Bronnamen met minstens één bericht in de lijst (een filter zonder uitkomst heeft geen zin). */
+export const nieuwsBronNamen: string[] = [...new Set(nieuwsBronnen.map((b) => b.naam))].filter((naam) => nieuws.some((n) => n.bron === naam));
+
+/** Per organisatie: site en aantal berichten in de lijst (ook 0), voor de bronnenlijst onderaan de pagina. */
+export const nieuwsOrganisaties: { naam: string; site: string; aantal: number }[] = [...new Set(nieuwsBronnen.map((b) => b.naam))].map((naam) => ({
+  naam,
+  site: nieuwsBronnen.find((b) => b.naam === naam)!.site,
+  aantal: nieuws.filter((n) => n.bron === naam).length,
+}));

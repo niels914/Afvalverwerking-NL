@@ -43,6 +43,14 @@ const RELEVANT =
   /(?<!rioolw)afval(?!water)|recycl|circulai|grondstof|verpakking|statiegeld|zwerfafval|textiel|kunststof|plastic|verbrand|gft|pmd|luier|hergebruik|storten|bodemas/i;
 
 /**
+ * Onderwerpen die wel een trefwoord raken maar niet over huishoudelijk of bedrijfsafval en de
+ * verwerking ervan gaan: radioactief afval, kritieke grondstoffen (mijnbouw, leveringszekerheid)
+ * en microplastics in water.
+ */
+const NIET_RELEVANT =
+  /kerncentrale|radioactie|\bCOVRA\b|kernenergie|kritieke grondstof|grondstoffenstrategie|grondstoffenlijst|leveringsrisico|microplastic/i;
+
+/**
  * Bronnen. `filter` bepaalt hoe streng het onderwerpfilter is:
  * - false: de feed gaat al alleen over afval (onderwerp "Afval" van Rijksoverheid);
  * - 'titel': een trefwoord moet in de titel staan (brede zoekfeeds en CBS);
@@ -71,6 +79,20 @@ const BRONNEN = [
     feed: rijksoverheid([alleenNieuws], 'recycling'),
     filter: 'titel',
   },
+  {
+    id: 'rijksoverheid-verpakkingen',
+    naam: 'Rijksoverheid',
+    site: 'https://www.rijksoverheid.nl/actueel/nieuws',
+    feed: rijksoverheid([alleenNieuws], 'verpakkingen'),
+    filter: 'titel',
+  },
+  {
+    id: 'rijksoverheid-textiel',
+    naam: 'Rijksoverheid',
+    site: 'https://www.rijksoverheid.nl/actueel/nieuws',
+    feed: rijksoverheid([alleenNieuws], 'textiel'),
+    filter: 'titel',
+  },
   { id: 'pianoo-nieuws', naam: 'PIANOo', site: 'https://www.pianoo.nl/nl/actueel/nieuws', feed: 'https://www.pianoo.nl/nl/rss/nieuws.rss', filter: 'tekst' },
   {
     id: 'pianoo-jurisprudentie',
@@ -79,6 +101,7 @@ const BRONNEN = [
     feed: 'https://www.pianoo.nl/nl/rss/jurisprudentie.rss',
     filter: 'tekst',
   },
+  { id: 'rivm', naam: 'RIVM', site: 'https://www.rivm.nl/nieuws', feed: 'https://www.rivm.nl/nieuws/rss.xml', filter: 'titel' },
   { id: 'cbs', naam: 'CBS', site: 'https://www.cbs.nl/nl-nl/nieuws', feed: 'https://www.cbs.nl/nl-nl/rss-feeds/alle-nieuwsberichten', filter: 'titel' },
 ];
 
@@ -128,11 +151,42 @@ function veld(item, naam) {
   return m ? decodeer(m[1]) : '';
 }
 
-function inkorten(tekst) {
-  const zonderPuntjes = tekst.replace(/(\.\.\.|…)\s*$/, '').trim();
-  if (zonderPuntjes.length <= MAX_INLEIDING) return zonderPuntjes + (zonderPuntjes === tekst ? '' : ' …');
-  const kort = zonderPuntjes.slice(0, MAX_INLEIDING);
+/**
+ * Maakt de inleiding uit de feed schoon:
+ * - PIANOo-jurisprudentie begint met trefwoorden die aan de tekst vastgeplakt zijn
+ *   ("Quasi-inhouse-uitzondering | aanbestedingsplichtDeze zaak ..."); die gaan eraf.
+ * - Afkappen op een hele zin; lukt dat niet binnen MAX_INLEIDING tekens, dan op een woord met " …".
+ */
+export function schoonInleiding(tekst) {
+  let t = (tekst ?? '').replace(/\s+/g, ' ').trim();
+  const streep = t.lastIndexOf(' | ', 200);
+  if (streep !== -1) {
+    const na = t.slice(streep + 3);
+    const m = /[a-zà-ÿ)][A-Z]/.exec(na);
+    if (m) t = na.slice(m.index + 1);
+  }
+  t = t.replace(/\s*(\.\.\.|…)\s*$/, '').trim();
+  if (t.length <= MAX_INLEIDING && /[.!?]$/.test(t)) return t;
+  // Een zin eindigt op . ! of ? gevolgd door een spatie en een hoofdletter (dus niet in "€ 450.000").
+  const zinnen = t.match(/.+?[.!?](?=\s+[A-Z€“"'(0-9]|$)/g) ?? [];
+  let uit = '';
+  for (const z of zinnen) {
+    if ((uit + z).trim().length > MAX_INLEIDING) break;
+    uit += z;
+  }
+  uit = uit.replace(/\s+/g, ' ');
+  if (uit.trim().length >= 60) return uit.trim();
+  if (t.length <= MAX_INLEIDING) return `${t} …`;
+  const kort = t.slice(0, MAX_INLEIDING);
   return `${kort.slice(0, kort.lastIndexOf(' '))} …`;
+}
+
+/** Hoort dit bericht in het overzicht? */
+export function isRelevant(bericht, filter) {
+  const tekst = `${bericht.titel} ${bericht.inleiding}`;
+  if (NIET_RELEVANT.test(tekst)) return false;
+  if (!filter) return true;
+  return RELEVANT.test(filter === 'titel' ? bericht.titel : tekst);
 }
 
 export function leesFeed(xml, bron) {
@@ -141,12 +195,12 @@ export function leesFeed(xml, bron) {
     .map((item) => {
       const titel = veld(item, 'title');
       const link = veld(item, 'link');
-      const inleiding = inkorten(veld(item, 'description'));
+      const inleiding = schoonInleiding(veld(item, 'description'));
       const datum = leesDatum(veld(item, 'pubDate') || veld(item, 'dc:date'));
       return { titel, link, inleiding, datum };
     })
     .filter((b) => b.titel && b.link && b.datum && /^https?:\/\//.test(b.link))
-    .filter((b) => !bron.filter || RELEVANT.test(bron.filter === 'titel' ? b.titel : `${b.titel} ${b.inleiding}`))
+    .filter((b) => isRelevant(b, bron.filter))
     .map((b) => ({
       id: createHash('sha1').update(b.link).digest('hex').slice(0, 12),
       ...b,
@@ -201,7 +255,10 @@ async function main() {
   const grens = new Date();
   grens.setFullYear(grens.getFullYear() - MAX_LEEFTIJD_JAREN);
   const grensIso = grens.toISOString().slice(0, 10);
+  // Ook eerder opgeslagen berichten opnieuw schoonmaken en toetsen, zodat een strenger filter direct werkt.
   const berichten = [...perLink.values()]
+    .map((b) => ({ ...b, inleiding: schoonInleiding(b.inleiding) }))
+    .filter((b) => isRelevant(b, BRONNEN.find((x) => x.id === b.bronId)?.filter ?? 'tekst'))
     .filter((b) => b.datum >= grensIso && b.datum <= nu)
     .sort((a, b) => b.datum.localeCompare(a.datum) || a.titel.localeCompare(b.titel))
     .slice(0, MAX_BERICHTEN);

@@ -48,6 +48,13 @@
   margin: 12px 0 8px;
   font-size: 14px;
 }
+.home-staffels th,
+.home-staffels td {
+  white-space: normal;
+}
+.home-staffels td.num {
+  white-space: nowrap;
+}
 .home-staffels th[scope='row'] {
   font-weight: 500;
   text-align: left;
@@ -57,4 +64,69 @@
   font-size: 12px;
   font-weight: 400;
   color: var(--tekst-secundair);
+}
+
+/* Nieuws en kennisbank: zoekveld altijd zichtbaar, overige filters inklapbaar */
+.nieuws-filters {
+  display: grid;
+  gap: 12px;
+}
+.filters-inklap > summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--donkerviolet);
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.filters-inklap > summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.filters-inklap[open] > summary {
+  margin-bottom: 10px;
+}
+.filters-inklap .filterbalk {
+  margin-bottom: 12px;
+}
+.lijst-kop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.lijst-kop p {
+  margin: 0;
+}
+.bronlinks {
+  display: grid;
+  gap: 4px;
+}
+.bronlinks a {
+  display: inline-block;
+  min-height: 24px;
+  padding: 2px 0;
+}
+.chips-label {
+  margin: 0 0 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--tekst-2);
+}
+/* Link in de paarse hoofdtegel: zelfde kleur als de tekst in die tegel. */
+.tegel.hero small a {
+  color: inherit;
+}
+.filters-inklap > summary::-webkit-details-marker {
+  display: none;
+}
+.filters-inklap > summary::before {
+  content: '▸';
+  font-size: 12px;
+}
+.filters-inklap[open] > summary::before {
+  content: '▾';
 }

@@ -27,11 +27,8 @@ export interface Samenwerkingsverband {
   regio: Regio;
   /** Middelpunt voor de marker, [breedtegraad, lengtegraad]. */
   centrum: [number, number];
-  /**
-   * Optioneel: begrenzing als GeoJSON (Polygon of MultiPolygon).
-   * Als dit gevuld is, tekent de kaart een vlak in plaats van een cirkel.
-   */
-  grens?: GeoJSON.Polygon | GeoJSON.MultiPolygon;
+  /** Optioneel: begrenzing als GeoJSON-geometrie (Polygon of MultiPolygon). */
+  grens?: { type: 'Polygon'; coordinates: number[][][] } | { type: 'MultiPolygon'; coordinates: number[][][][] };
 }
 
 export type Afvalstroom = 'Restafval' | 'GFT' | 'PMD' | 'Papier en karton' | 'Textiel' | 'Grof huishoudelijk afval' | 'Bodemas';

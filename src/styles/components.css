@@ -903,7 +903,7 @@ td input {
   font-size: 13.5px;
 }
 
-/* ---------- Kaart (Leaflet) ---------- */
+/* ---------- Kaart ---------- */
 .kaart-layout {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
@@ -914,28 +914,6 @@ td input {
   .kaart-layout {
     grid-template-columns: minmax(0, 1fr);
   }
-}
-.leaflet-vak {
-  height: 560px;
-  border-radius: var(--radius-kaart);
-  overflow: hidden;
-  border: 1px solid var(--rand);
-  background: var(--kaartvlak);
-}
-.leaflet-vak.mini {
-  height: 300px;
-}
-@media (max-width: 640px) {
-  .leaflet-vak {
-    height: 420px;
-  }
-}
-.leaflet-container {
-  font-family: var(--font);
-}
-.leaflet-tooltip {
-  font-family: var(--font);
-  font-size: 12.5px;
 }
 .svlijst {
   list-style: none;
