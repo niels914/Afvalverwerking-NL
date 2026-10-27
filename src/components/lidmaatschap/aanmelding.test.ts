@@ -116,6 +116,8 @@ describe('controleerGegevens', () => {
     expect(controleerGegevens(geldig({ aantal_gemeenten: '' }), vandaag)).toHaveProperty('aantal_gemeenten');
     expect(controleerGegevens(geldig({ aantal_gemeenten: '1' }), vandaag)).toHaveProperty('aantal_gemeenten');
     expect(controleerGegevens(geldig({ aantal_gemeenten: 'drie' }), vandaag)).toHaveProperty('aantal_gemeenten');
+    expect(controleerGegevens(geldig({ aantal_gemeenten: '343' }), vandaag).aantal_gemeenten).toMatch(/342/);
+    expect(controleerGegevens(geldig({ aantal_gemeenten: '342' }), vandaag)).toEqual({});
     expect(controleerGegevens(geldig({ type: 'gemeente', aantal_gemeenten: '' }), vandaag)).toEqual({});
   });
 
@@ -221,11 +223,11 @@ describe('prijsStand (prijsblok tijdens het invullen)', () => {
     }
   });
 
-  it.each(['2.5', '1', 'abc', '0', '-3'])('ongeldig aantal gemeenten %s: melding over het aantal, niet over de startdatum', (aantal) => {
+  it.each(['2.5', '1', 'abc', '0', '-3', '343', '500'])('ongeldig aantal gemeenten %s: melding over het aantal, niet over de startdatum', (aantal) => {
     const p = prijsStand(geldig({ aantal_gemeenten: aantal }));
     expect(p.soort).toBe('bereik');
     if (p.soort === 'bereik') {
-      expect(p.melding).toMatch(/heel getal van 2 of meer/);
+      expect(p.melding).toMatch(/heel getal van 2 tot en met 342/);
       expect(p.melding).not.toMatch(/startdatum/);
     }
   });

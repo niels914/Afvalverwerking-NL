@@ -24,6 +24,8 @@ describe('vergelijking gratis en lid', () => {
   it('de korte lijsten bevatten geen rij over het aantal gebruikers', () => {
     expect(gratisOnderdelen).not.toContain('Aantal gebruikers');
     expect(ledenOnderdelen).not.toContain('Aantal gebruikers');
-    expect(ledenOnderdelen).toContain('Aanbestedingsarchief met filters');
+    expect(ledenOnderdelen.some((o) => o.startsWith('Aanbestedingsarchief: filters'))).toBe(true);
+    // Open aanbestedingen zoeken is sinds 27 oktober 2026 gratis (besluit Niels).
+    expect(gratisOnderdelen.some((o) => o.startsWith('Aanbestedingen uit TenderNed'))).toBe(true);
   });
 });

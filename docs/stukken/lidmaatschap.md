@@ -1,12 +1,26 @@
 # Lidmaatschap en prijzen
 
-Stand: 27 oktober 2026 (ronde 2). Prijzen en voorwaarden zijn **concept** tot Niels ze vaststelt.
+Stand: 27 oktober 2026 (ronde 3). Prijzen en voorwaarden zijn **concept** tot Niels ze vaststelt.
+
+## Wat er in ronde 3 veranderd is
+
+Naar aanleiding van het blinde oordeel van ronde 2 (aanmeldpagina verloor opnieuw van de MVI-startpagina) en het besluit van Niels over het aanbestedingsarchief:
+
+- **Verplichte velden gemarkeerd:** zichtbaar rood sterretje achter elk verplicht label, keuzegroep en akkoordvakje, met bovenaan het formulier de legenda “Velden met * zijn verplicht”. Schermlezers horen “(verplicht)”; optionele velden houden “(optioneel)”. Component `Verplicht` in `Velden.tsx`.
+- **Voorbeeld bij het e-maildomein:** placeholder “bijvoorbeeld gemeente-voorbeeld.nl” én de hint begint met “Voorbeeld: **gemeente-voorbeeld.nl** (zonder @ of naam ervoor)”, omdat een placeholder verdwijnt zodra iemand typt.
+- **Startdatum als tekst, onafhankelijk van de taal van de browser:** het datumveld van de browser (dat in een Engelstalige browser 11/01/2026 toont) is vervangen door een keuzelijst met de eerste van elke maand, uitgeschreven als “1 november 2026”, tot de uiterste startdatum, plus “Andere datum…”. Kiest iemand een andere datum, dan verschijnt een datumveld met eronder “U kiest: 15 november 2026”. Onder de keuze staat het eerste contractjaar (“1 november 2026 tot en met 31 oktober 2027”). Nieuwe pure functie `startdatumOpties()` in `src/lib/prijs.ts` (getest). Datums gaan via `datum()` uit `src/lib/format.ts` (vast `nl-NL`).
+- **Voorwaarden en privacy bij de knop:** blok “Voorwaarden in het kort” direct boven “Verder naar controleren” (jaarabonnement en verlenging, opzeggen, factuur en betaaltermijn, vaste prijs met btw-uitzondering en, zolang de prijzen concept zijn, de afzien-regeling van AV 3.6, gebruik van gegevens), met links naar algemene voorwaarden en privacyverklaring (nieuw tabblad). In stap 2 staat hetzelfde blok als “Voorwaarden en akkoord” direct boven de akkoordvakjes en de verzendknop. Component `VoorwaardenInHetKort` in `AanmeldOnderdelen.tsx`; alle termijnen uit `voorwaarden`.
+- **Prijs bij de gekozen organisatie:** tot 900 px breed is de zwevende prijsbalk weg. De prijs staat bij elk keuzerondje en, na de keuze, in een blok “Uw prijs” direct onder de typekeuze (bij een samenwerkingsverband onder het aantal gemeenten): bedrag excl. btw, incl. btw, staffel. Breed blijft het prijsblok naast het formulier, aangevuld met “Houd bij de hand” (KVK-nummer, factuurgegevens, inkoopordernummer, domeinen).
+- **Tussentijds bewaren zichtbaar:** de legenda zegt dat invoer automatisch in dit tabblad wordt bewaard; onder de knop staat “✓ Concept automatisch bewaard in dit tabblad. Sluit u het tabblad, dan is het weg.” zodra er iets is ingevuld. Wie terugkomt, ziet “We hebben de gegevens teruggezet die u eerder in dit tabblad invulde.” Beide met de knop **Formulier leegmaken**.
+- **Bovengrens aantal gemeenten:** hooguit 342 (alle gemeenten van Nederland op 1 januari 2026, CBS). `gemeentenInNederland` in `src/data/lidmaatschap.ts`, bron `bronnen.gemeenten`, zichtbaar met link en peildatum in de hint bij het veld en in de bronnenlijst op `/lidmaatschap`. 343 of 500 geeft nu een melding.
+- **Aanbestedingen: gratis tegenover lid** (besluit Niels, 27 oktober 2026): bezoekers mogen open aanbestedingen doorzoeken (titel, opdrachtgever, sluitingsdatum, link naar TenderNed); filters, details, gesloten en gegunde aanbestedingen en export als CSV blijven voor leden. Vergelijkingstabel, kernzin, paginakop, “Wat is inbegrepen” en daarmee de korte lijsten op Over het platform zijn aangepast.
+- **Intro zonder geschatte invultijd** (geen onderbouwd cijfer); in plaats daarvan “Houd uw KVK-nummer en factuurgegevens bij de hand”.
 
 ## Wat er in ronde 2 veranderd is
 
 Naar aanleiding van de inspectie en het blinde oordeel van ronde 1 (aanmeldpagina verloor van de MVI-criteriatool; prijspagina op mobiel te lang):
 
-- **Aanmelden: prijs direct bij de typekeuze.** Elk keuzerondje voor het type organisatie toont de jaarprijs. Het prijsblok staat in de HTML vóór het formulier: op brede schermen rechts, meescrollend; tot 900 px breed een compacte balk die bovenaan in beeld blijft zolang het formulier in beeld is (velden krijgen `scroll-margin-top`, zodat een veld met focus niet achter de balk valt).
+- **Aanmelden: prijs direct bij de typekeuze.** Elk keuzerondje voor het type organisatie toont de jaarprijs. Het prijsblok staat in de HTML vóór het formulier: op brede schermen rechts, meescrollend; tot 900 px breed een compacte balk die bovenaan in beeld blijft zolang het formulier in beeld is. *(In ronde 3 vervangen door een prijsblok direct onder de typekeuze.)*
 - **Prijsblok rekent eerlijker:** nieuwe pure functie `prijsStand()` in `aanmelding.ts`. Samenwerkingsverband zonder aantal: beide prijzen. Aantal `2.5`, `1`, `abc`: melding over het aantal (eerder stond er ten onrechte “Kies een geldige startdatum”). Een ongeldige startdatum verbergt alleen de looptijd, niet de prijs.
 - **Formulier korter:** alleen de verplichte velden staan open, in drie blokken (Organisatie, Factuur, Contactpersoon en toegang), plus het optionele inkoopordernummer. Btw-nummer (voor overheden), OIN, factuur t.a.v., e-factuur/Peppol, functie, telefoon en opmerkingen staan in een ingeklapt blok **Aanvullende gegevens (optioneel)**. Dat klapt vanzelf open als er al iets in staat of als er een fout in zit. Voor een verwerker is het btw-nummer verplicht en staat het bij Organisatie. Telefoon staat niet meer half naast e-mail; postcode en plaats staan op één lijn.
 - **Eén banner minder** op de aanmeldpagina: het conceptlabel staat alleen nog in het prijsblok (de bètabalk van de lead blijft).
@@ -39,7 +53,7 @@ Kruimelpad Home › Lidmaatschap en prijzen › Aanmelden. Bovenaan de keuze **W
 - blijven de gegevens in `sessionStorage` staan, zodat “meld u aan via het aanmeldformulier” een ingevuld formulier opent.
 
 Drie stappen met stappenindicator:
-1. **Gegevens**: type organisatie (met prijs per keuze), aantal gemeenten (alleen bij samenwerkingsverband), organisatienaam, KVK-nummer, btw-id (verplicht voor verwerkers); factuuradres/postcode/plaats, e-mailadres crediteurenadministratie, inkoopordernummer (optioneel); contactpersoon (naam, e-mail), e-maildomeinen voor toegang (met knop “@domein van de contactpersoon toevoegen”), gewenste startdatum (vandaag tot 6 maanden vooruit, standaard de eerste van de volgende maand). Ingeklapt onder **Aanvullende gegevens (optioneel)**: btw-id voor overheden, OIN, t.a.v., factuurvorm (pdf of e-factuur via Peppol, dan Peppol-ID of OIN), functie, telefoon, opmerkingen. Het prijsblok rekent mee (breed: ernaast; smal: vaste balk bovenaan).
+1. **Gegevens**: type organisatie (met prijs per keuze), aantal gemeenten (alleen bij samenwerkingsverband), organisatienaam, KVK-nummer, btw-id (verplicht voor verwerkers); factuuradres/postcode/plaats, e-mailadres crediteurenadministratie, inkoopordernummer (optioneel); contactpersoon (naam, e-mail), e-maildomeinen voor toegang (met voorbeeld en knop “@domein van de contactpersoon toevoegen”), gewenste startdatum (keuzelijst met de eerste van elke maand tot 6 maanden vooruit, standaard de eerste van de volgende maand, of een andere datum vanaf vandaag), voorwaarden in het kort boven de knop. Ingeklapt onder **Aanvullende gegevens (optioneel)**: btw-id voor overheden, OIN, t.a.v., factuurvorm (pdf of e-factuur via Peppol, dan Peppol-ID of OIN), functie, telefoon, opmerkingen. Het prijsblok rekent mee (breed: ernaast; smal: direct onder de typekeuze).
 2. **Controleren en verzenden**: prijs en looptijd (staffel, excl./btw/incl., eerste contractjaar, factuurdatum en vervaldatum, uiterste opzegdatum, verlengd tot), alle gegevens met “Gegevens wijzigen”, akkoord met algemene voorwaarden (inclusief bevoegdheid) en privacyverklaring via links die in een nieuw tabblad openen.
 3. **Bevestiging**: ordernummer (`LID-jjjjmmdd-XXXXX`), met de zin dat het lidmaatschap rond is zodra KplusV de orderbevestiging mailt (gelijk aan artikel 3 van de algemene voorwaarden), prijs en looptijd, “Wat er nu gebeurt” (bevestiging binnen 2 werkdagen, toegang vanaf startdatum, factuur met inkoopordernummer en vervaldatum, opzeggen), samenvatting, afdrukknop.
 
@@ -61,13 +75,14 @@ Een concept van het formulier blijft bewaard in `sessionStorage` (`afvalplatform
 | `src/lib/prijs.ts` (+ `prijs.test.ts`) | Pure functies: staffel bepalen, btw, looptijd en datums, startdatum controleren, ordernummer |
 | `src/components/lidmaatschap/aanmelding.ts` (+ test) | Formuliergegevens, controles, opschonen, Netlify-codering, `prijsStand` (prijsblok tijdens invullen), `aanvullendeVelden`, `mailtoMetVelden` |
 | `src/components/lidmaatschap/vergelijking.test.ts` | Controleert dat de vergelijking gratis/lid voor elke rekentool gelijk is aan `src/data/tools.ts` |
-| `src/components/lidmaatschap/Velden.tsx` | Toegankelijke formuliervelden |
+| `src/components/lidmaatschap/Velden.tsx` | Toegankelijke formuliervelden, markering verplicht/optioneel |
+| `src/components/lidmaatschap/AanmeldOnderdelen.tsx` | Prijs onder de typekeuze, startdatumkeuze, voorwaarden in het kort, hint met CBS-bron, link naar nieuw tabblad |
 | `src/components/lidmaatschap/onderdelen.tsx` | Staffelkaarten, prijstabel, voorwaarden, vergelijking, FAQ (met bron, links en e-mail per vraag), bronnen, prijsregels, `Uitklap` |
 | `src/components/lidmaatschap/lidmaatschap.css` | Opmaak, alleen tokens |
 | `src/pages/Lidmaatschap.tsx`, `src/pages/Aanmelden.tsx` | De twee pagina’s |
 | `src/pages/Over.tsx` | Verdienmodel toont de conceptstaffels; gemeenteprijs en rekenvoorbeeld als aanname gelabeld |
 | `index.html` | Verborgen kopie formulier `aanmelding` |
-| `e2e/lidmaatschap.spec.ts` | End-to-end: prijzenpagina, kruimelpad, foutmeldingen, volledige aanmelding met controle van de verzonden velden, offerteaanvraag en doorstap naar aanmelden, terugval bij mislukt verzenden, tabellen zonder horizontaal scrollen, FAQ met mailto per actie, prijs bij typekeuze en meldingen bij ongeldig aantal gemeenten, prijsblok in beeld bij scrollen, aanvullend blok dat openklapt bij een fout, ingekorte mailto; op 400 px en 1280 px (24 tests) |
+| `e2e/lidmaatschap.spec.ts` | End-to-end: prijzenpagina, kruimelpad, foutmeldingen, volledige aanmelding met controle van de verzonden velden, offerteaanvraag en doorstap naar aanmelden, terugval bij mislukt verzenden, tabellen zonder horizontaal scrollen, FAQ met mailto per actie, prijs bij typekeuze en meldingen bij ongeldig aantal gemeenten, prijsblok in beeld bij scrollen, aanvullend blok dat openklapt bij een fout, ingekorte mailto, markering verplichte velden, voorbeeld domein, voorwaarden bij de knop, zichtbaar bewaard concept en leegmaken, startdatum uitgeschreven in een Engelstalige browser, gratis/lid bij aanbestedingen; op 400 px en 1280 px (30 tests) |
 
 ## Onderhoud
 
@@ -76,6 +91,7 @@ Een concept van het formulier blijft bewaard in `sessionStorage` (`afvalplatform
 - **Prijzen vaststellen:** zet `prijzenVastgesteld` op `true`. Het conceptlabel en de conceptzinnen verdwijnen dan overal.
 - **Voorwaarden** (looptijd, opzegtermijn, betaaltermijn, proefdagen, geldigheid offerte, maximale startdatum): object `voorwaarden`. Pagina’s, berekening en bevestiging volgen vanzelf. Houd de algemene voorwaarden gelijk.
 - **Vergelijking gratis/lid:** de rijen voor rekentools pas je aan in `src/data/tools.ts` (`gratisDeel`, `proDeel`, `toegang`); de overige rijen in `vergelijking` in `src/data/lidmaatschap.ts`. Een rij met `inLijsten: false` staat wel in de tabel maar niet in de korte lijsten op Over het platform.
+- **Aantal gemeenten in Nederland:** `gemeentenInNederland` en `bronnen.gemeenten` (jaarlijks, na herindelingen).
 - **Btw-tarief:** `btwPercentage`; werk dan ook `bronnen.btw.peildatum` bij.
 - **Bronnen:** controleer de links in `bronnen` jaarlijks en zet de nieuwe peildatum. De Europese drempelbedragen wijzigen per 1 januari 2028.
 - **Formulierveld toevoegen:** in `AanmeldGegevens` en `formulierVelden` (`aanmelding.ts`), in `aanmeldVelden` (`lidmaatschap.ts`) én in de verborgen kopie in `index.html`. De test faalt als die drie uit de pas lopen.
@@ -94,6 +110,7 @@ Een concept van het formulier blijft bewaard in `sessionStorage` (`afvalplatform
 | E-factureren via Peppol | https://www.logius.nl/onze-dienstverlening/gegevensuitwisseling/e-factureren | 14-10-2026 |
 | KVK-nummer acht cijfers, overheid in Handelsregister | https://www.kvk.nl/over-het-handelsregister/kvk-nummer-alles-wat-je-moet-weten/ | 15-10-2026 |
 | Btw-id NL + 9 cijfers + B + 2 cijfers | https://ondernemersplein.overheid.nl/geldzaken-en-belastingen/omzetbelasting-btw/nummers-voor-de-btw/ | 15-10-2026 |
+| 342 gemeenten op 1 januari 2026 (bovengrens samenwerkingsverband) | https://www.cbs.nl/nl-nl/onze-diensten/methoden/classificaties/overig/gemeentelijke-indelingen-per-jaar/indeling-per-jaar/gemeentelijke-indeling-op-1-januari-2026 | 27-10-2026 |
 
 Correctie ten opzichte van de vorige ronde: de betaaltermijn verwees naar “art. 6:119ab BW”; dat artikel bestaat niet. De regel staat in art. 6:119b.
 
@@ -103,7 +120,7 @@ Correctie ten opzichte van de vorige ronde: de betaaltermijn verwees naar “art
 2. **Proeftoegang van 30 dagen** en **bevestiging binnen 2 werkdagen** zijn interne afspraken in concept.
 3. **E-factuur via Peppol** is nog niet ingericht bij KplusV; het formulier zegt dat KplusV bevestigt of het kan.
 4. **Algemene voorwaarden en privacyverklaring** (andere bouwer) moeten dezelfde looptijd, verlenging, opzegtermijn, betaaltermijn en prijswijzigingsregel bevatten als `voorwaarden`, en de verwerking van aanmeldgegevens (Netlify Forms, bewaartermijn) noemen.
-5. **Vergelijkingstabel**: opgelost voor de rekentools (rijen volgen nu `src/data/tools.ts`). De rij “Aanbestedingsarchief” en de regel in “Wat is inbegrepen” beloven een archief dat nu nog alleen verzonnen aanbestedingen bevat. Vóór de eerste echte factuur moet het archief echte data hebben, of moet deze belofte uit de prijspagina.
+5. ~~Archief met verzonnen aanbestedingen~~: opgelost. Het archief bevat sinds 26 oktober 2026 echte aanbestedingen uit TenderNed (dagelijks ververst, zie `docs/stukken/aanbestedingen.md`). De vergelijking volgt het besluit van Niels van 27 oktober 2026: open aanbestedingen zoeken is gratis, filters, details, gesloten en gegunde aanbestedingen en CSV-export zijn voor leden. Loopt de verdeling in `src/pages/Aanbestedingsarchief.tsx` anders, pas dan de twee rijen in `vergelijking` en de regel in `inbegrepen` aan.
 6. **Automatisch lidmaatschap activeren** gebeurt nog handmatig in Supabase. Een volgende stap is een Netlify-functie of Supabase-edge-functie die de inzending als `status = 'aangevraagd'` in `organisaties` zet.
 7. Netlify Forms vangt inzendingen alleen op na een deploy met form detection aan; testen kan pas na de eerste deploy. Netlify stuurt de aanvrager zelf geen e-mail; de bevestiging op het scherm (afdrukbaar) en de mail van KplusV zijn de bevestiging.
 8. **Kleurtoken voor fouten** ontbreekt in `src/styles/tokens.css`; `components.css` en deze module gebruiken `#b91c1c`. Deze module gebruikt nu `var(--fout, #b91c1c)`, zodat een token `--fout` vanzelf doorwerkt.
@@ -112,3 +129,6 @@ Correctie ten opzichte van de vorige ronde: de betaaltermijn verwees naar “art
 11. **Algemene voorwaarden, artikel 3** loopt nog achter op het formulier (bestand van de juridische bouwer): 3.1 zegt “of vraagt per e-mail een offerte aan”, terwijl het formulier ook de keuze “Eerst een offerte ontvangen” heeft; en zolang de prijzen concept zijn, zegt het formulier dat de orderbevestiging de definitieve prijs noemt. Voorstel voor 3.1: “… of vraagt via hetzelfde formulier of per e-mail een offerte aan.” Voorstel voor een nieuw lid: “Wijkt de prijs in de orderbevestiging af van de prijs bij de aanmelding, dan kan de organisatie binnen 14 dagen kosteloos van de aanmelding afzien.” (termijn ter beslissing van Niels).
 12. **FAQ-standpunten ter toetsing:** dat een verwerkersovereenkomst niet nodig is (AV 12) en de regeling voor eigen inkoopvoorwaarden (AV 2.3) staan als concept in de FAQ; wijzigt de juridische toets dat, pas dan de FAQ in `src/data/lidmaatschap.ts` aan.
 13. **Mailto-grens van 1.900 tekens** is een praktische aanname zonder officiële bron.
+14. **Afzientermijn bij afwijkende prijs** staat nu twee keer: `voorwaarden.afzienBijPrijsafwijkingDagen` (14, in het formulier) en `AFZIEN_DAGEN` in `src/pages/juridisch/AlgemeneVoorwaarden.tsx` (bestand van de juridische bouwer). Voorstel: de AV lezen de waarde uit `voorwaarden`, zodat ze niet uit de pas kunnen lopen.
+15. **Aantal gemeenten** (`gemeentenInNederland`) bijwerken na elke herindeling per 1 januari (CBS-pagina “Gemeentelijke indeling op 1 januari <jaar>”).
+16. **Concept alleen in dit tabblad** (`sessionStorage`): bewust, zodat gegevens op een gedeelde computer niet blijven staan. Wie het tabblad sluit, begint opnieuw; dat staat op het scherm.

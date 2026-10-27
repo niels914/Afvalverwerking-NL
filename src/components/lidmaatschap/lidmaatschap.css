@@ -381,9 +381,8 @@
 }
 
 /* Aanmelden: formulier met prijsblok ernaast */
-/* Het prijsblok staat in de HTML vóór het formulier (schermlezers horen de prijs eerst).
-   Breed: rechts naast het formulier, meescrollend. Smal: een compacte balk die bovenaan in beeld blijft
-   zolang het formulier in beeld is. */
+/* Breed: het prijsblok staat rechts naast het formulier en scrolt mee. Smal (tot 900 px): geen prijsblok, de prijs
+   staat dan direct onder de typekeuze (.lm-prijs-bij-keuze, onderaan dit bestand). */
 .lm-aanmelden {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
@@ -454,33 +453,6 @@
 @media (max-width: 900px) {
   .lm-aanmelden {
     display: block;
-  }
-  .lm-prijsblok {
-    top: 0;
-    z-index: 5;
-    padding: 8px 14px 10px;
-    margin: 0 0 12px;
-    gap: 2px;
-    border-radius: 0 0 var(--radius) var(--radius);
-    border-top: 3px solid var(--paars);
-    box-shadow: 0 6px 14px rgba(17, 24, 39, 0.1);
-  }
-  .lm-prijsblok-kop h2 {
-    font-size: 13px;
-    color: var(--tekst-2);
-  }
-  .lm-prijsblok-bedrag {
-    font-size: 19px;
-  }
-  .lm-prijsblok-extra {
-    display: none;
-  }
-  .lm-prijsblok-bereik {
-    font-size: 13px;
-  }
-  /* Een veld dat focus krijgt, valt niet weg achter de vaste prijsbalk. */
-  .lm-aanmelden :is(input, textarea, select, summary) {
-    scroll-margin-top: 130px;
   }
 }
 
@@ -641,4 +613,131 @@
 .velden-2.lm-velden-gelijk {
   grid-template-columns: minmax(7em, 2fr) minmax(0, 5fr);
   align-items: start;
+}
+
+/* ---------- Ronde 3: aanmeldformulier ---------- */
+
+/* Verplichte velden: zichtbaar sterretje, legenda boven het formulier */
+.lm-verplicht {
+  color: var(--fout, #b91c1c);
+  font-weight: 700;
+}
+.lm-legenda {
+  font-size: 14px;
+  color: var(--tekst-2);
+  margin: 0 0 14px;
+}
+.lm-teruggezet {
+  margin: 0 0 14px;
+}
+.lm-linkknop {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: var(--link);
+  text-decoration: underline;
+  cursor: pointer;
+  min-height: 0;
+}
+.lm-linkknop:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.lm-bewaard {
+  margin: 10px 0 0;
+}
+
+/* Prijs direct onder de typekeuze: alleen op smalle schermen (breed staat hij in het prijsblok ernaast) */
+.lm-prijs-bij-keuze {
+  display: none;
+}
+@media (max-width: 900px) {
+  .lm-prijsblok {
+    display: none;
+  }
+  .lm-prijs-bij-keuze {
+    display: grid;
+    gap: 2px;
+    border: 1px solid var(--rand);
+    border-left: 4px solid var(--paars);
+    border-radius: var(--radius);
+    background: var(--kaartvlak);
+    padding: 10px 14px;
+  }
+  .lm-prijs-bij-keuze p {
+    margin: 0;
+  }
+}
+.lm-prijs-bij-keuze-kop {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tekst-2);
+}
+.lm-prijs-concept {
+  font-weight: 400;
+  color: var(--tekst-secundair);
+}
+.lm-prijs-bij-keuze-bedrag {
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--donkerviolet);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.lm-prijs-bij-keuze-bedrag span {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--tekst-secundair);
+}
+
+/* Andere startdatum: ingesprongen onder de keuzelijst */
+.lm-andere-datum {
+  border-left: 3px solid var(--rand);
+  padding-left: 12px;
+  margin: 4px 0 2px;
+}
+
+/* Houd bij de hand (prijsblok, breed) */
+.lm-bij-de-hand {
+  border-top: 1px solid var(--rand);
+  padding-top: 10px;
+  margin-top: 4px;
+}
+.lm-bij-de-hand h3 {
+  font-size: 14px;
+  margin: 0 0 4px;
+}
+.lm-bij-de-hand ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 2px;
+}
+
+/* Voorwaarden in het kort, direct bij de knop */
+.lm-voorwaarden-kort {
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  background: var(--kaartvlak);
+  padding: 12px 16px;
+  margin-top: 18px;
+}
+.lm-akkoord-blok .lm-voorwaarden-kort {
+  margin: 0 0 14px;
+}
+.lm-voorwaarden-kort h2 {
+  font-size: 15px;
+  margin: 0 0 6px;
+  color: var(--donkerviolet);
+}
+.lm-voorwaarden-kort ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+  font-size: 14px;
+}
+.lm-voorwaarden-kort p {
+  margin: 8px 0 0;
 }

@@ -13,6 +13,7 @@
 
 import {
   btwPercentage as standaardBtw,
+  gemeentenInNederland,
   grensGrootSamenwerkingsverband,
   staffelVan,
   voorwaarden as standaardVoorwaarden,
@@ -23,15 +24,23 @@ import {
 
 /** Minimaal aantal gemeenten in een samenwerkingsverband. */
 export const minimumGemeentenSamenwerkingsverband = 2;
+/** Maximaal aantal gemeenten in een samenwerkingsverband: alle gemeenten van Nederland (CBS, 1 januari 2026). */
+export const maximumGemeentenSamenwerkingsverband = gemeentenInNederland;
 
 /**
  * Staffel bij een organisatietype. Voor een samenwerkingsverband telt het aantal deelnemende gemeenten.
- * Geeft null als de staffel niet te bepalen is (samenwerkingsverband zonder geldig aantal gemeenten).
+ * Geeft null als de staffel niet te bepalen is (samenwerkingsverband zonder geldig aantal gemeenten: geen heel getal,
+ * minder dan 2 of meer dan het aantal gemeenten in Nederland).
  */
 export function bepaalStaffel(type: Organisatietype, aantalGemeenten?: number): StaffelId | null {
   if (type === 'gemeente') return 'gemeente';
   if (type === 'verwerker') return 'verwerker';
-  if (aantalGemeenten === undefined || !Number.isInteger(aantalGemeenten) || aantalGemeenten < minimumGemeentenSamenwerkingsverband) {
+  if (
+    aantalGemeenten === undefined ||
+    !Number.isInteger(aantalGemeenten) ||
+    aantalGemeenten < minimumGemeentenSamenwerkingsverband ||
+    aantalGemeenten > maximumGemeentenSamenwerkingsverband
+  ) {
     return null;
   }
   return aantalGemeenten >= grensGrootSamenwerkingsverband ? 'samenwerkingsverband-groot' : 'samenwerkingsverband-klein';
@@ -144,6 +153,21 @@ export function looptijdVan(startdatum: string, v: Voorwaarden = standaardVoorwa
 /** Uiterste startdatum die je vandaag kunt kiezen. */
 export function laatsteStartdatum(vandaag: string, v: Voorwaarden = standaardVoorwaarden): string {
   return plusMaanden(vandaag, v.maxStartVooruitMaanden);
+}
+
+/**
+ * Startdatums om uit te kiezen: de eerste van elke maand vanaf vandaag tot en met de laatste toegestane startdatum.
+ * Is vandaag de eerste van de maand, dan staat vandaag vooraan. Een andere datum kan ook (veld "Andere datum").
+ */
+export function startdatumOpties(vandaag: string, v: Voorwaarden = standaardVoorwaarden): string[] {
+  const laatste = laatsteStartdatum(vandaag, v);
+  const opties: string[] = [];
+  let d = vandaag.endsWith('-01') ? vandaag : eersteVanVolgendeMaand(vandaag);
+  while (d <= laatste) {
+    opties.push(d);
+    d = eersteVanVolgendeMaand(d);
+  }
+  return opties;
 }
 
 /** Controleert de gewenste startdatum. Geeft een foutmelding of null. */

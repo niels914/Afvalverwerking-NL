@@ -4,6 +4,13 @@ import { Kaart } from '../components/ui';
 import { Bron, ConceptBadge, PrijsRegels } from '../components/lidmaatschap/onderdelen';
 import { Akkoord, KeuzeRondjes, TekstVak, TekstVeld, veldId } from '../components/lidmaatschap/Velden';
 import {
+  HintAantalGemeenten,
+  NieuwTabblad,
+  PrijsBijKeuze,
+  StartdatumKeuze,
+  VoorwaardenInHetKort,
+} from '../components/lidmaatschap/AanmeldOnderdelen';
+import {
   aanvullendeVelden,
   berekening,
   codeer,
@@ -42,7 +49,6 @@ import { contact, platform } from '../data/site';
 import { datum, euro } from '../lib/format';
 import {
   eersteVanVolgendeMaand,
-  laatsteStartdatum,
   maakOrdernummer,
   offerteGeldigTot,
   prijsVoorStaffel,
@@ -114,13 +120,26 @@ function leesConcept(): Partial<AanmeldGegevens> {
     return {};
   }
 }
-function bewaarConcept(g: AanmeldGegevens | null) {
+/** Bewaart het concept in sessionStorage (alleen dit tabblad). Geeft false als de browser geen opslag toestaat. */
+function bewaarConcept(g: AanmeldGegevens | null): boolean {
   try {
     if (g) sessionStorage.setItem(CONCEPT_SLEUTEL, JSON.stringify({ ...g, akkoord_voorwaarden: false, akkoord_privacy: false }));
     else sessionStorage.removeItem(CONCEPT_SLEUTEL);
+    return true;
   } catch {
     /* geen opslag beschikbaar: het formulier werkt ook zonder */
+    return false;
   }
+}
+
+/** Heeft de gebruiker al iets ingevuld? (De standaardwaarden voor soort, factuurvorm en startdatum tellen niet.) */
+const tekstVelden: Veld[] = [
+  'organisatie', 'type', 'aantal_gemeenten', 'kvk', 'btw_nummer', 'oin', 'factuur_adres', 'factuur_postcode', 'factuur_plaats',
+  'factuur_ter_attentie', 'crediteuren_email', 'peppol_id', 'inkoopordernummer', 'contact_naam', 'contact_functie',
+  'contact_email', 'contact_telefoon', 'toegang', 'opmerkingen',
+];
+function ietsIngevuld(g: Partial<AanmeldGegevens>): boolean {
+  return tekstVelden.some((v) => typeof g[v] === 'string' && (g[v] as string).trim() !== '');
 }
 function bewaarLokaal(velden: Record<string, string>): boolean {
   try {
@@ -148,12 +167,16 @@ function willekeurigeCode(): string {
 export function Aanmelden() {
   const [params] = useSearchParams();
   const vandaag = useMemo(() => vandaagIso(), []);
+  const [beginConcept] = useState(leesConcept);
+  const [teruggezet, setTeruggezet] = useState(() => ietsIngevuld(beginConcept));
   const [g, setG] = useState<AanmeldGegevens>(() => ({
     ...legeAanmelding(eersteVanVolgendeMaand(vandaag)),
-    ...leesConcept(),
+    ...beginConcept,
     ...typeVanStaffel(params.get('staffel')),
     ...soortUitUrl(params.get('soort')),
   }));
+  const [conceptBewaard, setConceptBewaard] = useState(false);
+  const [formulierSleutel, setFormulierSleutel] = useState(0);
   const [stap, setStap] = useState<Stap>('gegevens');
   const [fouten, setFouten] = useState<Fouten>({});
   const [bezig, setBezig] = useState(false);
@@ -173,8 +196,17 @@ export function Aanmelden() {
   }, []);
 
   useEffect(() => {
-    if (stap === 'gegevens' || stap === 'controle') bewaarConcept(g);
+    if (stap === 'gegevens' || stap === 'controle') setConceptBewaard(bewaarConcept(g) && ietsIngevuld(g));
   }, [g, stap]);
+
+  function leegmaken() {
+    bewaarConcept(null);
+    setG({ ...legeAanmelding(eersteVanVolgendeMaand(vandaag)), soort: g.soort });
+    setFouten({});
+    setTeruggezet(false);
+    setFormulierSleutel((n) => n + 1);
+    requestAnimationFrame(() => kopRef.current?.focus());
+  }
 
   // Bij een nieuwe stap: naar boven en focus op de kop, zodat schermlezers de nieuwe stap horen.
   useEffect(() => {
@@ -276,8 +308,8 @@ export function Aanmelden() {
         </h1>
         {stap === 'gegevens' && !offerte && (
           <p>
-            Meld uw organisatie aan; u betaalt op factuur. Hieronder staan alleen de verplichte gegevens. Voordat u verzendt,
-            ziet u alles nog een keer.
+            Meld uw organisatie aan; u betaalt op factuur. Houd uw KVK-nummer en factuurgegevens bij de hand. Voordat u
+            verzendt, ziet u alles nog een keer.
           </p>
         )}
         {stap === 'gegevens' && offerte && (
@@ -323,7 +355,17 @@ export function Aanmelden() {
       {stap === 'gegevens' && (
         <div className="lm-aanmelden sectie">
           <Prijsblok g={g} />
-          <Gegevensformulier g={g} zet={zet} fouten={fouten} vandaag={vandaag} onSubmit={naarControle} />
+          <Gegevensformulier
+            key={formulierSleutel}
+            g={g}
+            zet={zet}
+            fouten={fouten}
+            vandaag={vandaag}
+            onSubmit={naarControle}
+            teruggezet={teruggezet}
+            conceptBewaard={conceptBewaard}
+            onLeegmaken={leegmaken}
+          />
         </div>
       )}
 
@@ -354,7 +396,8 @@ export function Aanmelden() {
             <Bron sleutel="btw" />
           </Kaart>
           <Samenvatting g={g} onWijzig={() => setStap('gegevens')} />
-          <Kaart titel="Akkoord">
+          <div className="kaart lm-akkoord-blok">
+            <VoorwaardenInHetKort offerte={offerte} kop={offerte ? 'Voorwaarden in het kort' : 'Voorwaarden en akkoord'} />
             <div className="velden">
               {offerte ? (
                 <p className="klein">
@@ -372,7 +415,7 @@ export function Aanmelden() {
                 Ik heb de <NieuwTabblad naar="/privacy">privacyverklaring</NieuwTabblad> gelezen.
               </Akkoord>
             </div>
-          </Kaart>
+          </div>
           <div className="knoppen">
             <button type="button" onClick={() => setStap('gegevens')}>
               Terug naar gegevens
@@ -404,16 +447,6 @@ export function Aanmelden() {
   );
 }
 
-function NieuwTabblad({ naar, children }: { naar: string; children: ReactNode }) {
-  return (
-    <a href={naar} target="_blank" rel="noopener">
-      {children}
-      <span className="visueel-verborgen"> (opent in een nieuw tabblad)</span>
-      <span aria-hidden="true"> ↗</span>
-    </a>
-  );
-}
-
 /* ---------- Stap 1 ---------- */
 
 function Gegevensformulier({
@@ -422,12 +455,18 @@ function Gegevensformulier({
   fouten,
   vandaag,
   onSubmit,
+  teruggezet,
+  conceptBewaard,
+  onLeegmaken,
 }: {
   g: AanmeldGegevens;
   zet: <K extends Veld>(k: K, v: AanmeldGegevens[K]) => void;
   fouten: Fouten;
   vandaag: string;
   onSubmit: (e: FormEvent) => void;
+  teruggezet: boolean;
+  conceptBewaard: boolean;
+  onLeegmaken: () => void;
 }) {
   const overheid = isOverheid(g.type);
   const contactDomein = isEmail(g.contact_email) ? domeinVan(g.contact_email) : '';
@@ -478,6 +517,19 @@ function Gegevensformulier({
 
   return (
     <form onSubmit={onSubmit} noValidate className="kaart" aria-label={offerte ? 'Gegevens voor de offerteaanvraag' : 'Gegevens voor de aanmelding'}>
+      <p className="lm-legenda">
+        Velden met <span className="lm-verplicht" aria-hidden="true">*</span>
+        <span className="visueel-verborgen">een sterretje</span> zijn verplicht. Wat u invult, bewaren we automatisch in dit
+        tabblad.
+      </p>
+      {teruggezet && (
+        <div className="notitie info lm-teruggezet">
+          We hebben de gegevens teruggezet die u eerder in dit tabblad invulde.{' '}
+          <button type="button" className="lm-linkknop" onClick={onLeegmaken}>
+            Formulier leegmaken
+          </button>
+        </div>
+      )}
       <KeuzeRondjes<Aanvraagsoort>
         naam="soort"
         legend="Wat wilt u doen?"
@@ -511,9 +563,10 @@ function Gegevensformulier({
             inputMode="numeric"
             breedte="10em"
             fout={fouten.aantal_gemeenten}
-            hint={`2 of 3 gemeenten: staffel klein. ${grensGrootSamenwerkingsverband} of meer: staffel groot.`}
+            hint={<HintAantalGemeenten />}
           />
         )}
+        <PrijsBijKeuze g={g} />
         <TekstVeld naam="organisatie" label="Naam organisatie" waarde={g.organisatie} onChange={(v) => zet('organisatie', v)} autoComplete="organization" fout={fouten.organisatie} hint="Zoals die op de factuur moet staan." />
         <TekstVeld naam="kvk" label="KVK-nummer" waarde={g.kvk} onChange={(v) => zet('kvk', v)} inputMode="numeric" breedte="14em" fout={fouten.kvk} hint="8 cijfers. Ook gemeenten en gemeenschappelijke regelingen hebben er een." />
         {g.type === 'verwerker' && btwVeld}
@@ -560,8 +613,15 @@ function Gegevensformulier({
           waarde={g.toegang}
           onChange={(v) => zet('toegang', v)}
           rijen={2}
+          placeholder="bijvoorbeeld gemeente-voorbeeld.nl"
           fout={fouten.toegang}
-          hint="Iedereen met een e-mailadres op deze domeinen kan inloggen, zonder extra kosten. Meerdere domeinen scheidt u met een komma, bijvoorbeeld: gemeente-voorbeeld.nl, afvalverband.nl. Openbare domeinen zoals gmail.com tellen niet."
+          hint={
+            <>
+              Voorbeeld: <strong>gemeente-voorbeeld.nl</strong> (zonder @ of naam ervoor). Iedereen met een e-mailadres op dit
+              domein kan inloggen, zonder extra kosten. Meer domeinen? Scheid ze met een komma. Openbare domeinen zoals
+              gmail.com tellen niet.
+            </>
+          }
         />
         {(kanContactDomeinToevoegen || domeinen.domeinen.length > 0) && (
           <div className="knoppen klein" style={{ marginTop: -4 }}>
@@ -577,18 +637,7 @@ function Gegevensformulier({
             )}
           </div>
         )}
-        <TekstVeld
-          naam="startdatum"
-          label="Gewenste startdatum"
-          type="date"
-          waarde={g.startdatum}
-          onChange={(v) => zet('startdatum', v)}
-          min={vandaag}
-          max={laatsteStartdatum(vandaag)}
-          breedte="14em"
-          fout={fouten.startdatum}
-          hint={`Vanaf vandaag tot uiterlijk ${datum(laatsteStartdatum(vandaag))}. Het contractjaar loopt vanaf deze datum.`}
-        />
+        <StartdatumKeuze waarde={g.startdatum} onChange={(v) => zet('startdatum', v)} vandaag={vandaag} fout={fouten.startdatum} />
       </fieldset>
 
       <details className="lm-aanvullend" open={aanvullendOpen} onToggle={(e) => setAanvullendOpen(e.currentTarget.open)}>
@@ -640,21 +689,38 @@ function Gegevensformulier({
         </div>
       </details>
 
+      <VoorwaardenInHetKort offerte={offerte} />
+
       <div className="knoppen" style={{ marginTop: 18 }}>
         <button type="submit" className="primair">
           Verder naar controleren
         </button>
         <Link to="/lidmaatschap">Terug naar lidmaatschap en prijzen</Link>
       </div>
+      <p className="klein muted lm-bewaard" aria-live="polite">
+        {conceptBewaard ? (
+          <>
+            <span aria-hidden="true">✓ </span>Concept automatisch bewaard in dit tabblad. Sluit u het tabblad, dan is het weg.{' '}
+            <button type="button" className="lm-linkknop" onClick={onLeegmaken}>
+              Formulier leegmaken
+            </button>
+          </>
+        ) : (
+          'U gaat pas akkoord met de voorwaarden in de volgende stap, vlak voor het verzenden.'
+        )}
+      </p>
     </form>
   );
 }
 
-/** Prijs tijdens het invullen. Breed: naast het formulier. Smal: vaste balk bovenaan (zie lidmaatschap.css). */
+/**
+ * Prijs tijdens het invullen, naast het formulier (alleen op brede schermen). Op smalle schermen staat de prijs
+ * direct onder de typekeuze (PrijsBijKeuze), zodat hij bij de keuze hoort en niet los bovenaan zweeft.
+ */
 function Prijsblok({ g }: { g: AanmeldGegevens }) {
   const p = prijsStand(g);
   return (
-    <aside className="lm-prijsblok" aria-labelledby="lm-prijs-kop">
+    <aside className="lm-prijsblok" data-prijs="blok" aria-labelledby="lm-prijs-kop">
       <div className="lm-prijsblok-kop">
         <h2 id="lm-prijs-kop">Uw prijs</h2>
         <ConceptBadge kort />
@@ -712,6 +778,15 @@ function Prijsblok({ g }: { g: AanmeldGegevens }) {
       <p className="klein lm-prijsblok-extra">
         <Link to="/lidmaatschap#prijzen">Alle prijzen bekijken</Link>
       </p>
+      <div className="lm-prijsblok-extra lm-bij-de-hand">
+        <h3>Houd bij de hand</h3>
+        <ul className="klein">
+          <li>KVK-nummer</li>
+          <li>Factuuradres en e-mailadres van de crediteurenadministratie</li>
+          <li>Inkoopordernummer, als u dat al hebt</li>
+          <li>E-maildomein(en) van uw organisatie</li>
+        </ul>
+      </div>
     </aside>
   );
 }

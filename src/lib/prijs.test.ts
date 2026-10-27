@@ -15,6 +15,7 @@ import {
   plusMaanden,
   prijsVoorStaffel,
   rondCenten,
+  startdatumOpties,
   vandaagIso,
 } from './prijs';
 
@@ -41,6 +42,12 @@ describe('bepaalStaffel', () => {
     expect(bepaalStaffel('samenwerkingsverband', 0)).toBeNull();
     expect(bepaalStaffel('samenwerkingsverband', 2.5)).toBeNull();
     expect(bepaalStaffel('samenwerkingsverband', Number.NaN)).toBeNull();
+  });
+
+  it('accepteert hooguit alle 342 gemeenten van Nederland (CBS, 1 januari 2026)', () => {
+    expect(bepaalStaffel('samenwerkingsverband', 342)).toBe('samenwerkingsverband-groot');
+    expect(bepaalStaffel('samenwerkingsverband', 343)).toBeNull();
+    expect(bepaalStaffel('samenwerkingsverband', 500)).toBeNull();
   });
 });
 
@@ -144,6 +151,21 @@ describe('controleerStartdatum', () => {
     expect(controleerStartdatum('2026-02-30', vandaag)).toMatch(/geldige/);
     expect(controleerStartdatum('2026-10-14', vandaag)).toMatch(/verleden/);
     expect(controleerStartdatum('2027-04-16', vandaag)).toMatch(/6 maanden/);
+  });
+});
+
+describe('startdatumOpties', () => {
+  it('geeft de eerste van elke maand tot de uiterste startdatum', () => {
+    expect(startdatumOpties('2026-10-27')).toEqual(['2026-11-01', '2026-12-01', '2027-01-01', '2027-02-01', '2027-03-01', '2027-04-01']);
+  });
+  it('zet vandaag vooraan als vandaag de eerste van de maand is, en neemt de uiterste datum mee', () => {
+    const opties = startdatumOpties('2026-11-01');
+    expect(opties[0]).toBe('2026-11-01');
+    expect(opties[opties.length - 1]).toBe('2027-05-01');
+    expect(opties).toHaveLength(7);
+  });
+  it('elke optie is een geldige startdatum', () => {
+    for (const d of startdatumOpties('2026-12-31')) expect(controleerStartdatum(d, '2026-12-31')).toBeNull();
   });
 });
 

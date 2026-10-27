@@ -44,7 +44,7 @@ export function Lidmaatschap() {
     <>
       <PaginaKop titel="Lidmaatschap en prijzen" badges={<ConceptBadge />}>
         Eén vast bedrag per jaar per organisatie, niet per gebruiker. Uw hele organisatie krijgt de volledige rekentools en het
-        aanbestedingsarchief. U betaalt op factuur.
+        volledige aanbestedingsarchief uit TenderNed. U betaalt op factuur.
       </PaginaKop>
 
       <nav className="lm-inhoud" id="lm-inhoud" tabIndex={-1} aria-labelledby="lm-inhoud-kop">
@@ -113,10 +113,11 @@ export function Lidmaatschap() {
       <section className="lm-sectie" id="vergelijking" aria-labelledby="vergelijking-kop">
         <h2 id="vergelijking-kop">Gratis of lid: wat is het verschil</h2>
         <p>
-          Gratis voor iedereen: de Restafvalkaart, het nieuws, de kennisbank
+          Gratis voor iedereen: de Restafvalkaart, het nieuws, de kennisbank, zoeken in open aanbestedingen uit TenderNed
           {helemaalGratis.length > 0 && `, de ${opsomming(helemaalGratis)}`}
           {basisGratis.length > 0 && ` en een basisversie van de ${opsomming(basisGratis)}`}. Leden krijgen die rekentools
-          volledig{alleenLeden.length > 0 && `, plus het ${opsomming(alleenLeden)}`} en het aanbestedingsarchief.
+          volledig{alleenLeden.length > 0 && `, plus het ${opsomming(alleenLeden)}`}, en het hele aanbestedingsarchief: filters,
+          details, gesloten en gegunde aanbestedingen en export als CSV.
         </p>
         <Uitklap samenvatting={`Vergelijking per onderdeel (${vergelijking.length} rijen)`}>
           <Vergelijkingstabel />

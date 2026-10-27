@@ -2,8 +2,22 @@ import type { ChangeEvent, HTMLInputTypeAttribute, ReactNode } from 'react';
 
 // Formuliervelden voor het aanmeldformulier. Elk veld heeft een zichtbaar label, een optionele hint
 // en een foutmelding die via aria-describedby aan het veld hangt.
+// Verplichte velden krijgen een zichtbaar sterretje (met de legenda "Velden met * zijn verplicht" boven het formulier);
+// schermlezers horen "(verplicht)". Optionele velden zeggen "(optioneel)".
 
 export const veldId = (naam: string) => `am-${naam}`;
+
+/** Zichtbaar sterretje plus "(verplicht)" voor schermlezers. */
+export function Verplicht() {
+  return (
+    <>
+      <span className="lm-verplicht" aria-hidden="true">
+        {' '}*
+      </span>
+      <span className="visueel-verborgen"> (verplicht)</span>
+    </>
+  );
+}
 
 function beschrijving(naam: string, hint?: ReactNode, fout?: string) {
   return [hint ? `${veldId(naam)}-hint` : '', fout ? `${veldId(naam)}-fout` : ''].filter(Boolean).join(' ') || undefined;
@@ -13,7 +27,7 @@ function Label({ naam, label, optioneel }: { naam: string; label: string; option
   return (
     <label htmlFor={veldId(naam)}>
       {label}
-      {optioneel ? <span className="lm-optioneel"> (optioneel)</span> : <span className="visueel-verborgen"> (verplicht)</span>}
+      {optioneel ? <span className="lm-optioneel"> (optioneel)</span> : <Verplicht />}
     </label>
   );
 }
@@ -51,9 +65,11 @@ interface TekstVeldProps {
   max?: string;
   maxLength?: number;
   breedte?: string;
+  /** Voorbeeld in het lege veld. Staat altijd ook in de hint, want een placeholder verdwijnt bij typen. */
+  placeholder?: string;
 }
 
-export function TekstVeld({ naam, label, waarde, onChange, type = 'text', autoComplete, inputMode, optioneel, hint, fout, min, max, maxLength, breedte }: TekstVeldProps) {
+export function TekstVeld({ naam, label, waarde, onChange, type = 'text', autoComplete, inputMode, optioneel, hint, fout, min, max, maxLength, breedte, placeholder }: TekstVeldProps) {
   return (
     <div className="veld">
       <Label naam={naam} label={label} optioneel={optioneel} />
@@ -68,6 +84,7 @@ export function TekstVeld({ naam, label, waarde, onChange, type = 'text', autoCo
           min={min}
           max={max}
           maxLength={maxLength}
+          placeholder={placeholder}
           required={!optioneel}
           aria-required={!optioneel}
           aria-invalid={fout ? true : undefined}
@@ -80,7 +97,7 @@ export function TekstVeld({ naam, label, waarde, onChange, type = 'text', autoCo
   );
 }
 
-export function TekstVak({ naam, label, waarde, onChange, optioneel, hint, fout, rijen = 3 }: Omit<TekstVeldProps, 'type'> & { rijen?: number }) {
+export function TekstVak({ naam, label, waarde, onChange, optioneel, hint, fout, rijen = 3, placeholder }: Omit<TekstVeldProps, 'type'> & { rijen?: number }) {
   return (
     <div className="veld">
       <Label naam={naam} label={label} optioneel={optioneel} />
@@ -90,6 +107,7 @@ export function TekstVak({ naam, label, waarde, onChange, optioneel, hint, fout,
           name={naam}
           rows={rijen}
           value={waarde}
+          placeholder={placeholder}
           required={!optioneel}
           aria-required={!optioneel}
           aria-invalid={fout ? true : undefined}
@@ -127,7 +145,7 @@ export function KeuzeRondjes<T extends string>({
     <fieldset aria-describedby={beschrijving(naam, hint, fout)} aria-invalid={fout ? true : undefined}>
       <legend>
         {legend}
-        <span className="visueel-verborgen"> (verplicht)</span>
+        <Verplicht />
       </legend>
       <div className={`keuzes${kolom ? ' kolom' : ''}`} style={kolom ? { gridTemplateColumns: 'minmax(0, 1fr)' } : undefined}>
         {opties.map((o, i) => (
@@ -169,7 +187,10 @@ export function Akkoord({ naam, waarde, onChange, fout, children }: { naam: stri
           aria-describedby={fout ? `${veldId(naam)}-fout` : undefined}
           onChange={(e) => onChange(e.target.checked)}
         />
-        <label htmlFor={veldId(naam)}>{children}</label>
+        <label htmlFor={veldId(naam)}>
+          {children}
+          <Verplicht />
+        </label>
       </div>
       <HintEnFout naam={naam} fout={fout} />
     </div>

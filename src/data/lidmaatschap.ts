@@ -104,6 +104,12 @@ export type Aanvraagsoort = 'aanmelding' | 'offerte';
 /** Vanaf dit aantal gemeenten geldt het tarief voor een groot samenwerkingsverband. */
 export const grensGrootSamenwerkingsverband = 4;
 
+/**
+ * Aantal gemeenten in Nederland op 1 januari 2026: bovengrens voor het aantal deelnemende gemeenten in een
+ * samenwerkingsverband. Bron: CBS, zie `bronnen.gemeenten`. Bijwerken bij elke gemeentelijke herindeling (1 januari).
+ */
+export const gemeentenInNederland = 342;
+
 /** Algemeen btw-tarief in procenten. Bron: Belastingdienst, zie `bronnen.btw`. */
 export const btwPercentage = 21;
 
@@ -126,6 +132,11 @@ export const voorwaarden = {
   proefDagen: 30,
   /** Geldigheid van een offerte. Gelijk aan artikel 3 van de algemene voorwaarden. */
   offerteGeldigDagen: 30,
+  /**
+   * Zolang de prijzen concept zijn: dagen na de orderbevestiging waarin een organisatie kosteloos kan afzien als de
+   * definitieve prijs afwijkt. Gelijk aan AFZIEN_DAGEN in artikel 3.6 van de algemene voorwaarden (voorstel, concept).
+   */
+  afzienBijPrijsafwijkingDagen: 14,
 };
 
 export interface Onderdeel {
@@ -152,7 +163,17 @@ export const vergelijking: Onderdeel[] = [
   { onderdeel: 'Nieuwsoverzicht afvalverwerking', gratis: 'Ja', lid: 'Ja' },
   { onderdeel: 'Kennisbank: onderzoeken, factsheets, handreikingen', gratis: 'Ja', lid: 'Ja' },
   ...toolRijen,
-  { onderdeel: 'Aanbestedingsarchief met filters', gratis: 'Nee', lid: 'Ja' },
+  // Besluit Niels (27 oktober 2026): bezoekers mogen open aanbestedingen doorzoeken; de rest van het archief is voor leden.
+  {
+    onderdeel: 'Aanbestedingen uit TenderNed: open aanbestedingen zoeken (titel, opdrachtgever, sluitingsdatum, link naar TenderNed)',
+    gratis: 'Ja',
+    lid: 'Ja',
+  },
+  {
+    onderdeel: 'Aanbestedingsarchief: filters, details, gesloten en gegunde aanbestedingen en export als CSV',
+    gratis: 'Nee',
+    lid: 'Ja',
+  },
   {
     onderdeel: 'Aantal gebruikers',
     gratis: 'Iedereen, zonder account',
@@ -169,7 +190,7 @@ export const ledenOnderdelen = vergelijking.filter((o) => o.inLijsten !== false 
 export const inbegrepen = [
   'Toegang voor alle medewerkers met een e-mailadres op het domein van uw organisatie',
   'Volledige versies van alle rekentools, met rapport en CSV-export waar de tool die biedt',
-  'Het aanbestedingsarchief met filters op afvalstroom, status en regio',
+  'Het volledige aanbestedingsarchief uit TenderNed: filters op afvalstroom, status en regio, details, gesloten en gegunde aanbestedingen en export als CSV',
   'Jaarlijkse actualisatie van de standaardwaarden en reeksen in de rekentools',
   'Vragen over de rekentools per e-mail aan KplusV',
   'Eén factuur per jaar, op naam van uw organisatie, met uw inkoopordernummer',
@@ -323,6 +344,12 @@ export const bronnen = {
     titel: 'KVK – KVK-nummer: goed om te weten',
     url: 'https://www.kvk.nl/over-het-handelsregister/kvk-nummer-alles-wat-je-moet-weten/',
     peildatum: '2026-10-15',
+  },
+  gemeenten: {
+    feit: 'Nederland telt op 1 januari 2026 342 gemeenten',
+    titel: 'CBS – Gemeentelijke indeling op 1 januari 2026',
+    url: 'https://www.cbs.nl/nl-nl/onze-diensten/methoden/classificaties/overig/gemeentelijke-indelingen-per-jaar/indeling-per-jaar/gemeentelijke-indeling-op-1-januari-2026',
+    peildatum: '2026-10-27',
   },
   btwId: {
     feit: 'Een btw-identificatienummer is NL + 9 cijfers + B + 2 cijfers, bijvoorbeeld NL123456789B01',

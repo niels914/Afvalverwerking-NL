@@ -15,6 +15,11 @@ async function openUitklap(page: Page, selector: string) {
   await expect(details).toHaveAttribute('open', '');
 }
 
+/** De prijs zoals de gebruiker hem ziet: breed in het prijsblok naast het formulier, smal direct onder de typekeuze. */
+function zichtbarePrijs(page: Page) {
+  return page.locator('[data-prijs]:visible');
+}
+
 async function vulGegevensIn(page: Page) {
   await page.getByLabel('Naam organisatie').fill('Afvalsamenwerking Testregio');
   await page.getByLabel(/Samenwerkingsverband van gemeenten/).check();
@@ -118,6 +123,12 @@ test.describe('Lidmaatschap en prijzen', () => {
     await expect(index).toContainText('Eén CBS-reeks');
     await expect(index).toContainText('zes CBS-reeksen');
     await expect(page.locator('#vergelijking tbody tr', { hasText: 'Aanbestedingstool' })).toContainText('Ja');
+    // Besluit Niels (27-10-2026): open aanbestedingen zoeken is gratis; filters, details, historie en export zijn voor leden.
+    const open = page.locator('#vergelijking tbody tr', { hasText: 'open aanbestedingen zoeken' });
+    await expect(open.locator('td').first()).toContainText('Ja');
+    const archief = page.locator('#vergelijking tbody tr', { hasText: 'Aanbestedingsarchief: filters' });
+    await expect(archief.locator('td').first()).toContainText('Nee');
+    await expect(archief.locator('td').last()).toContainText('Ja');
     await geenHorizontaleScroll(page);
   });
 
@@ -126,7 +137,7 @@ test.describe('Lidmaatschap en prijzen', () => {
     await page.getByRole('link', { name: 'Aanmelden: Verwerker' }).click();
     await expect(page).toHaveURL(/\/lidmaatschap\/aanmelden\?staffel=verwerker/);
     await expect(page.getByLabel('Afvalverwerker of sorteerder')).toBeChecked();
-    await expect(page.getByRole('complementary', { name: 'Uw prijs' })).toContainText(/5\.500/);
+    await expect(zichtbarePrijs(page)).toContainText(/5\.500/);
   });
 
   test('kruimelpad en naar boven', async ({ page }) => {
@@ -183,13 +194,22 @@ test.describe('Aanmelden', () => {
     });
 
     await vulGegevensIn(page);
-    const prijs = page.getByRole('complementary', { name: 'Uw prijs' });
+    const prijs = zichtbarePrijs(page);
+    await expect(prijs).toHaveCount(1);
     await expect(prijs).toContainText('Samenwerkingsverband, klein');
     await expect(prijs).toContainText(/3\.025,00/);
-    // Het prijsblok blijft in beeld als je verder naar beneden in het formulier gaat (smal: vaste balk bovenaan).
-    await page.getByLabel('Gewenste startdatum').scrollIntoViewIfNeeded();
-    await expect(prijs).toBeInViewport();
     await expect(prijs).toContainText(/2\.500/);
+    if ((page.viewportSize()?.width ?? 1280) <= 900) {
+      // Smal: de prijs staat direct onder het aantal gemeenten, dus bij de keuze, en niet los bovenaan.
+      const veld = await page.getByLabel('Aantal deelnemende gemeenten').boundingBox();
+      const blok = await prijs.boundingBox();
+      expect(blok!.y).toBeGreaterThan(veld!.y);
+      expect(blok!.y - (veld!.y + veld!.height)).toBeLessThan(160);
+    } else {
+      // Breed: het prijsblok scrolt mee naast het formulier.
+      await page.getByLabel('Gewenste startdatum').scrollIntoViewIfNeeded();
+      await expect(prijs).toBeInViewport();
+    }
     await geenHorizontaleScroll(page);
 
     await page.getByRole('button', { name: 'Verder naar controleren' }).click();
@@ -275,26 +295,34 @@ test.describe('Aanmelden', () => {
   });
 
   test('prijs verschijnt direct bij het type; ongeldig aantal gemeenten geeft een melding over het aantal', async ({ page }) => {
-    const prijs = page.getByRole('complementary', { name: 'Uw prijs' });
-    await expect(prijs).toContainText('Kies het type organisatie');
+    const prijs = zichtbarePrijs(page);
+    if ((page.viewportSize()?.width ?? 1280) > 900) await expect(prijs).toContainText('Kies het type organisatie');
+    else await expect(prijs).toHaveCount(0);
     // De prijs staat al bij de keuze zelf.
     await expect(page.getByLabel(/^Gemeente/)).toBeVisible();
     await expect(page.locator('label', { hasText: /^Gemeente/ })).toContainText('1.500');
     await page.getByLabel(/Samenwerkingsverband van gemeenten/).check();
-    await expect(prijs).toContainText('2.500');
-    await expect(prijs).toContainText('8.500');
-    for (const aantal of ['2.5', '1', 'abc']) {
+    // Beide prijzen staan bij de keuze zelf; breed ook in het prijsblok, smal vraagt het blok onder de keuze om het aantal.
+    const keuzeSv = page.locator('label', { hasText: /^Samenwerkingsverband van gemeenten/ });
+    await expect(keuzeSv).toContainText('2.500');
+    await expect(keuzeSv).toContainText('8.500');
+    if ((page.viewportSize()?.width ?? 1280) > 900) await expect(prijs).toContainText('8.500');
+    else await expect(prijs).toContainText('Vul het aantal deelnemende gemeenten in');
+    for (const aantal of ['2.5', '1', 'abc', '343']) {
       await page.getByLabel('Aantal deelnemende gemeenten').fill(aantal);
-      await expect(prijs).toContainText('heel getal van 2 of meer');
+      await expect(prijs).toContainText('heel getal van 2 tot en met 342');
       await expect(prijs).not.toContainText('startdatum');
     }
     await page.getByLabel('Aantal deelnemende gemeenten').fill('4');
     await expect(prijs).toContainText('Samenwerkingsverband, groot');
     await expect(prijs).toContainText('10.285,00');
+    // De bovengrens (342 gemeenten) staat met bron bij het veld.
+    await expect(page.getByRole('link', { name: 'CBS, 1 januari 2026' })).toHaveAttribute('href', /cbs\.nl/);
     // Een ongeldige startdatum verbergt de prijs niet.
-    await page.getByLabel('Gewenste startdatum').fill('');
+    await page.getByLabel('Gewenste startdatum').selectOption('anders');
+    await page.getByLabel('Andere startdatum').fill('');
     await expect(prijs).toContainText('8.500');
-    await expect(prijs).toBeInViewport();
+    if ((page.viewportSize()?.width ?? 1280) > 900) await expect(prijs).toBeInViewport();
   });
 
   test('optionele gegevens zijn ingeklapt en klappen open bij een fout', async ({ page }) => {
@@ -339,5 +367,69 @@ test.describe('Aanmelden', () => {
     expect(bewaard[0].organisatie).toBe('Afvalsamenwerking Testregio');
     await page.getByRole('button', { name: 'Opnieuw proberen' }).click();
     await expect(page.getByRole('heading', { level: 1, name: 'Controleer uw aanmelding' })).toBeVisible();
+  });
+
+  test('verplichte velden gemarkeerd, voorbeeld bij domein, voorwaarden bij de knop', async ({ page }) => {
+    const form = page.getByRole('form', { name: 'Gegevens voor de aanmelding' });
+    const legenda = form.locator('.lm-legenda');
+    await expect(legenda).toBeVisible();
+    await expect(legenda).toContainText(/^Velden met \*/);
+    await expect(legenda).toContainText('zijn verplicht');
+    // Zichtbaar sterretje bij een verplicht veld, "(optioneel)" bij een optioneel veld; schermlezers horen "(verplicht)".
+    await expect(form.locator('label[for="am-organisatie"]')).toHaveText(/Naam organisatie\s*\*/);
+    await expect(form.locator('label[for="am-inkoopordernummer"]')).toContainText('(optioneel)');
+    await expect(page.getByRole('textbox', { name: 'Naam organisatie (verplicht)' })).toBeVisible();
+    // Voorbeeld bij het e-maildomein, in het veld en in de hint.
+    const domein = page.getByLabel('E-maildomeinen die toegang krijgen');
+    await expect(domein).toHaveAttribute('placeholder', /gemeente-voorbeeld\.nl/);
+    await expect(form).toContainText('Voorbeeld: gemeente-voorbeeld.nl');
+    // Voorwaarden in het kort, met links, direct boven de knop.
+    const kort = form.getByRole('region', { name: 'Voorwaarden in het kort' });
+    await expect(kort).toContainText('Jaarabonnement van 12 maanden');
+    await expect(kort).toContainText('uiterlijk 1 maand voor de einddatum');
+    await expect(kort.getByRole('link', { name: /Algemene voorwaarden/ })).toHaveAttribute('href', '/algemene-voorwaarden');
+    await expect(kort.getByRole('link', { name: /Privacyverklaring/ })).toHaveAttribute('href', '/privacy');
+    const knop = await page.getByRole('button', { name: 'Verder naar controleren' }).boundingBox();
+    const blok = await kort.boundingBox();
+    expect(knop!.y - (blok!.y + blok!.height)).toBeLessThan(60);
+    await geenHorizontaleScroll(page);
+  });
+
+  test('concept wordt zichtbaar automatisch bewaard, teruggezet en kan worden leeggemaakt', async ({ page }) => {
+    await expect(page.getByText(/Concept automatisch bewaard/)).toHaveCount(0);
+    await page.getByLabel('Naam organisatie').fill('Gemeente Proefdorp');
+    await expect(page.getByText(/Concept automatisch bewaard in dit tabblad/)).toBeVisible();
+    await page.reload();
+    await expect(page.getByLabel('Naam organisatie')).toHaveValue('Gemeente Proefdorp');
+    await expect(page.getByText('We hebben de gegevens teruggezet die u eerder in dit tabblad invulde.')).toBeVisible();
+    await page.getByRole('button', { name: 'Formulier leegmaken' }).first().click();
+    await expect(page.getByLabel('Naam organisatie')).toHaveValue('');
+    await page.reload();
+    await expect(page.getByLabel('Naam organisatie')).toHaveValue('');
+  });
+});
+
+// Schermafbeeldingen van de jury draaien in een Engelstalige browser. De startdatum moet dan toch als
+// "1 november 2026" leesbaar zijn, niet als 11/01/2026.
+test.describe('Aanmelden in een Engelstalige browser', () => {
+  test.use({ locale: 'en-US' });
+
+  test('startdatum staat uitgeschreven in het Nederlands, ook bij een andere datum', async ({ page }) => {
+    await page.goto('/lidmaatschap/aanmelden');
+    await page.evaluate(() => sessionStorage.clear());
+    await page.reload();
+    const nl = new Intl.DateTimeFormat('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' });
+    const nu = new Date();
+    const eerste = new Date(nu.getFullYear(), nu.getMonth() + 1, 1, 12);
+    const keuze = page.getByLabel('Gewenste startdatum');
+    await expect(keuze.locator('option:checked')).toHaveText(nl.format(eerste));
+    await expect(page.getByText(new RegExp(`Eerste contractjaar: ${nl.format(eerste)} tot en met`))).toBeVisible();
+
+    await keuze.selectOption('anders');
+    const anders = new Date(nu.getFullYear(), nu.getMonth(), nu.getDate() + 10, 12);
+    const iso = `${anders.getFullYear()}-${String(anders.getMonth() + 1).padStart(2, '0')}-${String(anders.getDate()).padStart(2, '0')}`;
+    await page.getByLabel('Andere startdatum').fill(iso);
+    await expect(page.getByText(`U kiest: ${nl.format(anders)}`)).toBeVisible();
+    await geenHorizontaleScroll(page);
   });
 });

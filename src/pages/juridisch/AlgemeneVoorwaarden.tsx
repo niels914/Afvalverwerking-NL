@@ -12,7 +12,7 @@ import { BronRegel, ContactBlok, JuridischDocument, Leden, Toetspunt, type Secti
 const v = voorwaarden;
 
 /** Voorstel (Niels beslist): termijn om kosteloos af te zien als de definitieve prijs afwijkt (artikel 3.6). */
-const AFZIEN_DAGEN = 14;
+const AFZIEN_DAGEN = voorwaarden.afzienBijPrijsafwijkingDagen;
 const maanden = (n: number) => (n === 1 ? '1 maand' : `${n} maanden`);
 
 const secties: Sectie[] = [

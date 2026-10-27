@@ -4,6 +4,7 @@
 
 import {
   AANMELD_FORMULIER,
+  gemeentenInNederland,
   organisatietypen,
   publiekeMaildomeinen,
   staffelVan,
@@ -183,7 +184,7 @@ export function prijsStand(g: AanmeldGegevens): PrijsStand {
     const melding =
       n === undefined
         ? 'Vul het aantal deelnemende gemeenten in, dan ziet u de prijs die voor u geldt.'
-        : 'Het aantal gemeenten moet een heel getal van 2 of meer zijn. Eén gemeente? Kies dan het type Gemeente.';
+        : `Het aantal gemeenten moet een heel getal van 2 tot en met ${gemeentenInNederland} zijn (Nederland telt ${gemeentenInNederland} gemeenten). Eén gemeente? Kies dan het type Gemeente.`;
     return { soort: 'bereik', opties, melding };
   }
   return {
@@ -224,7 +225,7 @@ export function controleerGegevens(g: AanmeldGegevens, vandaag: string): Fouten 
     const n = aantalGemeenten(g);
     if (n === undefined) f.aantal_gemeenten = 'Vul het aantal deelnemende gemeenten in.';
     else if (bepaalStaffel('samenwerkingsverband', n) === null) {
-      f.aantal_gemeenten = 'Vul een heel getal van 2 of meer in. Eén gemeente? Kies dan het type Gemeente.';
+      f.aantal_gemeenten = `Vul een heel getal van 2 tot en met ${gemeentenInNederland} in (Nederland telt ${gemeentenInNederland} gemeenten). Eén gemeente? Kies dan het type Gemeente.`;
     }
   }
   if (!verplicht(g.kvk)) f.kvk = 'Vul het KVK-nummer in.';
