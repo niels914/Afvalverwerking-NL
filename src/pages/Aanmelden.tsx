@@ -4,7 +4,7 @@ import { Kaart } from '../components/ui';
 import { Bron, ConceptBadge, PrijsRegels } from '../components/lidmaatschap/onderdelen';
 import { Akkoord, KeuzeRondjes, TekstVak, TekstVeld, veldId } from '../components/lidmaatschap/Velden';
 import {
-  aantalGemeenten,
+  aanvullendeVelden,
   berekening,
   codeer,
   controleerAkkoord,
@@ -15,6 +15,8 @@ import {
   isOverheid,
   leesDomeinen,
   legeAanmelding,
+  mailtoMetVelden,
+  prijsStand,
   schoon,
   veldenStap1,
   veldenStap2,
@@ -43,6 +45,7 @@ import {
   laatsteStartdatum,
   maakOrdernummer,
   offerteGeldigTot,
+  prijsVoorStaffel,
   vandaagIso,
   type Berekening,
 } from '../lib/prijs';
@@ -142,13 +145,6 @@ function willekeurigeCode(): string {
   return Array.from(getallen, (n) => tekens[n % tekens.length]).join('');
 }
 
-function mailtekst(velden: Record<string, string>): string {
-  const regels = Object.entries(velden)
-    .filter(([, v]) => v !== '')
-    .map(([k, v]) => `${k}: ${v}`);
-  return ['Aanmelding lidmaatschap (via het formulier, verzenden lukte niet)', '', ...regels].join('\n');
-}
-
 export function Aanmelden() {
   const [params] = useSearchParams();
   const vandaag = useMemo(() => vandaagIso(), []);
@@ -166,7 +162,6 @@ export function Aanmelden() {
   const foutRef = useRef<HTMLDivElement>(null);
   const eersteRender = useRef(true);
 
-  const b = berekening(g);
   const zet = <K extends Veld>(k: K, v: AanmeldGegevens[K]) => {
     setG((x) => ({ ...x, [k]: v }));
     if (fouten[k]) setFouten((f) => ({ ...f, [k]: undefined }));
@@ -278,20 +273,16 @@ export function Aanmelden() {
         <h1 ref={kopRef} tabIndex={-1} style={{ outline: 'none' }}>
           {titel}
         </h1>
-        <div className="badges">
-          <ConceptBadge />
-        </div>
         {stap === 'gegevens' && !offerte && (
           <p>
-            Meld uw organisatie aan. U betaalt op factuur; er is geen betaling via de website. Voordat u verzendt, ziet u de
-            prijs, de looptijd en al uw gegevens nog een keer. Velden zonder “optioneel” zijn verplicht.
+            Meld uw organisatie aan; u betaalt op factuur. Hieronder staan alleen de verplichte gegevens. Voordat u verzendt,
+            ziet u alles nog een keer.
           </p>
         )}
         {stap === 'gegevens' && offerte && (
           <p>
-            Vraag een offerte aan voor uw inkoopproces. U ontvangt binnen {voorwaarden.bevestigingWerkdagen} werkdagen een
-            offerte als pdf, {voorwaarden.offerteGeldigDagen} dagen geldig. Een offerteaanvraag verplicht u tot niets. Velden
-            zonder “optioneel” zijn verplicht.
+            Vraag een offerte aan voor uw inkoopproces. U krijgt binnen {voorwaarden.bevestigingWerkdagen} werkdagen een
+            offerte als pdf, {voorwaarden.offerteGeldigDagen} dagen geldig. Een offerteaanvraag verplicht u tot niets.
           </p>
         )}
       </section>
@@ -330,10 +321,8 @@ export function Aanmelden() {
 
       {stap === 'gegevens' && (
         <div className="lm-aanmelden sectie">
+          <Prijsblok g={g} />
           <Gegevensformulier g={g} zet={zet} fouten={fouten} vandaag={vandaag} onSubmit={naarControle} />
-          <aside className="lm-prijsblok" aria-label="Uw prijs">
-            <Prijsblok b={b} g={g} />
-          </aside>
         </div>
       )}
 
@@ -444,9 +433,47 @@ function Gegevensformulier({
   const domeinen = leesDomeinen(g.toegang);
   const kanContactDomeinToevoegen =
     contactDomein !== '' && !publiekeMaildomeinen.includes(contactDomein) && !domeinen.domeinen.includes(contactDomein);
-
   const offerte = g.soort === 'offerte';
-  const b = berekening(g);
+
+  // Het aanvullende deel klapt open als daar al iets is ingevuld of als er een fout in staat.
+  const aanvullend = aanvullendeVelden(g.type);
+  const heeftAanvullendeWaarde = aanvullend.some((v) => v !== 'factuurvorm' && typeof g[v] === 'string' && (g[v] as string).trim() !== '') || g.factuurvorm !== 'pdf';
+  const [aanvullendOpen, setAanvullendOpen] = useState(heeftAanvullendeWaarde);
+  const foutInAanvullend = aanvullend.some((v) => fouten[v]);
+  useEffect(() => {
+    if (foutInAanvullend) setAanvullendOpen(true);
+  }, [foutInAanvullend, fouten]);
+
+  const btwVeld = (
+    <TekstVeld
+      naam="btw_nummer"
+      label="Btw-identificatienummer"
+      optioneel={overheid || !g.type}
+      waarde={g.btw_nummer}
+      onChange={(v) => zet('btw_nummer', v)}
+      fout={fouten.btw_nummer}
+      hint={overheid || !g.type ? 'Mag leeg blijven voor overheden. Vorm: NL123456789B01.' : 'Vorm: NL123456789B01.'}
+    />
+  );
+
+  const prijsTekst = (id: StaffelId) => (
+    <>
+      <strong>{euro(prijsVoorStaffel(id).exclBtw)}</strong> per jaar excl. btw
+    </>
+  );
+  const typeOpties = organisatietypen.map((o) => ({
+    waarde: o.waarde,
+    label: o.label,
+    toelichting:
+      o.waarde === 'samenwerkingsverband' ? (
+        <>
+          {prijsTekst('samenwerkingsverband-klein')} bij 2 of 3 gemeenten, {euro(prijsVoorStaffel('samenwerkingsverband-groot').exclBtw)} bij{' '}
+          {grensGrootSamenwerkingsverband} of meer
+        </>
+      ) : (
+        prijsTekst(o.waarde)
+      ),
+  }));
 
   return (
     <form onSubmit={onSubmit} noValidate className="kaart" aria-label={offerte ? 'Gegevens voor de offerteaanvraag' : 'Gegevens voor de aanmelding'}>
@@ -465,12 +492,11 @@ function Gegevensformulier({
 
       <fieldset className="lm-formdeel">
         <legend>1. Organisatie</legend>
-        <TekstVeld naam="organisatie" label="Naam organisatie" waarde={g.organisatie} onChange={(v) => zet('organisatie', v)} autoComplete="organization" fout={fouten.organisatie} hint="Zoals die op de factuur moet staan." />
         <KeuzeRondjes<Organisatietype>
           naam="type"
           legend="Type organisatie"
           waarde={g.type}
-          opties={organisatietypen.map((o) => ({ waarde: o.waarde, label: o.label }))}
+          opties={typeOpties}
           onChange={(v) => zet('type', v)}
           fout={fouten.type}
           kolom
@@ -487,44 +513,18 @@ function Gegevensformulier({
             hint={`2 of 3 gemeenten: staffel klein. ${grensGrootSamenwerkingsverband} of meer: staffel groot.`}
           />
         )}
-        {b && (
-          <p className="lm-prijs-inline klein" aria-live="polite">
-            Uw prijs: <strong>{euro(b.exclBtw)} per jaar excl. btw</strong> ({euro(b.inclBtw, 2)} incl. {b.btwPercentage} % btw),
-            staffel {b.staffel.korteNaam.toLowerCase()}.{!prijzenVastgesteld && ' Concept.'}
-          </p>
-        )}
-        <div className="velden-2">
-          <TekstVeld naam="kvk" label="KVK-nummer" waarde={g.kvk} onChange={(v) => zet('kvk', v)} inputMode="numeric" fout={fouten.kvk} hint="8 cijfers. Ook gemeenten en gemeenschappelijke regelingen hebben er een." />
-          <TekstVeld
-            naam="btw_nummer"
-            label="Btw-identificatienummer"
-            optioneel={overheid || !g.type}
-            waarde={g.btw_nummer}
-            onChange={(v) => zet('btw_nummer', v)}
-            fout={fouten.btw_nummer}
-            hint={overheid || !g.type ? 'Mag leeg blijven voor overheden. Vorm: NL123456789B01.' : 'Vorm: NL123456789B01.'}
-          />
-        </div>
-        <TekstVeld
-          naam="oin"
-          label="OIN (Organisatie-identificatienummer)"
-          optioneel
-          waarde={g.oin}
-          onChange={(v) => zet('oin', v)}
-          inputMode="numeric"
-          fout={fouten.oin}
-          hint="20 cijfers. Alleen nodig als u een e-factuur via Peppol wilt of uw organisatie dit nummer standaard gebruikt."
-        />
+        <TekstVeld naam="organisatie" label="Naam organisatie" waarde={g.organisatie} onChange={(v) => zet('organisatie', v)} autoComplete="organization" fout={fouten.organisatie} hint="Zoals die op de factuur moet staan." />
+        <TekstVeld naam="kvk" label="KVK-nummer" waarde={g.kvk} onChange={(v) => zet('kvk', v)} inputMode="numeric" breedte="14em" fout={fouten.kvk} hint="8 cijfers. Ook gemeenten en gemeenschappelijke regelingen hebben er een." />
+        {g.type === 'verwerker' && btwVeld}
       </fieldset>
 
       <fieldset className="lm-formdeel">
-        <legend>2. Facturering</legend>
+        <legend>2. Factuur</legend>
         <TekstVeld naam="factuur_adres" label="Factuuradres" waarde={g.factuur_adres} onChange={(v) => zet('factuur_adres', v)} autoComplete="street-address" fout={fouten.factuur_adres} hint="Straat en huisnummer, of postbus." />
-        <div className="velden-2">
+        <div className="velden-2 lm-velden-gelijk">
           <TekstVeld naam="factuur_postcode" label="Postcode" waarde={g.factuur_postcode} onChange={(v) => zet('factuur_postcode', v)} autoComplete="postal-code" fout={fouten.factuur_postcode} />
           <TekstVeld naam="factuur_plaats" label="Plaats" waarde={g.factuur_plaats} onChange={(v) => zet('factuur_plaats', v)} autoComplete="address-level2" fout={fouten.factuur_plaats} />
         </div>
-        <TekstVeld naam="factuur_ter_attentie" label="Ter attentie van" optioneel waarde={g.factuur_ter_attentie} onChange={(v) => zet('factuur_ter_attentie', v)} hint="Bijvoorbeeld een afdeling of budgethouder." />
         <TekstVeld
           naam="crediteuren_email"
           label="E-mailadres crediteurenadministratie"
@@ -535,33 +535,12 @@ function Gegevensformulier({
           fout={fouten.crediteuren_email}
           hint="Hier sturen we de factuur naartoe."
         />
-        <KeuzeRondjes<Factuurvorm>
-          naam="factuurvorm"
-          legend="Vorm van de factuur"
-          waarde={g.factuurvorm}
-          opties={[
-            { waarde: 'pdf', label: 'Pdf per e-mail' },
-            { waarde: 'peppol', label: 'E-factuur via Peppol (KplusV bevestigt of dit kan)' },
-          ]}
-          onChange={(v) => zet('factuurvorm', v)}
-          kolom
-        />
-        {g.factuurvorm === 'peppol' && (
-          <TekstVeld
-            naam="peppol_id"
-            label="Peppol-ID"
-            optioneel={g.oin.trim() !== ''}
-            waarde={g.peppol_id}
-            onChange={(v) => zet('peppol_id', v)}
-            fout={fouten.peppol_id}
-            hint="Vorm schema:nummer. Laat leeg als uw OIN hierboven uw Peppol-adres is."
-          />
-        )}
         <TekstVeld
           naam="inkoopordernummer"
           label="Inkoopordernummer"
           optioneel
           maxLength={50}
+          breedte="20em"
           waarde={g.inkoopordernummer}
           onChange={(v) => zet('inkoopordernummer', v)}
           fout={fouten.inkoopordernummer}
@@ -570,19 +549,9 @@ function Gegevensformulier({
       </fieldset>
 
       <fieldset className="lm-formdeel">
-        <legend>3. Contactpersoon</legend>
-        <div className="velden-2">
-          <TekstVeld naam="contact_naam" label="Naam contactpersoon" waarde={g.contact_naam} onChange={(v) => zet('contact_naam', v)} autoComplete="name" fout={fouten.contact_naam} />
-          <TekstVeld naam="contact_functie" label="Functie" optioneel waarde={g.contact_functie} onChange={(v) => zet('contact_functie', v)} autoComplete="organization-title" />
-        </div>
-        <div className="velden-2">
-          <TekstVeld naam="contact_email" label="E-mailadres contactpersoon" type="email" inputMode="email" waarde={g.contact_email} onChange={(v) => zet('contact_email', v)} autoComplete="email" fout={fouten.contact_email} hint="Hier sturen we de orderbevestiging naartoe." />
-          <TekstVeld naam="contact_telefoon" label="Telefoonnummer" optioneel type="tel" inputMode="tel" waarde={g.contact_telefoon} onChange={(v) => zet('contact_telefoon', v)} autoComplete="tel" fout={fouten.contact_telefoon} />
-        </div>
-      </fieldset>
-
-      <fieldset className="lm-formdeel">
-        <legend>4. Toegang en startdatum</legend>
+        <legend>3. Contactpersoon en toegang</legend>
+        <TekstVeld naam="contact_naam" label="Naam contactpersoon" waarde={g.contact_naam} onChange={(v) => zet('contact_naam', v)} autoComplete="name" fout={fouten.contact_naam} />
+        <TekstVeld naam="contact_email" label="E-mailadres contactpersoon" type="email" inputMode="email" waarde={g.contact_email} onChange={(v) => zet('contact_email', v)} autoComplete="email" fout={fouten.contact_email} hint="Hier sturen we de orderbevestiging naartoe." />
         <TekstVak
           naam="toegang"
           label="E-maildomeinen die toegang krijgen"
@@ -591,7 +560,7 @@ function Gegevensformulier({
           onChange={(v) => zet('toegang', v)}
           rijen={2}
           fout={fouten.toegang}
-          hint="Iedereen met een e-mailadres op deze domeinen kan inloggen, zonder extra kosten. Scheid meerdere domeinen met een komma, bijvoorbeeld: gemeente-voorbeeld.nl, afvalverband.nl. Openbare domeinen zoals gmail.com zijn niet toegestaan."
+          hint="Iedereen met een e-mailadres op deze domeinen kan inloggen, zonder extra kosten. Meerdere domeinen scheidt u met een komma, bijvoorbeeld: gemeente-voorbeeld.nl, afvalverband.nl. Openbare domeinen zoals gmail.com tellen niet."
         />
         {(kanContactDomeinToevoegen || domeinen.domeinen.length > 0) && (
           <div className="knoppen klein" style={{ marginTop: -4 }}>
@@ -619,8 +588,56 @@ function Gegevensformulier({
           fout={fouten.startdatum}
           hint={`Vanaf vandaag tot uiterlijk ${datum(laatsteStartdatum(vandaag))}. Het contractjaar loopt vanaf deze datum.`}
         />
-        <TekstVak naam="opmerkingen" label="Opmerkingen" optioneel waarde={g.opmerkingen} onChange={(v) => zet('opmerkingen', v)} fout={fouten.opmerkingen} hint="Bijvoorbeeld afspraken uit uw inkoopproces of een verzoek om proeftoegang eerst." />
       </fieldset>
+
+      <details className="lm-aanvullend" open={aanvullendOpen} onToggle={(e) => setAanvullendOpen(e.currentTarget.open)}>
+        <summary>
+          Aanvullende gegevens (optioneel)
+          <span>
+            {g.type === 'verwerker' ? '' : 'Btw-nummer, '}OIN, e-factuur via Peppol, ter attentie van, functie, telefoonnummer en
+            opmerkingen
+          </span>
+        </summary>
+        <div className="lm-aanvullend-inhoud">
+          {g.type !== 'verwerker' && btwVeld}
+          <TekstVeld
+            naam="oin"
+            label="OIN (Organisatie-identificatienummer)"
+            optioneel
+            waarde={g.oin}
+            onChange={(v) => zet('oin', v)}
+            inputMode="numeric"
+            fout={fouten.oin}
+            hint="20 cijfers. Alleen nodig als u een e-factuur via Peppol wilt of uw organisatie dit nummer standaard gebruikt."
+          />
+          <TekstVeld naam="factuur_ter_attentie" label="Factuur ter attentie van" optioneel waarde={g.factuur_ter_attentie} onChange={(v) => zet('factuur_ter_attentie', v)} hint="Bijvoorbeeld een afdeling of budgethouder." />
+          <KeuzeRondjes<Factuurvorm>
+            naam="factuurvorm"
+            legend="Vorm van de factuur"
+            waarde={g.factuurvorm}
+            opties={[
+              { waarde: 'pdf', label: 'Pdf per e-mail' },
+              { waarde: 'peppol', label: 'E-factuur via Peppol (KplusV bevestigt of dit kan)' },
+            ]}
+            onChange={(v) => zet('factuurvorm', v)}
+            kolom
+          />
+          {g.factuurvorm === 'peppol' && (
+            <TekstVeld
+              naam="peppol_id"
+              label="Peppol-ID"
+              optioneel={g.oin.trim() !== ''}
+              waarde={g.peppol_id}
+              onChange={(v) => zet('peppol_id', v)}
+              fout={fouten.peppol_id}
+              hint="Vorm schema:nummer. Laat leeg als uw OIN hierboven uw Peppol-adres is."
+            />
+          )}
+          <TekstVeld naam="contact_functie" label="Functie contactpersoon" optioneel waarde={g.contact_functie} onChange={(v) => zet('contact_functie', v)} autoComplete="organization-title" />
+          <TekstVeld naam="contact_telefoon" label="Telefoonnummer contactpersoon" optioneel type="tel" inputMode="tel" breedte="16em" waarde={g.contact_telefoon} onChange={(v) => zet('contact_telefoon', v)} autoComplete="tel" fout={fouten.contact_telefoon} />
+          <TekstVak naam="opmerkingen" label="Opmerkingen" optioneel waarde={g.opmerkingen} onChange={(v) => zet('opmerkingen', v)} fout={fouten.opmerkingen} hint="Bijvoorbeeld eigen inkoopvoorwaarden, afspraken uit uw inkoopproces of een verzoek om eerst proeftoegang." />
+        </div>
+      </details>
 
       <div className="knoppen" style={{ marginTop: 18 }}>
         <button type="submit" className="primair">
@@ -632,48 +649,69 @@ function Gegevensformulier({
   );
 }
 
-function Prijsblok({ b, g }: { b: Berekening | null; g: AanmeldGegevens }) {
-  const n = aantalGemeenten(g);
+/** Prijs tijdens het invullen. Breed: naast het formulier. Smal: vaste balk bovenaan (zie lidmaatschap.css). */
+function Prijsblok({ g }: { g: AanmeldGegevens }) {
+  const p = prijsStand(g);
   return (
-    <Kaart titel="Uw prijs" kopNiveau={2} actie={<ConceptBadge />}>
-      <div aria-live="polite">
-        {b ? (
+    <aside className="lm-prijsblok" aria-labelledby="lm-prijs-kop">
+      <div className="lm-prijsblok-kop">
+        <h2 id="lm-prijs-kop">Uw prijs</h2>
+        <ConceptBadge kort />
+      </div>
+      <div aria-live="polite" aria-atomic="true">
+        {p.soort === 'prijs' && (
           <>
-            <p className="bedrag" style={{ fontSize: 26, fontWeight: 700, color: 'var(--donkerviolet)' }}>
-              {euro(b.exclBtw)} <span className="klein muted" style={{ fontWeight: 400 }}>per jaar excl. btw</span>
+            <p className="lm-prijsblok-bedrag">
+              {euro(p.prijs.exclBtw)} <span>per jaar excl. btw</span>
             </p>
             <p className="klein">
-              {euro(b.inclBtw, 2)} incl. {b.btwPercentage} % btw ({euro(b.btw, 2)} btw)
+              {euro(p.prijs.inclBtw, 2)} incl. {p.prijs.btwPercentage} % btw · {p.staffel.naam}
+              {p.staffel.aanname && !prijzenVastgesteld && ' (aanname)'}
             </p>
-            <dl className="lm-gegevens" style={{ marginTop: 12, gridTemplateColumns: 'minmax(0, 1fr)', gap: 2 }}>
-              <dt>Staffel</dt>
-              <dd>{b.staffel.naam}</dd>
-              <dt>Eerste contractjaar</dt>
-              <dd>
-                {datum(b.startdatum)} t/m {datum(b.einddatum)}
-              </dd>
-              <dt>Opzeggen uiterlijk</dt>
-              <dd>{datum(b.opzeggenUiterlijk)}</dd>
+            <dl className="lm-gegevens lm-prijsblok-extra">
+              <dt>Btw {p.prijs.btwPercentage} %</dt>
+              <dd>{euro(p.prijs.btw, 2)}</dd>
+              {p.looptijd ? (
+                <>
+                  <dt>Eerste contractjaar</dt>
+                  <dd>
+                    {datum(p.looptijd.startdatum)} t/m {datum(p.looptijd.einddatum)}
+                  </dd>
+                  <dt>Opzeggen uiterlijk</dt>
+                  <dd>{datum(p.looptijd.opzeggenUiterlijk)}</dd>
+                </>
+              ) : (
+                <>
+                  <dt>Looptijd</dt>
+                  <dd>Kies een geldige startdatum, dan ziet u hier de data.</dd>
+                </>
+              )}
             </dl>
           </>
-        ) : (
-          <p className="muted klein">
-            {!g.type
-              ? 'Kies het type organisatie, dan ziet u hier de prijs.'
-              : g.type === 'samenwerkingsverband' && (n === undefined || Number.isNaN(n) || n < 2)
-                ? 'Vul het aantal deelnemende gemeenten in, dan ziet u hier de prijs.'
-                : 'Kies een geldige startdatum, dan ziet u hier de looptijd.'}
-          </p>
         )}
+        {p.soort === 'bereik' && (
+          <>
+            <ul className="lm-prijsblok-bereik">
+              {p.opties.map((o) => (
+                <li key={o.staffel.id}>
+                  <strong>{euro(o.prijs.exclBtw)}</strong> per jaar excl. btw bij{' '}
+                  {o.staffel.id === 'samenwerkingsverband-klein' ? '2 of 3 gemeenten' : `${grensGrootSamenwerkingsverband} of meer gemeenten`}
+                </li>
+              ))}
+            </ul>
+            <p className="klein muted">{p.melding}</p>
+          </>
+        )}
+        {p.soort === 'leeg' && <p className="klein muted">{p.melding}</p>}
       </div>
-      <p className="klein muted">
+      <p className="klein muted lm-prijsblok-extra">
         Eén prijs voor de hele organisatie, ongeacht het aantal gebruikers. Betaling op factuur binnen{' '}
         {voorwaarden.betaaltermijnDagen} dagen.
       </p>
-      <p className="klein">
+      <p className="klein lm-prijsblok-extra">
         <Link to="/lidmaatschap#prijzen">Alle prijzen bekijken</Link>
       </p>
-    </Kaart>
+    </aside>
   );
 }
 
@@ -764,7 +802,7 @@ function Bevestiging({
 }) {
   const offerte = velden.soort === 'offerte';
   const woord = offerte ? 'Offerteaanvraag' : 'Aanmelding';
-  const mailto = `mailto:${contact.email}?subject=${encodeURIComponent(`${woord} lidmaatschap ${velden.organisatie} (${velden.ordernummer})`)}&body=${encodeURIComponent(mailtekst(velden))}`;
+  const mail = mailtoMetVelden(contact.email, `${woord} lidmaatschap ${velden.organisatie} (${velden.ordernummer})`, velden);
   const domeinen = velden.toegang
     ? velden.toegang
         .split(', ')
@@ -785,10 +823,16 @@ function Bevestiging({
           <button type="button" className="primair" onClick={onOpnieuw}>
             Opnieuw proberen
           </button>
-          <a className="knop" href={mailto}>
+          <a className="knop" href={mail.href}>
             {woord} per e-mail sturen
           </a>
         </div>
+        {mail.ingekort && (
+          <p className="klein">
+            Uw opmerkingen zijn te lang voor een e-mail via deze knop en zijn daarin ingekort. Kopieer de volledige tekst
+            hieronder bij Uw gegevens en plak die in de e-mail.
+          </p>
+        )}
         <Kaart titel="Prijs en looptijd">
           <PrijsRegels b={b} />
         </Kaart>

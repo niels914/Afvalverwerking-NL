@@ -14,7 +14,12 @@ import {
   isTelefoon,
   legeAanmelding,
   leesDomeinen,
+  aanvullendeVelden,
+  mailtoMetVelden,
+  MAILTO_MAX,
   normaliseerPostcode,
+  prijsStand,
+  veldenStap1,
   type AanmeldGegevens,
 } from './aanmelding';
 
@@ -188,5 +193,88 @@ describe('verborgen formulierkopie in index.html', () => {
     expect(blok).toContain('netlify-honeypot="bot-field"');
     const namen = [...blok.matchAll(/name="([^"]+)"/g)].map((m) => m[1]).filter((n) => !['form-name', 'bot-field', AANMELD_FORMULIER].includes(n));
     expect(namen.sort()).toEqual([...aanmeldVelden].sort());
+  });
+});
+
+describe('prijsStand (prijsblok tijdens het invullen)', () => {
+  it('zonder type: vraagt om het type', () => {
+    const p = prijsStand(geldig({ type: '' }));
+    expect(p.soort).toBe('leeg');
+    if (p.soort === 'leeg') expect(p.melding).toMatch(/type organisatie/);
+  });
+
+  it('gemeente en verwerker: direct de prijs', () => {
+    const p = prijsStand(geldig({ type: 'verwerker' }));
+    expect(p.soort).toBe('prijs');
+    if (p.soort === 'prijs') {
+      expect(p.staffel.id).toBe('verwerker');
+      expect(p.prijs.inclBtw).toBe(6655);
+    }
+  });
+
+  it('samenwerkingsverband zonder aantal: beide prijzen en een vraag om het aantal', () => {
+    const p = prijsStand(geldig({ aantal_gemeenten: '' }));
+    expect(p.soort).toBe('bereik');
+    if (p.soort === 'bereik') {
+      expect(p.opties.map((o) => o.staffel.id)).toEqual(['samenwerkingsverband-klein', 'samenwerkingsverband-groot']);
+      expect(p.melding).toMatch(/aantal deelnemende gemeenten/);
+    }
+  });
+
+  it.each(['2.5', '1', 'abc', '0', '-3'])('ongeldig aantal gemeenten %s: melding over het aantal, niet over de startdatum', (aantal) => {
+    const p = prijsStand(geldig({ aantal_gemeenten: aantal }));
+    expect(p.soort).toBe('bereik');
+    if (p.soort === 'bereik') {
+      expect(p.melding).toMatch(/heel getal van 2 of meer/);
+      expect(p.melding).not.toMatch(/startdatum/);
+    }
+  });
+
+  it('ongeldige startdatum: prijs blijft zichtbaar, alleen de looptijd ontbreekt', () => {
+    const p = prijsStand(geldig({ startdatum: '2026-02-30' }));
+    expect(p.soort).toBe('prijs');
+    if (p.soort === 'prijs') {
+      expect(p.prijs.exclBtw).toBe(2500);
+      expect(p.looptijd).toBeNull();
+    }
+    const q = prijsStand(geldig());
+    if (q.soort === 'prijs') expect(q.looptijd?.einddatum).toBe('2027-10-31');
+  });
+});
+
+describe('aanvullende (optionele) velden', () => {
+  it('btw-nummer is aanvullend voor overheden, maar niet voor een verwerker', () => {
+    expect(aanvullendeVelden('gemeente')).toContain('btw_nummer');
+    expect(aanvullendeVelden('samenwerkingsverband')).toContain('btw_nummer');
+    expect(aanvullendeVelden('verwerker')).not.toContain('btw_nummer');
+  });
+
+  it('elk veld van stap 1 staat precies één keer in de schermvolgorde', () => {
+    expect(new Set(veldenStap1).size).toBe(veldenStap1.length);
+    for (const v of aanvullendeVelden('')) expect(veldenStap1).toContain(v);
+  });
+});
+
+describe('mailtoMetVelden', () => {
+  const velden = { organisatie: 'Testregio', ordernummer: 'LID-20261015-ABCDE', opmerkingen: '' };
+
+  it('laat een korte e-mail heel', () => {
+    const m = mailtoMetVelden('n.ahsmann@kplusv.nl', 'Aanmelding', velden);
+    expect(m.ingekort).toBe(false);
+    expect(decodeURIComponent(m.href)).toContain('organisatie: Testregio');
+  });
+
+  it('kort lange opmerkingen in tot onder de grens en zegt dat', () => {
+    const lang = { ...velden, opmerkingen: 'Wij vragen om toepassing van de inkoopvoorwaarden. '.repeat(80) };
+    const m = mailtoMetVelden('n.ahsmann@kplusv.nl', 'Aanmelding', lang);
+    expect(m.ingekort).toBe(true);
+    expect(m.href.length).toBeLessThanOrEqual(MAILTO_MAX);
+    expect(decodeURIComponent(m.href)).toContain('[ingekort, zie het formulier]');
+    expect(decodeURIComponent(m.href)).toContain('ordernummer: LID-20261015-ABCDE');
+  });
+
+  it('respecteert ook een eigen grens', () => {
+    const m = mailtoMetVelden('a@b.nl', 'X', { ...velden, opmerkingen: 'é'.repeat(500) }, 600);
+    expect(m.href.length).toBeLessThanOrEqual(600);
   });
 });

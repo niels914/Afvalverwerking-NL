@@ -20,6 +20,11 @@ export interface Staffel {
   prijsExclBtw: number;
   /** Waarom deze prijs: herleidbaar naar de richtprijs uit het prototype. */
   onderbouwing: string;
+  /**
+   * Gezet als de prijs niet op een eerdere richtprijs rust maar op een aanname. Zolang de prijzen niet zijn
+   * vastgesteld, toont de site deze tekst zichtbaar bij de staffel.
+   */
+  aanname?: string;
 }
 
 /** Staat op false tot Niels de prijzen vaststelt. Dan verdwijnt het conceptlabel. */
@@ -56,6 +61,7 @@ export const staffels: Staffel[] = [
     voorWie: 'Eén gemeente die zelf inzameling of verwerking contracteert',
     prijsExclBtw: 1500,
     onderbouwing: 'Nieuw; aanname onder de prijs voor een klein samenwerkingsverband. Nog te toetsen.',
+    aanname: 'Voor deze staffel was nog geen richtprijs. Het bedrag is een aanname die KplusV nog toetst.',
   },
   {
     id: 'verwerker',
@@ -172,21 +178,57 @@ export const inbegrepen = [
 export interface Vraag {
   vraag: string;
   antwoord: string[];
+  /** Bron bij een feit in het antwoord; staat direct onder het antwoord. */
+  bron?: BronSleutel;
+  /** Links naar de plek waar het geregeld is, bijvoorbeeld een artikel van de algemene voorwaarden. */
+  links?: { tekst: string; naar: string }[];
+  /** Kant-en-klare e-mail aan KplusV voor deze actie (opzeggen, proeftoegang aanvragen). */
+  mail?: { knop: string; onderwerp: string; tekst: string };
 }
 
 export const veelgesteldeVragen: Vraag[] = [
   {
     vraag: 'Wij werken met een offerte en een inkoopordernummer. Kan dat?',
     antwoord: [
-      `Ja. Kies in het aanmeldformulier “Eerst een offerte ontvangen”. U vult dezelfde gegevens in en krijgt binnen ${voorwaarden.bevestigingWerkdagen} werkdagen een offerte als pdf, met dezelfde prijs en voorwaarden als op deze pagina. De offerte is ${voorwaarden.offerteGeldigDagen} dagen geldig. Een offerteaanvraag verplicht u tot niets. Het jaarbedrag ligt ver onder de Europese drempel voor leveringen en diensten van decentrale overheden. Welke procedure u volgt, bepaalt uw eigen inkoopbeleid.`,
+      `Ja. Kies in het aanmeldformulier “Eerst een offerte ontvangen”. U vult dezelfde gegevens in en krijgt binnen ${voorwaarden.bevestigingWerkdagen} werkdagen een offerte als pdf, met dezelfde prijs en voorwaarden als op deze pagina. De offerte is ${voorwaarden.offerteGeldigDagen} dagen geldig. Een offerteaanvraag verplicht u tot niets.`,
+      'Het jaarbedrag ligt ver onder de Europese drempel voor leveringen en diensten van decentrale overheden. Welke procedure u volgt, bepaalt uw eigen inkoopbeleid.',
       'Heeft u een inkoopordernummer, vul het in bij de aanmelding. Het komt op de factuur. Krijgt u het nummer pas later, mail het dan voor de startdatum, dan wachten we met factureren.',
+    ],
+    bron: 'drempel',
+  },
+  {
+    vraag: 'Wij hebben eigen inkoopvoorwaarden. Gelden die?',
+    antwoord: [
+      'Meld het in het veld Opmerkingen van de aanmelding of offerteaanvraag, of stuur de voorwaarden mee met uw inkooporder. Eigen inkoopvoorwaarden gelden alleen voor zover KplusV ze schriftelijk aanvaardt (artikel 2.3 van de algemene voorwaarden). In de offerte of orderbevestiging staat welke voorwaarden gelden.',
+      'Concept: deze regeling wordt nog juridisch getoetst.',
+    ],
+    links: [{ tekst: 'Artikel 2 van de algemene voorwaarden', naar: '/algemene-voorwaarden#toepassing' }],
+  },
+  {
+    vraag: 'Wie mag de aanmelding doen?',
+    antwoord: [
+      'Iemand die uw organisatie mag vertegenwoordigen, of die daarvoor toestemming heeft van iemand die dat mag (artikel 3.2 van de algemene voorwaarden). Bij een gemeente of gemeenschappelijke regeling volgt dat meestal uit het mandaat- en volmachtenbesluit.',
+      'Twijfelt u, vraag dan eerst een offerte aan. Die kan een bevoegde collega aanvaarden, bijvoorbeeld met een inkoopordernummer.',
+    ],
+    links: [{ tekst: 'Artikel 3 van de algemene voorwaarden', naar: '/algemene-voorwaarden#aanmelding' }],
+  },
+  {
+    vraag: 'Is een verwerkersovereenkomst nodig?',
+    antwoord: [
+      'Naar verwachting niet. KplusV verwerkt de gegevens van accounts en contactpersonen als verwerkingsverantwoordelijke, niet in opdracht van uw organisatie. Wat u in de rekentools invult, blijft in uw browser. Vraagt uw inkoopbeleid toch om een verwerkersovereenkomst, meld dat dan bij de aanmelding.',
+      'Concept: dit standpunt wordt nog juridisch getoetst.',
+    ],
+    links: [
+      { tekst: 'Privacyverklaring', naar: '/privacy' },
+      { tekst: 'Artikel 12 van de algemene voorwaarden', naar: '/algemene-voorwaarden#persoonsgegevens' },
     ],
   },
   {
     vraag: 'Kunnen we een e-factuur krijgen?',
     antwoord: [
-      'Standaard sturen we de factuur als pdf naar het e-mailadres van uw crediteurenadministratie. Heeft u een e-factuur via Peppol nodig, kies dat bij de aanmelding en vul uw OIN of Peppol-ID in. KplusV bevestigt dan of en hoe dat kan (concept: nog niet ingericht).',
+      'Standaard sturen we de factuur als pdf naar het e-mailadres van uw crediteurenadministratie. Heeft u een e-factuur via Peppol nodig, kies dat bij de aanmelding onder Aanvullende gegevens en vul uw OIN of Peppol-ID in. KplusV bevestigt dan of en hoe dat kan (concept: nog niet ingericht).',
     ],
+    bron: 'efactuur',
   },
   {
     vraag: 'Hoeveel gebruikers mogen er inloggen?',
@@ -197,32 +239,50 @@ export const veelgesteldeVragen: Vraag[] = [
   {
     vraag: 'Is er een proefperiode?',
     antwoord: [
-      `Ja, op aanvraag: ${voorwaarden.proefDagen} dagen volledige toegang voor uw organisatie, kosteloos. De proeftoegang stopt vanzelf; u hoeft niet op te zeggen en krijgt geen factuur. Vraag het aan per e-mail. Daarnaast is een groot deel van het platform altijd gratis.`,
+      `Ja, op aanvraag: ${voorwaarden.proefDagen} dagen volledige toegang voor uw organisatie, kosteloos. De proeftoegang stopt vanzelf; u hoeft niet op te zeggen en krijgt geen factuur. Daarnaast is een groot deel van het platform altijd gratis.`,
     ],
+    mail: {
+      knop: 'Proeftoegang aanvragen per e-mail',
+      onderwerp: 'Proeftoegang aanvragen',
+      tekst: 'Organisatie:\nType (samenwerkingsverband, gemeente of verwerker):\nE-maildomein(en) voor toegang:\nGewenste startdatum proef:\nNaam en functie contactpersoon:\n',
+    },
   },
   {
     vraag: 'Hoe lang loopt het lidmaatschap en hoe zeg ik op?',
     antwoord: [
       `Het lidmaatschap loopt ${voorwaarden.looptijdMaanden} maanden vanaf de startdatum en wordt daarna steeds met ${voorwaarden.verlengingMaanden} maanden verlengd. Opzeggen kan per e-mail tot uiterlijk ${voorwaarden.opzegtermijnMaanden} maand voor de einddatum. U krijgt een bevestiging van de opzegging.`,
     ],
+    mail: {
+      knop: 'Opzeggen per e-mail',
+      onderwerp: 'Opzegging lidmaatschap',
+      tekst: 'Organisatie:\nOrdernummer (staat in de orderbevestiging):\nOpzeggen per einddatum:\nNaam en functie:\n',
+    },
   },
   {
     vraag: 'Wanneer krijgen we de factuur en hoe snel moet die betaald zijn?',
     antwoord: [
       `De factuur volgt op de startdatum, daarna steeds aan het begin van elk contractjaar. De betaaltermijn is ${voorwaarden.betaaltermijnDagen} dagen.`,
     ],
+    bron: 'betaaltermijn',
   },
   {
     vraag: 'Kan de prijs veranderen?',
     antwoord: [
-      `Binnen een contractjaar niet. Een nieuwe prijs voor het volgende jaar melden we uiterlijk ${voorwaarden.prijswijzigingAankondigingMaanden} maanden voor de verlenging. Bent u het er niet mee eens, dan kunt u opzeggen per de einddatum.`,
+      `Binnen een contractjaar niet. De enige uitzondering is een wettelijke wijziging van het btw-tarief: dan rekenen we het nieuwe tarief, de prijs exclusief btw blijft gelijk (artikel 6.7 van de algemene voorwaarden).`,
+      `Een nieuwe prijs voor het volgende jaar melden we uiterlijk ${voorwaarden.prijswijzigingAankondigingMaanden} maanden voor de verlenging. Bent u het er niet mee eens, dan kunt u opzeggen per de einddatum.`,
     ],
+    links: [{ tekst: 'Artikel 6 van de algemene voorwaarden', naar: '/algemene-voorwaarden#prijs-en-betaling' }],
   },
   {
     vraag: 'Onze organisatie past niet in een van de staffels. Wat nu?',
     antwoord: [
-      'Bijvoorbeeld een provincie, een uitvoeringsorganisatie of een adviesbureau. Neem contact op; we maken dan een voorstel op maat.',
+      'Bijvoorbeeld een provincie, een uitvoeringsorganisatie of een adviesbureau. Mail ons; we maken dan een voorstel op maat.',
     ],
+    mail: {
+      knop: 'Voorstel op maat vragen per e-mail',
+      onderwerp: 'Lidmaatschap op maat',
+      tekst: 'Organisatie:\nSoort organisatie:\nWaarvoor wilt u het platform gebruiken:\n',
+    },
   },
 ];
 

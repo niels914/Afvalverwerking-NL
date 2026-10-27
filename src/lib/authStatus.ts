@@ -2,6 +2,7 @@
 // De gegevens komen uit de databasefunctie public.mijn_lidmaatschap() (zie supabase/migrations/).
 
 import { datum } from './format';
+import { staffels } from '../data/lidmaatschap';
 
 /** Eén rij uit public.mijn_lidmaatschap(). */
 export interface Lidmaatschap {
@@ -37,11 +38,22 @@ const typeLabels: Record<string, string> = {
   'samenwerkingsverband-groot': 'Samenwerkingsverband (groot)',
   gemeente: 'Gemeente',
   verwerker: 'Afvalverwerker',
-  overig: 'Overige organisatie',
+  overig: 'Overig, eigen afspraak met KplusV',
 };
 
+const overigUitleg =
+  'Valt niet onder een van de tariefgroepen op de pagina Lidmaatschap. De voorwaarden zijn apart met KplusV afgesproken.';
+
+/** Soort organisatie zoals KplusV die heeft vastgelegd; bepaalt de tariefgroep. */
 export function organisatietypeLabel(type: string): string {
   return typeLabels[type] ?? type;
+}
+
+/** Korte uitleg bij de soort organisatie, of '' als die er niet is. */
+export function organisatietypeUitleg(type: string): string {
+  if (type === 'overig') return overigUitleg;
+  const staffel = staffels.find((st) => st.id === type);
+  return staffel ? `Tariefgroep ${staffel.naam}: ${staffel.voorWie}.` : '';
 }
 
 /** Aantal dagen van vandaag tot en met een datum (beide jjjj-mm-dd). Negatief als de datum voorbij is. */

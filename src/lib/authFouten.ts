@@ -27,6 +27,12 @@ export function authFoutmelding(fout: unknown): string {
     return 'Er is geen verbinding met de inlogdienst. Controleer uw internetverbinding en probeer het opnieuw.';
   }
 
+  // Afgewezen door de hook public.hook_alleen_bekende_domeinen (zie supabase/migrations/): nieuw account
+  // op een domein dat niet bij een aangemelde organisatie hoort.
+  if (/Geen organisatie bekend voor dit e-maildomein/i.test(bericht)) {
+    return 'Voor dit e-maildomein is geen organisatie aangemeld, dus er kan geen account worden aangemaakt. Gebruik het e-mailadres van uw werk. Is uw organisatie nog geen lid? Meld haar dan aan via Lid worden.';
+  }
+
   switch (code) {
     case 'invalid_credentials':
       return 'Het e-mailadres of het wachtwoord klopt niet. Controleer uw invoer, of vraag een inloglink per e-mail aan.';

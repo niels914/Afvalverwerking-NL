@@ -54,3 +54,13 @@ describe('beschrijfLidmaatschap', () => {
     expect(beschrijfLidmaatschap({ ...basis, status: 'opgezegd', effectieve_status: 'opgezegd', is_lid: false }, '', '2026-10-15').label).toBe('Opgezegd');
   });
 });
+
+describe('organisatietype', () => {
+  it('legt "overig" uit in plaats van alleen het woord te tonen', async () => {
+    const { organisatietypeLabel, organisatietypeUitleg } = await import('./authStatus');
+    expect(organisatietypeLabel('overig')).toMatch(/eigen afspraak/);
+    expect(organisatietypeUitleg('overig')).toMatch(/tariefgroepen/);
+    expect(organisatietypeUitleg('gemeente')).toMatch(/^Tariefgroep Gemeente: /);
+    expect(organisatietypeUitleg('onbekend-type')).toBe('');
+  });
+});

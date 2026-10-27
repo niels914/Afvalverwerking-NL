@@ -67,12 +67,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!actief) return;
       if (gebeurtenis === 'PASSWORD_RECOVERY') setHerstelSessie(true);
       if (gebeurtenis === 'SIGNED_OUT' || gebeurtenis === 'USER_UPDATED') setHerstelSessie(false);
+      if (gebeurtenis === 'SIGNED_OUT') setLidData(null);
       setSessie(nieuweSessie);
       setStatus(nieuweSessie ? 'in' : 'uit');
-      // Na inloggen of een ververst token het lidmaatschap opnieuw controleren.
-      if (gebeurtenis === 'SIGNED_IN' || gebeurtenis === 'TOKEN_REFRESHED' || gebeurtenis === 'USER_UPDATED') {
-        setVersie((v) => v + 1);
-      }
+      // Inloggen als een andere gebruiker start de controle al via gebruikerId (effect hieronder).
+      // SIGNED_IN komt ook bij het laden en bij terugkeer naar het tabblad; daarop controleren we niet opnieuw,
+      // anders gaan dezelfde aanvragen meerdere keren de deur uit.
+      // Gewijzigde gegevens: altijd opnieuw. Ververst token (ongeveer elk uur): alleen als de laatste controle oud is.
+      if (gebeurtenis === 'USER_UPDATED') setVersie((v) => v + 1);
+      if (gebeurtenis === 'TOKEN_REFRESHED' && Date.now() - laatsteControle.current > HERCONTROLE_MS) setVersie((v) => v + 1);
     });
     return () => {
       actief = false;

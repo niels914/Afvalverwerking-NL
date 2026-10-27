@@ -21,6 +21,11 @@ describe('authFoutmelding', () => {
     expect(m).not.toContain('Something');
     expect(m).toContain('iets_nieuws');
   });
+  it('legt uit waarom er geen account wordt aangemaakt (hook op e-maildomein)', () => {
+    const m = authFoutmelding({ status: 403, code: 'unexpected_failure', message: 'Geen organisatie bekend voor dit e-maildomein.' });
+    expect(m).toMatch(/geen organisatie aangemeld/);
+    expect(m).toMatch(/Lid worden/);
+  });
   it('geeft een storingmelding bij 5xx', () => {
     expect(authFoutmelding({ status: 503 })).toMatch(/storing/);
   });

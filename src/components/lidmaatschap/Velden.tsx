@@ -117,7 +117,7 @@ export function KeuzeRondjes<T extends string>({
   naam: string;
   legend: string;
   waarde: T | '';
-  opties: { waarde: T; label: string }[];
+  opties: { waarde: T; label: string; toelichting?: ReactNode }[];
   onChange: (waarde: T) => void;
   hint?: ReactNode;
   fout?: string;
@@ -141,7 +141,10 @@ export function KeuzeRondjes<T extends string>({
               onChange={() => onChange(o.waarde)}
               style={{ marginTop: 2 }}
             />
-            <span>{o.label}</span>
+            <span>
+              {o.label}
+              {o.toelichting && <span className="lm-keuze-toelichting">{o.toelichting}</span>}
+            </span>
           </label>
         ))}
       </div>

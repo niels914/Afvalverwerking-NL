@@ -185,3 +185,223 @@
   border-top: 1px solid var(--rand);
   margin: 4px 0;
 }
+/* De kop van de slotkaart is een h2 (kopvolgorde na de h1 van de pagina), maar oogt als de oude h3. */
+.slotkaart h2 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: var(--donkerviolet);
+  font-size: 15.5px;
+  font-weight: 600;
+}
+
+/* ---------- Inklapbare blokken (details/summary) ---------- */
+.inklap {
+  border-top: 1px solid var(--rand);
+}
+.inklap:first-child {
+  border-top: 0;
+}
+.inklap > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 44px;
+  padding: 8px 0;
+  font-weight: 600;
+  font-size: 14.5px;
+  color: var(--donkerviolet);
+  cursor: pointer;
+  list-style: none;
+}
+.inklap > summary::-webkit-details-marker {
+  display: none;
+}
+.inklap > summary::after {
+  content: '+';
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 500;
+}
+.inklap[open] > summary::after {
+  content: '−';
+}
+.inklap > summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-klein);
+}
+.inklap[open] {
+  display: grid;
+  gap: 12px;
+  padding-bottom: 14px;
+}
+
+/* ---------- Inlogpagina: wat leden krijgen ---------- */
+.aanbod-lijst {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.aanbod-lijst li {
+  display: grid;
+  gap: 2px;
+  padding-left: 14px;
+  border-left: 3px solid var(--lichtviolet);
+}
+.aanbod-lijst a {
+  font-weight: 600;
+  color: var(--link);
+}
+.aanbod-lijst span {
+  font-size: 13.5px;
+  color: var(--tekst-2);
+}
+
+/* ---------- Accountpagina ---------- */
+.account-laden {
+  min-height: 100vh;
+}
+.account-wie {
+  color: var(--tekst);
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.account-status {
+  /* Ruimte voor de uitkomst, zodat de pagina niet verspringt als de controle klaar is. */
+  min-height: 150px;
+}
+.account-kern {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 12px 20px;
+  margin: 0;
+}
+.account-kern dt {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--tekst-secundair);
+}
+.account-kern dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.blok {
+  display: block;
+  margin-top: 2px;
+  font-weight: 400;
+}
+
+.snelkoppelingen {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: 10px;
+}
+.snelkoppelingen li {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  background: var(--wit);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+}
+.snelkoppelingen li:hover {
+  border-color: var(--lichtviolet);
+}
+.snelkoppelingen a {
+  display: grid;
+  gap: 2px;
+  text-decoration: none;
+  color: var(--tekst);
+}
+/* Hele tegel klikbaar, de link blijft het enige focuspunt. */
+.snelkoppelingen a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+}
+.snelkoppelingen a:focus-visible {
+  outline: none;
+}
+.snelkoppelingen a:focus-visible::after {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.snel-titel {
+  font-weight: 600;
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-thickness: 1px;
+}
+.snel-tekst {
+  font-size: 13px;
+  color: var(--tekst-secundair);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.snelkoppelingen .badge {
+  justify-self: start;
+}
+@media (max-width: 600px) {
+  /* Op mobiel een korte lijst: alleen de namen. De uitleg staat op de pagina zelf. */
+  .snelkoppelingen {
+    gap: 6px;
+  }
+  .snelkoppelingen li {
+    padding: 10px 12px;
+  }
+  .snel-tekst {
+    display: none;
+  }
+}
+
+.raster-recent {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+.recent-lijst {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+.recent-lijst li {
+  display: grid;
+  gap: 2px;
+}
+.recent-lijst a {
+  font-weight: 500;
+  color: var(--link);
+  overflow-wrap: anywhere;
+}
+.recent-laden {
+  min-height: 150px;
+}
+.instellingen {
+  margin-top: 10px;
+  display: grid;
+  gap: 0;
+}
+.instellingen .uitloggen {
+  border-top: 1px solid var(--rand);
+  padding-top: 14px;
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}

@@ -1,3 +1,4 @@
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge } from '../ui';
 import {
@@ -11,6 +12,7 @@ import {
   voorwaarden,
   type BronSleutel,
 } from '../../data/lidmaatschap';
+import { contact } from '../../data/site';
 import { datum, euro } from '../../lib/format';
 import { prijsVoorStaffel, type Berekening } from '../../lib/prijs';
 import './lidmaatschap.css';
@@ -18,9 +20,34 @@ import './lidmaatschap.css';
 const maanden = (n: number) => (n === 1 ? '1 maand' : `${n} maanden`);
 
 /** Label "Concept" zolang Niels de prijzen niet heeft vastgesteld. */
-export function ConceptBadge() {
+export function ConceptBadge({ kort }: { kort?: boolean }) {
   if (prijzenVastgesteld) return null;
-  return <Badge soort="voorbeeld">Concept: prijzen nog niet vastgesteld</Badge>;
+  return <Badge soort="voorbeeld">{kort ? 'Concept' : 'Concept: prijzen nog niet vastgesteld'}</Badge>;
+}
+
+/**
+ * Inklapbaar blok. Op brede schermen standaard open, op smalle schermen dicht, zodat de pagina op de telefoon kort
+ * blijft. De samenvatting zegt wat erin staat.
+ */
+export function Uitklap({ samenvatting, children, id }: { samenvatting: ReactNode; children: ReactNode; id?: string }) {
+  const [open, setOpen] = useState(() => {
+    try {
+      return window.matchMedia('(min-width: 901px)').matches;
+    } catch {
+      return true;
+    }
+  });
+  return (
+    <details className="lm-uitklap" id={id} open={open} onToggle={(e) => setOpen(e.currentTarget.open)}>
+      <summary>{samenvatting}</summary>
+      <div className="lm-uitklap-inhoud">{children}</div>
+    </details>
+  );
+}
+
+/** Mailto met onderwerp en een invulsjabloon. */
+export function mailNaarKplusV(onderwerp: string, tekst = '') {
+  return `mailto:${contact.email}?subject=${encodeURIComponent(onderwerp)}${tekst ? `&body=${encodeURIComponent(tekst)}` : ''}`;
 }
 
 /** Bronregel onder een gegeven: titel als link en peildatum. */
@@ -41,14 +68,23 @@ export function Staffelkaarten() {
         const p = prijsVoorStaffel(s.id);
         return (
           <section key={s.id} className="kaart lm-staffel" aria-labelledby={`staffel-${s.id}`}>
-            <h3 id={`staffel-${s.id}`}>{s.naam}</h3>
-            <p className="voor-wie">{s.voorWie}</p>
-            <p className="bedrag">{euro(p.exclBtw)}</p>
-            <p className="klein muted">
-              per jaar, excl. btw
-              <br />
-              {euro(p.inclBtw, 2)} incl. {btwPercentage} % btw
-            </p>
+            <div className="lm-staffel-wie">
+              <h3 id={`staffel-${s.id}`}>{s.naam}</h3>
+              <p className="voor-wie">{s.voorWie}</p>
+            </div>
+            <div className="lm-staffel-prijs">
+              <p className="bedrag">{euro(p.exclBtw)}</p>
+              <p className="klein muted">
+                per jaar, excl. btw
+                <br />
+                {euro(p.inclBtw, 2)} incl. {btwPercentage} % btw
+              </p>
+            </div>
+            {s.aanname && !prijzenVastgesteld && (
+              <p className="lm-aanname">
+                <Badge soort="voorbeeld">Aanname</Badge> {s.aanname}
+              </p>
+            )}
             <Link className="knop primair" to={`/lidmaatschap/aanmelden?staffel=${s.id}`} aria-label={`Aanmelden: ${s.naam}`}>
               Aanmelden
             </Link>
@@ -62,10 +98,11 @@ export function Staffelkaarten() {
 /** Dezelfde prijzen als tabel, met btw-bedrag apart. */
 export function PrijzenTabel() {
   return (
-    <div className="tabel-container">
+    <div className="tabel-container lm-alleen-breed">
       <table className="lm-tabel lm-tabel-stapel">
         <caption>
-          Jaarprijs per organisatie, ongeacht het aantal gebruikers.{!prijzenVastgesteld && ' Concept: nog niet vastgesteld.'}
+          Jaarprijs per organisatie, ongeacht het aantal gebruikers. De btw volgt het wettelijke tarief.
+          {!prijzenVastgesteld && ' Concept: nog niet vastgesteld.'}
         </caption>
         <thead>
           <tr>
@@ -82,6 +119,7 @@ export function PrijzenTabel() {
               <tr key={s.id}>
                 <th scope="row">
                   {s.korteNaam}
+                  {s.aanname && !prijzenVastgesteld && ' (aanname)'}
                   <br />
                   <span className="klein muted">{s.voorWie}</span>
                 </th>
@@ -116,7 +154,10 @@ export function VoorwaardenKort() {
       <dt>Verlenging</dt>
       <dd>Stilzwijgend, steeds met {maanden(voorwaarden.verlengingMaanden)}</dd>
       <dt>Opzeggen</dt>
-      <dd>Per e-mail, uiterlijk {maanden(voorwaarden.opzegtermijnMaanden)} voor de einddatum. U krijgt een bevestiging.</dd>
+      <dd>
+        Per e-mail aan <a href={mailNaarKplusV('Opzegging lidmaatschap')}>{contact.email}</a>, uiterlijk{' '}
+        {maanden(voorwaarden.opzegtermijnMaanden)} voor de einddatum. U krijgt een bevestiging.
+      </dd>
       <dt>Betaling</dt>
       <dd>
         Op factuur, vooraf per contractjaar. Betaaltermijn {voorwaarden.betaaltermijnDagen} dagen. Geen automatische incasso
@@ -124,11 +165,15 @@ export function VoorwaardenKort() {
       </dd>
       <dt>Prijswijziging</dt>
       <dd>
-        Niet binnen een contractjaar. Een nieuwe prijs melden we uiterlijk {maanden(voorwaarden.prijswijzigingAankondigingMaanden)} voor
-        de verlenging; u kunt dan opzeggen per de einddatum.
+        Niet binnen een contractjaar, behalve als het btw-tarief wettelijk verandert: dan geldt het nieuwe tarief over
+        dezelfde prijs excl. btw. Een nieuwe prijs voor het volgende jaar melden we uiterlijk{' '}
+        {maanden(voorwaarden.prijswijzigingAankondigingMaanden)} voor de verlenging; u kunt dan opzeggen per de einddatum.
       </dd>
       <dt>Proeftoegang</dt>
-      <dd>{voorwaarden.proefDagen} dagen kosteloos op aanvraag. Stopt vanzelf, zonder factuur.</dd>
+      <dd>
+        {voorwaarden.proefDagen} dagen kosteloos op aanvraag. Stopt vanzelf, zonder factuur.{' '}
+        <a href={mailNaarKplusV('Proeftoegang aanvragen')}>Proeftoegang aanvragen per e-mail</a>
+      </dd>
     </dl>
   );
 }
@@ -196,6 +241,25 @@ export function VeelgesteldeVragen() {
             {v.antwoord.map((a) => (
               <p key={a}>{a}</p>
             ))}
+            {v.mail && (
+              <p>
+                <a className="knop" href={mailNaarKplusV(v.mail.onderwerp, v.mail.tekst)}>
+                  {v.mail.knop}
+                </a>
+              </p>
+            )}
+            {v.links && (
+              <p className="klein">
+                Zie ook:{' '}
+                {v.links.map((l, i) => (
+                  <span key={l.naar}>
+                    {i > 0 && ' · '}
+                    <Link to={l.naar}>{l.tekst}</Link>
+                  </span>
+                ))}
+              </p>
+            )}
+            {v.bron && <Bron sleutel={v.bron} />}
           </div>
         </details>
       ))}

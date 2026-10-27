@@ -12,6 +12,7 @@ import {
   veiligTerugpad,
 } from '../lib/authFouten';
 import { contact, platform } from '../data/site';
+import { alleOnderdelen, ledenOnderdelen } from '../lib/authAanbod';
 import '../components/betaalmuur/toegang.css';
 
 type Stap = 'inloggen' | 'link-verstuurd' | 'vergeten' | 'herstel-verstuurd';
@@ -127,6 +128,68 @@ function useAftellen(): [number, () => void] {
     setNu(Date.now());
     setTot(Date.now() + WACHTTIJD_S * 1000);
   }];
+}
+
+/* ---------- Naast het formulier ---------- */
+
+function InlogUitleg() {
+  return (
+    <>
+      <ul className="opsomming">
+        <li>Het lidmaatschap geldt voor de hele organisatie. Iedereen met een e-mailadres op het domein van een organisatie die lid is, heeft toegang.</li>
+        <li>
+          Eerste keer? Vraag een inloglink aan met uw werkadres. Daarmee maakt u een account aan en bevestigt u uw adres in één stap. Een
+          wachtwoord kunt u daarna instellen op uw accountpagina.
+        </li>
+      </ul>
+      <p className="klein muted">
+        Na het inloggen bewaart uw browser een sessiesleutel, zodat u ingelogd blijft. Wat we vastleggen en waarom, staat in de{' '}
+        <Link to="/privacy">privacyverklaring</Link>.
+      </p>
+      <p className="klein muted">
+        Vragen over inloggen? Mail <a href={`mailto:${contact.email}`}>{contact.email}</a>.
+      </p>
+    </>
+  );
+}
+
+function AanbodPaneel() {
+  const metPro = alleOnderdelen.filter((o) => o.toegang === 'gratis+pro');
+  return (
+    <Kaart titel="Wat leden krijgen" kopNiveau={2} className="aanbod">
+      <ul className="aanbod-lijst">
+        {ledenOnderdelen.map((o) => (
+          <li key={o.pad}>
+            <Link to={o.pad}>{o.titel}</Link>
+            <span>{o.ledenDeel}</span>
+          </li>
+        ))}
+      </ul>
+      <p className="klein">
+        Zonder account open: de <Link to="/restafvalkaart">Restafvalkaart</Link>, <Link to="/kennisbank">kennisbank</Link>,{' '}
+        <Link to="/nieuws">nieuws</Link>, de <Link to="/tools/aanbestedingstool">aanbestedingstool</Link> en het gratis deel van de{' '}
+        {metPro.map((o, i) => (
+          <span key={o.pad}>
+            {i > 0 && (i === metPro.length - 1 ? ' en ' : ', ')}
+            <Link to={o.pad}>{o.titel}</Link>
+          </span>
+        ))}
+        .
+      </p>
+      <div className="knoppen">
+        <Link className="knop" to="/lidmaatschap/aanmelden">
+          Meld uw organisatie aan
+        </Link>
+        <Link className="knop" to="/lidmaatschap">
+          Prijzen en voorwaarden
+        </Link>
+      </div>
+      <details className="inklap">
+        <summary>Zo werkt de toegang</summary>
+        <InlogUitleg />
+      </details>
+    </Kaart>
+  );
 }
 
 /* ---------- Pagina ---------- */
@@ -289,26 +352,12 @@ export function Inloggen() {
     </Veld>
   );
 
-  const uitleg = (
-    <Kaart titel="Zo werkt de toegang" kopNiveau={2}>
-      <ul className="opsomming">
-        <li>Het lidmaatschap geldt voor de hele organisatie. Iedereen met een e-mailadres op het domein van een organisatie die lid is, heeft toegang.</li>
-        <li>
-          Eerste keer? Vraag een inloglink aan met uw werkadres. Daarmee maakt u meteen een account aan. Een wachtwoord kunt u daarna instellen op
-          uw accountpagina.
-        </li>
-        <li>
-          Is uw organisatie nog geen lid? <Link to="/lidmaatschap/aanmelden">Meld uw organisatie aan</Link> of{' '}
-          <Link to="/lidmaatschap">bekijk de mogelijkheden</Link>.
-        </li>
-      </ul>
-      <p className="klein muted">
-        Na het inloggen bewaart uw browser een sessiesleutel, zodat u ingelogd blijft. Wat we vastleggen en waarom, staat in de{' '}
-        <Link to="/privacy">privacyverklaring</Link>.
-      </p>
-      <p className="klein muted">
-        Vragen over inloggen? Mail <a href={`mailto:${contact.email}`}>{contact.email}</a>.
-      </p>
+  // Naast het formulier: wat leden krijgen, wat open is, en hoe inloggen werkt (inklapbaar).
+  const aanbod = <AanbodPaneel />;
+  // Bij de tussenstappen alleen hulp, zodat de pagina op mobiel kort blijft.
+  const hulp = (
+    <Kaart titel="Hulp bij inloggen" kopNiveau={2}>
+      <InlogUitleg />
     </Kaart>
   );
 
@@ -368,7 +417,7 @@ export function Inloggen() {
         <PaginaKop titel="Nieuw wachtwoord instellen" />
         <div className="toegang-raster sectie">
           <Kaart>{inhoud}</Kaart>
-          {uitleg}
+          {hulp}
         </div>
       </>
     );
@@ -395,7 +444,7 @@ export function Inloggen() {
               </Link>
             </div>
           </Kaart>
-          {uitleg}
+          {aanbod}
         </div>
       </>
     );
@@ -441,7 +490,7 @@ export function Inloggen() {
               </button>
             </div>
           </Kaart>
-          {uitleg}
+          {hulp}
         </div>
       </>
     );
@@ -471,7 +520,7 @@ export function Inloggen() {
               </div>
             </form>
           </Kaart>
-          {uitleg}
+          {hulp}
         </div>
       </>
     );
@@ -523,7 +572,7 @@ export function Inloggen() {
             </div>
           </form>
         </Kaart>
-        {uitleg}
+        {aanbod}
       </div>
     </>
   );

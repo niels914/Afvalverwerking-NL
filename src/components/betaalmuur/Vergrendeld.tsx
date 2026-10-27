@@ -113,9 +113,9 @@ export function Vergrendeld({ titel, ledenKrijgen, children }: Props) {
       </div>
       <div className="vergrendeld-slot">
         <section className="slotkaart" aria-label={`${titel} (alleen voor leden)`}>
-          <h3>
+          <h2>
             <span aria-hidden="true">🔒</span> {titel}
-          </h3>
+          </h2>
           {inhoud}
         </section>
       </div>

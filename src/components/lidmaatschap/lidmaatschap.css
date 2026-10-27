@@ -40,6 +40,38 @@
   margin-top: 12px;
 }
 
+/* Alleen op brede schermen (op smal staan dezelfde bedragen al in de staffelkaarten) */
+@media (max-width: 600px) {
+  .lm-alleen-breed {
+    display: none;
+  }
+}
+
+/* Inklapbaar blok */
+.lm-uitklap {
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  background: var(--wit);
+}
+.lm-uitklap > summary {
+  cursor: pointer;
+  padding: 12px 16px;
+  font-weight: 600;
+  color: var(--donkerviolet);
+}
+.lm-uitklap > summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.lm-uitklap-inhoud {
+  padding: 0 16px 16px;
+  display: grid;
+  gap: 10px;
+}
+.lm-uitklap-inhoud .tabel-container {
+  margin: 0;
+}
+
 /* Staffelkaarten */
 .lm-staffels {
   display: grid;
@@ -82,6 +114,47 @@
 .lm-staffel .voor-wie {
   color: var(--tekst-2);
   font-size: 14px;
+}
+.lm-aanname {
+  font-size: 12.5px;
+  color: var(--tekst-2);
+  margin: 0;
+}
+/* Smal: compacte kaart, naam links en prijs rechts */
+@media (max-width: 600px) {
+  .lm-staffels {
+    gap: 10px;
+  }
+  .lm-staffel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 12px;
+    padding: 14px 16px;
+    align-items: start;
+  }
+  .lm-staffel h3 {
+    font-size: 15px;
+    border-left-width: 3px;
+    padding-left: 8px;
+  }
+  .lm-staffel .voor-wie {
+    font-size: 13px;
+    margin-top: 2px;
+  }
+  .lm-staffel-prijs {
+    text-align: right;
+  }
+  .lm-staffel .bedrag {
+    font-size: 21px;
+  }
+  .lm-aanname,
+  .lm-staffel .knop {
+    grid-column: 1 / -1;
+  }
+  .lm-staffel .knop {
+    justify-self: start;
+    margin-top: 2px;
+  }
 }
 
 /* Gegevenslijsten (voorwaarden, samenvatting) */
@@ -216,6 +289,11 @@
 @media (max-width: 900px) {
   .lm-stappenplan {
     grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+  .lm-stappenplan li {
+    padding: 10px 14px;
+    gap: 2px;
   }
 }
 .lm-stappenplan li {
@@ -303,25 +381,137 @@
 }
 
 /* Aanmelden: formulier met prijsblok ernaast */
+/* Het prijsblok staat in de HTML vóór het formulier (schermlezers horen de prijs eerst).
+   Breed: rechts naast het formulier, meescrollend. Smal: een compacte balk die bovenaan in beeld blijft
+   zolang het formulier in beeld is. */
 .lm-aanmelden {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 4fr);
   gap: 20px;
   align-items: start;
 }
-@media (max-width: 900px) {
-  .lm-aanmelden {
-    grid-template-columns: minmax(0, 1fr);
-  }
+.lm-aanmelden > form {
+  grid-column: 1;
+  grid-row: 1;
 }
 .lm-prijsblok {
+  grid-column: 2;
+  grid-row: 1;
   position: sticky;
   top: 16px;
+  background: var(--wit);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius-kaart);
+  padding: 18px 20px;
+  display: grid;
+  gap: 8px;
+}
+.lm-prijsblok-kop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+.lm-prijsblok-kop h2 {
+  font-size: 17px;
+  margin: 0;
+}
+.lm-prijsblok-bedrag {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--donkerviolet);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+  margin: 0;
+}
+.lm-prijsblok-bedrag span {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--tekst-secundair);
+}
+.lm-prijsblok p {
+  margin: 0;
+}
+.lm-prijsblok-bereik {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  font-size: 14px;
+}
+.lm-prijsblok-bereik strong {
+  color: var(--donkerviolet);
+  font-variant-numeric: tabular-nums;
+}
+.lm-prijsblok .lm-gegevens {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+}
+.lm-prijsblok .lm-gegevens dd {
+  margin-bottom: 6px;
 }
 @media (max-width: 900px) {
-  .lm-prijsblok {
-    position: static;
+  .lm-aanmelden {
+    display: block;
   }
+  .lm-prijsblok {
+    top: 0;
+    z-index: 5;
+    padding: 8px 14px 10px;
+    margin: 0 0 12px;
+    gap: 2px;
+    border-radius: 0 0 var(--radius) var(--radius);
+    border-top: 3px solid var(--paars);
+    box-shadow: 0 6px 14px rgba(17, 24, 39, 0.1);
+  }
+  .lm-prijsblok-kop h2 {
+    font-size: 13px;
+    color: var(--tekst-2);
+  }
+  .lm-prijsblok-bedrag {
+    font-size: 19px;
+  }
+  .lm-prijsblok-extra {
+    display: none;
+  }
+  .lm-prijsblok-bereik {
+    font-size: 13px;
+  }
+  /* Een veld dat focus krijgt, valt niet weg achter de vaste prijsbalk. */
+  .lm-aanmelden :is(input, textarea, select, summary) {
+    scroll-margin-top: 130px;
+  }
+}
+
+/* Aanvullende, optionele gegevens: ingeklapt */
+.lm-aanvullend {
+  border: 1px solid var(--rand);
+  border-radius: var(--radius);
+  background: var(--kaartvlak);
+  margin-top: 18px;
+}
+.lm-aanvullend > summary {
+  cursor: pointer;
+  padding: 12px 16px;
+  font-weight: 600;
+  color: var(--donkerviolet);
+  display: grid;
+  gap: 2px;
+}
+.lm-aanvullend > summary span {
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--tekst-secundair);
+}
+.lm-aanvullend > summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.lm-aanvullend-inhoud {
+  padding: 4px 16px 16px;
+  display: grid;
+  gap: 14px;
 }
 .lm-formdeel {
   display: grid;
@@ -428,23 +618,21 @@
   color: var(--tekst-2);
 }
 
-/* Prijs direct onder het type organisatie. Op brede schermen staat het prijsblok ernaast; dan is dit dubbel. */
-.lm-prijs-inline {
-  border-left: 4px solid var(--paars);
-  background: var(--kaartvlak);
-  border-radius: var(--radius-klein);
-  padding: 8px 12px;
-  margin: 0;
-}
-@media (min-width: 901px) {
-  .lm-prijs-inline {
-    display: none;
-  }
-}
-
 /* Naar boven */
 .lm-naar-boven {
   margin-top: 24px;
   text-align: right;
   font-size: 14px;
+}
+
+/* Toelichting onder een keuzerondje, bijvoorbeeld de prijs bij het type organisatie */
+.lm-keuze-toelichting {
+  display: block;
+  font-size: 13px;
+  color: var(--tekst-secundair);
+  margin-top: 1px;
+}
+.lm-keuze-toelichting strong {
+  color: var(--donkerviolet);
+  font-variant-numeric: tabular-nums;
 }

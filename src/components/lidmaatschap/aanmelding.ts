@@ -6,10 +6,22 @@ import {
   AANMELD_FORMULIER,
   organisatietypen,
   publiekeMaildomeinen,
+  staffelVan,
   type Aanvraagsoort,
   type Organisatietype,
+  type Staffel,
 } from '../../data/lidmaatschap';
-import { bepaalStaffel, berekenAanmelding, controleerStartdatum, type Berekening } from '../../lib/prijs';
+import {
+  bepaalStaffel,
+  berekenAanmelding,
+  controleerStartdatum,
+  isIsoDatum,
+  looptijdVan,
+  prijsVoorStaffel,
+  type Berekening,
+  type Looptijd,
+  type Prijs,
+} from '../../lib/prijs';
 
 export type Factuurvorm = 'pdf' | 'peppol';
 
@@ -146,14 +158,58 @@ export function berekening(g: AanmeldGegevens): Berekening | null {
   return berekenAanmelding({ type: g.type, aantalGemeenten: aantalGemeenten(g), startdatum: g.startdatum });
 }
 
+/* ---------- Prijs tijdens het invullen ---------- */
+
+export type PrijsStand =
+  /** Staffel staat vast. Looptijd alleen als de startdatum geldig is; de prijs hangt daar niet van af. */
+  | { soort: 'prijs'; staffel: Staffel; prijs: Prijs; looptijd: Looptijd | null }
+  /** Samenwerkingsverband zonder (geldig) aantal gemeenten: beide prijzen tonen. */
+  | { soort: 'bereik'; opties: { staffel: Staffel; prijs: Prijs }[]; melding: string }
+  | { soort: 'leeg'; melding: string };
+
+/**
+ * Wat het prijsblok toont terwijl iemand het formulier invult. De prijs verschijnt zodra het type bekend is;
+ * een ongeldige startdatum verbergt alleen de looptijd, niet de prijs.
+ */
+export function prijsStand(g: AanmeldGegevens): PrijsStand {
+  if (!g.type) return { soort: 'leeg', melding: 'Kies het type organisatie, dan ziet u hier de prijs.' };
+  const n = aantalGemeenten(g);
+  const id = bepaalStaffel(g.type, n);
+  if (!id) {
+    const opties = (['samenwerkingsverband-klein', 'samenwerkingsverband-groot'] as const).map((s) => ({
+      staffel: staffelVan(s),
+      prijs: prijsVoorStaffel(s),
+    }));
+    const melding =
+      n === undefined
+        ? 'Vul het aantal deelnemende gemeenten in, dan ziet u de prijs die voor u geldt.'
+        : 'Het aantal gemeenten moet een heel getal van 2 of meer zijn. Eén gemeente? Kies dan het type Gemeente.';
+    return { soort: 'bereik', opties, melding };
+  }
+  return {
+    soort: 'prijs',
+    staffel: staffelVan(id),
+    prijs: prijsVoorStaffel(id),
+    looptijd: isIsoDatum(g.startdatum) ? looptijdVan(g.startdatum) : null,
+  };
+}
+
 /** Velden die in stap 1 (gegevens) staan, in schermvolgorde. De akkoordvelden staan in stap 2. */
 export const veldenStap1: Veld[] = [
-  'soort', 'organisatie', 'type', 'aantal_gemeenten', 'kvk', 'btw_nummer', 'oin',
-  'factuur_adres', 'factuur_postcode', 'factuur_plaats', 'factuur_ter_attentie', 'crediteuren_email',
-  'factuurvorm', 'peppol_id', 'inkoopordernummer',
-  'contact_naam', 'contact_functie', 'contact_email', 'contact_telefoon',
-  'toegang', 'startdatum', 'opmerkingen',
+  'soort', 'type', 'aantal_gemeenten', 'organisatie', 'kvk', 'btw_nummer',
+  'factuur_adres', 'factuur_postcode', 'factuur_plaats', 'crediteuren_email', 'inkoopordernummer',
+  'contact_naam', 'contact_email', 'toegang', 'startdatum',
+  'oin', 'factuur_ter_attentie', 'factuurvorm', 'peppol_id', 'contact_functie', 'contact_telefoon', 'opmerkingen',
 ];
+
+/**
+ * Velden in het inklapbare deel "Aanvullende gegevens". Het btw-nummer staat daar alleen voor overheden;
+ * voor een verwerker is het verplicht en staat het bij de organisatie.
+ */
+export function aanvullendeVelden(type: Organisatietype | ''): Veld[] {
+  const vast: Veld[] = ['oin', 'factuur_ter_attentie', 'factuurvorm', 'peppol_id', 'contact_functie', 'contact_telefoon', 'opmerkingen'];
+  return type === 'verwerker' ? vast : ['btw_nummer', ...vast];
+}
 export const veldenStap2: Veld[] = ['akkoord_voorwaarden', 'akkoord_privacy'];
 
 const verplicht = (s: string) => s.trim().length > 0;
@@ -292,4 +348,46 @@ export function codeer(velden: Record<string, string>): string {
   data.append('bot-field', '');
   for (const [k, v] of Object.entries(velden)) data.append(k, v);
   return data.toString();
+}
+
+/* ---------- E-mail als alternatief ---------- */
+
+/**
+ * Veilige lengte voor een mailto-link. Sommige mailprogramma's (onder meer Outlook voor Windows) kappen links rond
+ * 2.000 tekens af; dit is een praktische grens, geen norm.
+ */
+export const MAILTO_MAX = 1900;
+
+export function mailtekst(velden: Record<string, string>): string {
+  const regels = Object.entries(velden)
+    .filter(([, v]) => v !== '')
+    .map(([k, v]) => `${k}: ${v}`);
+  return ['Aanmelding lidmaatschap (via het formulier, verzenden lukte niet)', '', ...regels].join('\n');
+}
+
+const INGEKORT = ' … [ingekort, zie het formulier]';
+
+/**
+ * Mailto-link met alle velden. Wordt de link te lang, dan worden de opmerkingen ingekort (die zijn het enige vrije,
+ * lange veld). `ingekort` zegt of dat gebeurd is, zodat de pagina het kan melden.
+ */
+export function mailtoMetVelden(
+  aan: string,
+  onderwerp: string,
+  velden: Record<string, string>,
+  max = MAILTO_MAX,
+): { href: string; ingekort: boolean } {
+  const maak = (v: Record<string, string>) =>
+    `mailto:${aan}?subject=${encodeURIComponent(onderwerp)}&body=${encodeURIComponent(mailtekst(v))}`;
+  const volledig = maak(velden);
+  const opm = velden.opmerkingen ?? '';
+  if (volledig.length <= max || opm === '') return { href: volledig, ingekort: false };
+  let laag = 0;
+  let hoog = opm.length;
+  while (laag < hoog) {
+    const midden = Math.ceil((laag + hoog) / 2);
+    if (maak({ ...velden, opmerkingen: opm.slice(0, midden) + INGEKORT }).length <= max) laag = midden;
+    else hoog = midden - 1;
+  }
+  return { href: maak({ ...velden, opmerkingen: opm.slice(0, laag).trimEnd() + INGEKORT }), ingekort: true };
 }
