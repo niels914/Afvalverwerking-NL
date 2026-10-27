@@ -175,8 +175,8 @@ function VoorbeeldKaart() {
       titel="Voorbeeld uit het aanbestedingsarchief"
       sub={
         <>
-          Leden zoeken in {getal(telling.totaal)} aanbestedingen over afval sinds {new Date(telling.sinds).getFullYear()}, waarvan{' '}
-          {getal(telling.open)} open voor inschrijving (stand {datum(peildatum)}). Drie daarvan:
+          Het archief bevat {getal(telling.totaal)} aanbestedingen over afval sinds {new Date(telling.sinds).getFullYear()}, waarvan{' '}
+          {getal(telling.open)} open voor inschrijving (stand {datum(peildatum)}). Open aanbestedingen kunt u ook zonder account doorzoeken. Drie daarvan:
         </>
       }
       className="voorbeeld"

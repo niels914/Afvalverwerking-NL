@@ -18,7 +18,7 @@ export const navigatie: NavItem[] = [
   { pad: '/nieuws', label: 'Nieuws' },
   { pad: '/kennisbank', label: 'Kennisbank' },
   { pad: '/tools', label: 'Tools' },
-  { pad: '/aanbestedingsarchief', label: 'Aanbestedingsarchief', alleenLeden: true },
+  { pad: '/aanbestedingsarchief', label: 'Aanbestedingsarchief' },
   { pad: '/lidmaatschap', label: 'Lidmaatschap' },
   { pad: '/over-het-platform', label: 'Over het platform' },
 ];

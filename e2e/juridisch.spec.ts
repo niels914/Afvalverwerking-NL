@@ -97,7 +97,7 @@ test('verklaringen beschrijven invoer in het webadres en het gedeelde aanbestedi
   await page.goto('/cookies#overzicht');
   await expect(page.getByRole('heading', { level: 3, name: 'Uw invoer in het webadres' })).toBeVisible();
   await page.goto('/privacy#database');
-  await expect(page.getByRole('heading', { level: 3, name: 'Gedeelde open gegevens voor alle leden' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 3, name: 'Gedeelde open gegevens' })).toBeVisible();
   await expect(page.locator('#database')).toContainText('ververs-aanbestedingen');
   await page.goto('/algemene-voorwaarden#persoonsgegevens');
   await expect(page.locator('#persoonsgegevens')).toContainText('webadres');

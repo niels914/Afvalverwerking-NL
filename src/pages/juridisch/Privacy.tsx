@@ -180,10 +180,11 @@ const secties: Sectie[] = [
         <h3>Over uw eigen account en organisatie</h3>
         <p>Deze functies geven alleen gegevens over uw eigen account en uw eigen organisatie, nooit over anderen.</p>
         <DatabaseLijst bereik="eigen" />
-        <h3>Gedeelde open gegevens voor alle leden</h3>
+        <h3>Gedeelde open gegevens</h3>
         <p>
-          Het aanbestedingsarchief is voor alle leden hetzelfde. Het bevat openbare aankondigingen van TenderNed en geen
-          persoonsgegevens. Wie niet is ingelogd als lid, kan het niet lezen.
+          Het aanbestedingsarchief is voor iedereen hetzelfde. Het bevat openbare aankondigingen van TenderNed en geen
+          persoonsgegevens. Bezoekers zien alleen de open aanbestedingen (titel, opdrachtgever, sluitingsdatum en link naar
+          TenderNed); het volledige archief met filters, details en historie is voor leden.
         </p>
         <DatabaseLijst bereik="gedeeld" />
         <h3>Op de achtergrond</h3>
@@ -285,8 +286,8 @@ const secties: Sectie[] = [
         <li>Een account geeft pas toegang nadat het e-mailadres is bevestigd via een link in de mailbox.</li>
         <li>
           De database geeft elke gebruiker alleen gegevens over het eigen account en de eigen organisatie. Het
-          aanbestedingsarchief, met openbare gegevens van TenderNed, kunnen alle leden lezen. Dit wordt afgedwongen met Row
-          Level Security.
+          aanbestedingsarchief, met openbare gegevens van TenderNed, kunnen alle leden volledig lezen; bezoekers krijgen via
+          een aparte functie alleen de open aanbestedingen met vijf velden. Dit wordt afgedwongen met Row Level Security.
         </li>
         {domeincontroleBijAanmaken && (
           <li>Een nieuw account wordt alleen aangemaakt voor een e-maildomein van een organisatie die bij KplusV bekend is.</li>
