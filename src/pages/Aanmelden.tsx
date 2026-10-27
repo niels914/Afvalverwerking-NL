@@ -162,6 +162,7 @@ export function Aanmelden() {
   const foutRef = useRef<HTMLDivElement>(null);
   const eersteRender = useRef(true);
 
+  const b = berekening(g);
   const zet = <K extends Veld>(k: K, v: AanmeldGegevens[K]) => {
     setG((x) => ({ ...x, [k]: v }));
     if (fouten[k]) setFouten((f) => ({ ...f, [k]: undefined }));
