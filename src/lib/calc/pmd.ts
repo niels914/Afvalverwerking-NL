@@ -11,7 +11,8 @@
 //   netto kosten         = restafval × (nascheidingskosten − nascheidingsvergoeding) − PMD teruggewonnen × verbrandingstarief
 //
 // De verbrandingstarief-term is de vermeden verbranding: PMD dat niet als restafval wordt verbrand.
-// Teruggewonnen PMD bij nascheiding heeft geen openbare bron; zonder die invoer is de nascheidingsuitkomst null.
+// Teruggewonnen PMD bij nascheiding: kental 15–25 kg per inwoner uit IPR Normag (2021). Laat de gebruiker het veld leeg,
+// dan is de nascheidingsuitkomst null.
 
 export interface PmdInvoer {
   inwoners: number;
@@ -29,7 +30,7 @@ export interface PmdInvoer {
   nascheidingskosten: number;
   /** € per ton restafval: nascheidingsvergoeding Verpact. */
   vergoedingNa: number;
-  /** kg PMD per inwoner dat de nascheider terugwint. Geen openbare bron: null tot de gebruiker invult. */
+  /** kg PMD per inwoner dat de nascheider terugwint. Kental; null als de gebruiker het veld leegmaakt. */
   teruggewonnenNa: number | null;
   /** € per ton restafval: verbrandingstarief inclusief afvalstoffenbelasting (vermeden kosten). */
   verbrandingstarief: number;
@@ -138,4 +139,65 @@ export function pmdUitParams(p: URLSearchParams, standaard: PmdInvoer): PmdInvoe
     (uit as Record<string, number | null>)[k] = n;
   }
   return uit;
+}
+
+/* ---------- Controle van de invoer ---------- */
+
+export interface PmdGrenzen {
+  /** Hoogste waarde voor teruggewonnen PMD in de bron (kg per inwoner). */
+  teruggewonnenHoog: number;
+  /** Aandeel PMD in restafval dat naar nascheiding gaat (0–1), volgens het kostenonderzoek. */
+  pmdAandeelRestafval: number;
+  /** Hoogste gescheiden ingezamelde hoeveelheid PMD van een gemeente volgens CBS (kg per inwoner). */
+  responsMax: number;
+  /** Inwoners van Nederland. */
+  inwonersNl: number;
+}
+
+export interface PmdControle {
+  fouten: string[];
+  signalen: string[];
+}
+
+const kg = (n: number) => `${String(Math.round(n * 10) / 10).replace('.', ',')} kg`;
+
+/** Controleert de invoer op onmogelijke en ongebruikelijke waarden. */
+export function controleerPmd(i: PmdInvoer, g: PmdGrenzen): PmdControle {
+  const fouten: string[] = [];
+  const signalen: string[] = [];
+  if (i.inwoners <= 0) fouten.push('Vul een aantal inwoners groter dan 0 in.');
+  if (i.teruggewonnenNa !== null && i.teruggewonnenNa > i.restafvalNa)
+    fouten.push(`Teruggewonnen PMD (${kg(i.teruggewonnenNa)} per inwoner) is meer dan het restafval dat naar de nascheider gaat (${kg(i.restafvalNa)}). Dat kan niet.`);
+  else if (i.teruggewonnenNa !== null && i.teruggewonnenNa > g.teruggewonnenHoog)
+    signalen.push(`Teruggewonnen PMD van ${kg(i.teruggewonnenNa)} per inwoner ligt boven de hoogste praktijkwaarde in de bron (${kg(g.teruggewonnenHoog)}). Vraag de onderbouwing op bij de nascheider.`);
+  if (i.teruggewonnenNa !== null && i.teruggewonnenNa <= i.restafvalNa && i.teruggewonnenNa > i.restafvalNa * g.pmdAandeelRestafval)
+    signalen.push(
+      `Bij ${kg(i.restafvalNa)} restafval per inwoner zit er gemiddeld ${kg(i.restafvalNa * g.pmdAandeelRestafval)} PMD in. Het teruggewonnen PMD is hoger; dat is alleen haalbaar als uw restafval meer PMD bevat dan gemiddeld.`,
+    );
+  if (i.responsBron > g.responsMax * 1.2)
+    signalen.push(`${kg(i.responsBron)} PMD per inwoner is meer dan de gemeente met de hoogste inzameling volgens CBS (${kg(g.responsMax)}). Controleer de waarde.`);
+  if (i.inwoners > g.inwonersNl) signalen.push('Het aantal inwoners is groter dan dat van heel Nederland. Controleer de waarde.');
+  return { fouten, signalen };
+}
+
+/* ---------- Bandbreedte ---------- */
+
+export type PmdVariant = 'teruggewonnenNa' | 'verbrandingstarief';
+
+/**
+ * Bandbreedte van de netto kosten per route en van het verschil, als de kentallen tussen laag en hoog variëren.
+ * Alleen velden die gelijk zijn aan de middelste waarde (dus niet door de gebruiker aangepast) variëren mee.
+ * Rekent alle combinaties van laag en hoog door en geeft per uitkomst het minimum en maximum.
+ */
+export function pmdBandbreedte(i: PmdInvoer, varianten: Record<PmdVariant, { laag: number; midden: number; hoog: number }>) {
+  const volgt = (Object.keys(varianten) as PmdVariant[]).filter((k) => i[k] === varianten[k].midden);
+  if (volgt.length === 0) return null;
+  let combinaties: PmdInvoer[] = [i];
+  for (const k of volgt) combinaties = combinaties.flatMap((c) => [{ ...c, [k]: varianten[k].laag }, { ...c, [k]: varianten[k].hoog }]);
+  const uitkomsten = combinaties.map(pmdVergelijking);
+  const bereik = (f: (v: PmdVergelijking) => number | null) => {
+    const w = uitkomsten.map(f).filter((x): x is number => x !== null);
+    return w.length ? { laag: Math.min(...w), hoog: Math.max(...w) } : null;
+  };
+  return { volgt, bron: bereik((v) => v.bron.netto), na: bereik((v) => v.na.netto), verschil: bereik((v) => v.verschil) };
 }

@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { euro } from '../../../lib/format';
 import './tools-b.css';
 
@@ -126,4 +126,18 @@ export function Meldingen({ fouten = [], signalen = [] }: { fouten?: string[]; s
       )}
     </div>
   );
+}
+
+/**
+ * Houdt bij welke velden een ongeldige waarde hebben (via BronVeld.onFout). De tool kan dan melden dat de uitkomst
+ * nog bij de vorige geldige invoer hoort.
+ */
+export function useVeldFouten() {
+  const [fouten, setFouten] = useState<Record<string, boolean>>({});
+  const melder = useCallback((naam: string) => (fout: boolean) => setFouten((x) => (Boolean(x[naam]) === fout ? x : { ...x, [naam]: fout })), []);
+  const lijst = Object.keys(fouten).filter((k) => fouten[k]);
+  const melding = lijst.length
+    ? `De uitkomst is niet bijgewerkt: ${lijst.join(', ')} ${lijst.length === 1 ? 'heeft' : 'hebben'} een ongeldige waarde. Hij hoort nog bij de laatste geldige invoer.`
+    : null;
+  return { lijst, melder, melding };
 }

@@ -134,3 +134,31 @@ export const cbsPmd = cbs as {
 };
 
 export const cbsGemeenten: CbsGemeente[] = cbsPmd.gemeenten;
+
+/* ---------- Bandbreedtes ---------- */
+
+/**
+ * Teruggewonnen PMD bij nascheiding, kg per inwoner per jaar dat aan recyclers wordt aangeboden: 15 tot 25 in de
+ * praktijk van verschillende nascheidingsinstallaties; een van de meest effectieve installaties haalde in 2019
+ * gemiddeld 25 kg. Vaak zonder blik gerapporteerd (PD in plaats van PMD). Bron: IPR Normag voor MARN (2021), par. 3.3.
+ */
+export const nascheidingRendement = { laag: 15, midden: 20, hoog: 25 };
+
+/** Verbrandingstarief incl. afvalstoffenbelasting bij de onder- en bovenkant van het poorttarief. */
+export const verbrandingstariefBand = {
+  laag: r2(poorttariefBandbreedte.laag + asb2026),
+  midden: kentalVerbrandingstarief,
+  hoog: r2(poorttariefBandbreedte.hoog + asb2026),
+};
+
+export const pmdVarianten = { teruggewonnenNa: nascheidingRendement, verbrandingstarief: verbrandingstariefBand };
+
+/** Grenzen voor de plausibiliteitscontrole. */
+export const pmdGrenzen = {
+  teruggewonnenHoog: nascheidingRendement.hoog,
+  pmdAandeelRestafval: nascheiding.pmdAandeel,
+  responsMax: Math.max(...cbsGemeenten.map((g) => g.pmdKgPerInw ?? 0)),
+  inwonersNl: cbsGemeenten.reduce((s, g) => s + (g.inwoners ?? 0), 0),
+};
+
+export const iprBron = bronnen.iprMarn2021;

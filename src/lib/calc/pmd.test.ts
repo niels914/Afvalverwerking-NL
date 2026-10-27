@@ -7,10 +7,14 @@ import {
   kentalVerbrandingstarief,
   kostenbasisBron,
   nascheiding,
+  nascheidingRendement,
+  pmdGrenzen,
+  pmdVarianten,
   staffel,
   staffelPerCategorie,
 } from '../../data/tools-b-pmd';
-import { breakEvenTeruggewonnen, pmdNaarParams, pmdUitParams, pmdVergelijking, routeBron, routeNa, type PmdInvoer } from './pmd';
+import { pmdStandaard } from '../../data/standaardwaarden';
+import { breakEvenTeruggewonnen, controleerPmd, pmdBandbreedte, pmdNaarParams, pmdUitParams, pmdVergelijking, routeBron, routeNa, type PmdInvoer } from './pmd';
 
 const invoer: PmdInvoer = {
   inwoners: 100000,
@@ -133,5 +137,72 @@ describe('deellink', () => {
     expect(t.responsBron).toBe(invoer.responsBron);
     expect(t.teruggewonnenNa).toBe(invoer.teruggewonnenNa);
     expect(t.verbrandingstarief).toBe(90);
+  });
+});
+
+describe('kentallen nascheiding en verbranding (ronde 2)', () => {
+  it('heeft een bandbreedte voor teruggewonnen PMD van 15 tot 25 kg per inwoner (IPR Normag 2021)', () => {
+    expect(nascheidingRendement).toEqual({ laag: 15, midden: 20, hoog: 25 });
+    expect(pmdStandaard.teruggewonnenNa).toBe(20);
+  });
+
+  it('heeft een verbrandingstarief van 95,85 tot 110,85 (poorttarief 55–70 plus ASB 2026)', () => {
+    expect(pmdVarianten.verbrandingstarief).toEqual({ laag: 95.85, midden: 103.35, hoog: 110.85 });
+  });
+
+  it('rekent bij binnenkomst beide routes uit', () => {
+    const v = pmdVergelijking(pmdStandaard);
+    expect(v.bron.netto).not.toBeNull();
+    expect(v.na.netto).not.toBeNull();
+    expect(v.verschil).not.toBeNull();
+  });
+});
+
+describe('controle van de invoer', () => {
+  it('geeft geen meldingen bij de standaard', () => {
+    expect(controleerPmd(pmdStandaard, pmdGrenzen)).toEqual({ fouten: [], signalen: [] });
+  });
+
+  it('meldt 0 of minder inwoners als fout', () => {
+    expect(controleerPmd({ ...invoer, inwoners: 0 }, pmdGrenzen).fouten).toHaveLength(1);
+  });
+
+  it('meldt meer teruggewonnen PMD dan restafval als fout', () => {
+    const c = controleerPmd({ ...invoer, teruggewonnenNa: 200 }, pmdGrenzen);
+    expect(c.fouten[0]).toContain('Dat kan niet');
+  });
+
+  it('signaleert teruggewonnen PMD boven de praktijkwaarde en boven het PMD-aandeel in restafval', () => {
+    const c = controleerPmd({ ...invoer, teruggewonnenNa: 40 }, pmdGrenzen);
+    expect(c.fouten).toEqual([]);
+    expect(c.signalen.some((s) => s.includes('hoogste praktijkwaarde'))).toBe(true);
+    // 170 kg × 14,4 % = 24,5 kg
+    expect(c.signalen.some((s) => s.includes('24,5 kg PMD'))).toBe(true);
+  });
+
+  it('signaleert een onwaarschijnlijk hoge respons en meer inwoners dan Nederland', () => {
+    const c = controleerPmd({ ...invoer, responsBron: 500, inwoners: 30_000_000 }, pmdGrenzen);
+    expect(c.signalen).toHaveLength(2);
+    expect(pmdGrenzen.inwonersNl).toBeGreaterThan(17_000_000);
+  });
+});
+
+describe('bandbreedte', () => {
+  const varianten = { teruggewonnenNa: { laag: 5, midden: 10, hoog: 15 }, verbrandingstarief: { laag: 90, midden: 100, hoog: 110 } };
+
+  it('rekent alle combinaties van laag en hoog door', () => {
+    const b = pmdBandbreedte(invoer, varianten)!;
+    expect(b.volgt).toEqual(['teruggewonnenNa', 'verbrandingstarief']);
+    // bron: 2.000 t × (325 − 228 − tarief): tarief 110 → −26.000 ; tarief 90 → 14.000
+    expect(b.bron).toEqual({ laag: -26000, hoog: 14000 });
+    // na: 17.000 × 103 = 1.751.000 − PMD × tarief ; meeste vermeden: 1.500 t × 110 = 165.000 ; minste: 500 × 90 = 45.000
+    expect(b.na).toEqual({ laag: 1751000 - 165000, hoog: 1751000 - 45000 });
+    expect(b.verschil!.laag).toBeLessThan(b.verschil!.hoog);
+  });
+
+  it('laat zelf ingevulde waarden staan en geeft null als niets meevariëert', () => {
+    const b = pmdBandbreedte({ ...invoer, verbrandingstarief: 123 }, varianten)!;
+    expect(b.volgt).toEqual(['teruggewonnenNa']);
+    expect(pmdBandbreedte({ ...invoer, verbrandingstarief: 123, teruggewonnenNa: 11 }, varianten)).toBeNull();
   });
 });

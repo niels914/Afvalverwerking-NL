@@ -6,7 +6,7 @@
 import type { BodemasInvoer } from '../lib/calc/bodemas';
 import type { PmdInvoer } from '../lib/calc/pmd';
 import { bodemasKental, bodemasScenario, gemiddeldPerAvi, stortbelasting2026 } from './tools-b-bodemas';
-import { cbsPmd, kentalNascheidingskosten, kentalVerbrandingstarief, kostenbasisBron, nascheiding, staffelPerCategorie, type StaffelCategorie } from './tools-b-pmd';
+import { cbsPmd, kentalNascheidingskosten, kentalVerbrandingstarief, kostenbasisBron, nascheiding, nascheidingRendement, staffelPerCategorie, type StaffelCategorie } from './tools-b-pmd';
 import { prijsPuntenVoorstel, standaardSelectie, type DrempelId, type StroomId } from './tools-b-aanbesteding';
 
 // Indexcalculator en CO2-heffingenscan (onderdeel tools-a) gebruiken eigen databestanden. Deze twee exports
@@ -52,7 +52,7 @@ export const bodemasStandaard: BodemasInvoer = {
 /** Standaard staffelcategorie voor bronscheiding. 3a is de categorie met het grootste tonnage in het akkoord (116 kton). */
 export const pmdStandaardCategorie: StaffelCategorie = '3a';
 
-/** PMD: landelijke CBS-cijfers, kostenbasis en vergoedingen uit het akkoord 2025, kental verbranding. */
+/** PMD: landelijke CBS-cijfers, kostenbasis en vergoedingen uit het akkoord 2025, kentallen verbranding en nascheiding. */
 export const pmdStandaard: PmdInvoer = {
   inwoners: 100000, // voorbeeld, kies uw gemeente of vul in
   responsBron: cbsPmd.landelijk.pmdKgPerInw,
@@ -62,7 +62,7 @@ export const pmdStandaard: PmdInvoer = {
   restafvalNa: Math.round((cbsPmd.landelijk.restafvalKgPerInw + cbsPmd.landelijk.pmdKgPerInw) * 10) / 10,
   nascheidingskosten: kentalNascheidingskosten,
   vergoedingNa: nascheiding.vergoeding2026,
-  teruggewonnenNa: null, // geen openbare bron
+  teruggewonnenNa: nascheidingRendement.midden, // kental IPR Normag 2021: 15–25 kg per inwoner
   verbrandingstarief: kentalVerbrandingstarief,
 };
 
