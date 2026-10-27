@@ -17,6 +17,7 @@
   --kaartvlak: #f3f1fa;
   --kaartvlak-2: #ede8f5;
   --rand: #e2dff0;
+  --rand-invoer: #878c9e; /* rand van invoervelden: minimaal 3:1 op wit (WCAG 1.4.11) */
   --rij: #f3f4f6;
   --tekst: #111827;
   --tekst-2: #374151;

@@ -215,7 +215,7 @@ export const veelgesteldeVragen: Vraag[] = [
   {
     vraag: 'Is een verwerkersovereenkomst nodig?',
     antwoord: [
-      'Naar verwachting niet. KplusV verwerkt de gegevens van accounts en contactpersonen als verwerkingsverantwoordelijke, niet in opdracht van uw organisatie. Wat u in de rekentools invult, blijft in uw browser. Vraagt uw inkoopbeleid toch om een verwerkersovereenkomst, meld dat dan bij de aanmelding.',
+      'Naar verwachting niet. KplusV verwerkt de gegevens van accounts en contactpersonen als verwerkingsverantwoordelijke, niet in opdracht van uw organisatie. Wat u in de rekentools invult, slaat KplusV niet op; de invoer staat wel in het webadres van de pagina (zie artikel 12.2 van de algemene voorwaarden). Vraagt uw inkoopbeleid toch om een verwerkersovereenkomst, meld dat dan bij de aanmelding.',
       'Concept: dit standpunt wordt nog juridisch getoetst.',
     ],
     links: [

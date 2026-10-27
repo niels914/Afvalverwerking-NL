@@ -508,7 +508,7 @@ button:disabled {
 .invoer {
   display: flex;
   align-items: stretch;
-  border: 1px solid var(--rand);
+  border: 1px solid var(--rand-invoer);
   border-radius: var(--radius);
   background: var(--wit);
   overflow: hidden;
@@ -516,7 +516,7 @@ button:disabled {
 }
 .invoer:focus-within {
   border-color: var(--paars);
-  box-shadow: 0 0 0 3px var(--kaartvlak-2);
+  box-shadow: 0 0 0 2px var(--paars);
 }
 .invoer input,
 .invoer select {

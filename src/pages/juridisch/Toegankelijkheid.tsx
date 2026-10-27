@@ -86,7 +86,7 @@ const secties: Sectie[] = [
           <>
             <h3>Lighthouse</h3>
             <p>
-              Met Lighthouse {meting.lighthouse.versie} ({meting.lighthouse.instelling}) op tien veelgebruikte pagina’s. Een score loopt van 0 tot 100. Prestaties gaat over laadsnelheid, niet over toegankelijkheid; de Restafvalkaart laadt de grenzen van alle gemeenten en is daardoor trager.
+              Met Lighthouse {meting.lighthouse.versie} ({meting.lighthouse.instelling}) op tien veelgebruikte pagina’s. Een score loopt van 0 tot 100. Prestaties gaat over laadsnelheid, niet over toegankelijkheid.
             </p>
             <div className="tabel-container" role="region" aria-label="Lighthouse-scores per pagina" tabIndex={0}>
               <table>
@@ -145,8 +145,13 @@ const secties: Sectie[] = [
       ) : (
         <>
           <p>
-            Bij de meting van {datum(meting.datum)} voldeden deze onderdelen nog niet. Per probleem staat waar het zit, wat het
-            voor u betekent en wat wij eraan doen. De juridische pagina’s zelf hadden geen bevindingen.
+            Bij de meting van {datum(meting.datum)} voldeed {bekendeProblemen.length === 1 ? 'dit onderdeel' : 'deze onderdelen'}{' '}
+            nog niet. axe controleert de rand van invoervelden niet; dit probleem is met de hand gemeten. Per probleem staat
+            waar het zit, wat het voor u betekent en wat wij eraan doen.
+          </p>
+          <p>
+            Sinds de meting van 20 oktober 2026 zijn opgelost: het contrast van blauwe links, van grijze hulptekst op
+            lichtpaarse vlakken en van de tekst in de paarse kerncijfertegel, en de te kleine links naar nieuwsbronnen.
           </p>
           <div className="jd-blokken">
             {bekendeProblemen.map((p) => (

@@ -28,6 +28,8 @@ export function Voettekst() {
             <a href={`mailto:${c.email}`}>{c.email}</a>
             <br />
             <a href={`tel:+31${c.telefoon.replace(/\s/g, '').slice(1)}`}>{c.telefoon}</a>
+            <br />
+            Algemeen: <a href={`mailto:${aanbieder.emailAlgemeen}`}>{aanbieder.emailAlgemeen}</a>
           </address>
         </section>
         <nav aria-labelledby="voet-over">

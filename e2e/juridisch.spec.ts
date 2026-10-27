@@ -14,7 +14,7 @@ async function geenHorizontaleScroll(page: Page) {
 
 for (const doc of paginas) {
   test.describe(doc.titel, () => {
-    test('heeft conceptmarkering, versie, datum en een werkende inhoudsopgave', async ({ page }) => {
+    test('heeft conceptmarkering, versie, datum, kern en een werkende inhoudsopgave', async ({ page }) => {
       await page.goto(doc.pad);
       await expect(page.getByRole('heading', { level: 1, name: doc.titel })).toBeVisible();
       await expect(page).toHaveTitle(new RegExp(doc.titel));
@@ -25,34 +25,87 @@ for (const doc of paginas) {
       await expect(markering).toContainText('2026');
       await expect(page.getByText(/laatst gewijzigd op/)).toBeVisible();
 
-      const inhoud = page.getByRole('navigation', { name: 'Op deze pagina' });
-      const links = inhoud.getByRole('link');
-      const aantal = await links.count();
-      expect(aantal).toBeGreaterThanOrEqual(4);
+      // De kern staat altijd open bovenaan.
+      const kern = page.getByRole('region', { name: 'In het kort' });
+      await expect(kern).toBeVisible();
+      expect(await kern.getByRole('listitem').count()).toBeGreaterThanOrEqual(3);
 
-      // Elk anker heeft een doel met een kop.
+      const knoppen = page.locator('.jd-sectie > h2 > button');
+      const aantal = await knoppen.count();
+      expect(aantal).toBeGreaterThanOrEqual(4);
+      const breed = (page.viewportSize()?.width ?? 0) >= 760;
+
+      // Elke sectie heeft een id, een kop met een knop en een inhoud die bij de knop hoort.
       for (let i = 0; i < aantal; i++) {
-        const href = await links.nth(i).getAttribute('href');
-        expect(href).toMatch(/^#[a-z0-9-]+$/);
-        const doel = page.locator(`${href} > h2`);
-        await expect(doel).toHaveCount(1);
+        const knop = knoppen.nth(i);
+        await expect(knop).toHaveAttribute('aria-expanded', breed ? 'true' : 'false');
+        const inhoudId = (await knop.getAttribute('aria-controls'))!;
+        await expect(page.locator(`#${inhoudId}`)).toBeVisible({ visible: breed });
       }
 
-      // De laatste link brengt de sectie in beeld en zet het anker in de adresbalk.
-      const laatste = links.nth(aantal - 1);
-      const href = (await laatste.getAttribute('href'))!;
-      await laatste.click();
-      await expect(page).toHaveURL(new RegExp(`${doc.pad}${href}$`));
-      await expect(page.locator(`${href} > h2`)).toBeInViewport();
+      const inhoud = page.getByRole('navigation', { name: 'Op deze pagina' });
+      if (breed) {
+        // Breed: inhoudsopgave met een link naar elke sectie; de laatste link zet het anker in de adresbalk.
+        const links = inhoud.getByRole('link');
+        await expect(links).toHaveCount(aantal);
+        for (let i = 0; i < aantal; i++) {
+          const href = await links.nth(i).getAttribute('href');
+          expect(href).toMatch(/^#[a-z0-9-]+$/);
+          await expect(page.locator(`${href} > h2`)).toHaveCount(1);
+        }
+        const laatste = links.nth(aantal - 1);
+        const href = (await laatste.getAttribute('href'))!;
+        await laatste.click();
+        await expect(page).toHaveURL(new RegExp(`${doc.pad}${href}$`));
+        await expect(page.locator(`${href} > h2`)).toBeInViewport();
+        await page.getByRole('button', { name: 'Alles inklappen' }).click();
+        await expect(knoppen.first()).toHaveAttribute('aria-expanded', 'false');
+      } else {
+        // Smal: de koppen van de dichte secties zijn de inhoudsopgave; een klik klapt open.
+        await expect(inhoud).toBeHidden();
+        const laatste = knoppen.nth(aantal - 1);
+        await laatste.click();
+        await expect(laatste).toHaveAttribute('aria-expanded', 'true');
+        await expect(page.locator(`#${await laatste.getAttribute('aria-controls')}`)).toBeVisible();
+        await page.getByRole('button', { name: 'Alles uitklappen' }).click();
+        await expect(knoppen.first()).toHaveAttribute('aria-expanded', 'true');
+      }
 
       await geenHorizontaleScroll(page);
     });
   });
 }
 
-test('focus is zichtbaar op links in de inhoudsopgave', async ({ page }) => {
+test('anker naar een plek in een dichte sectie klapt die sectie open', async ({ page }) => {
+  await page.goto('/privacy#verwerking-bezoek');
+  const doel = page.locator('#verwerking-bezoek');
+  await expect(doel).toBeVisible();
+  await expect(doel).toBeInViewport();
+  await expect(doel).toContainText('webadres');
+});
+
+test('afdrukken toont alle secties en geen bediening', async ({ page }) => {
+  await page.goto('/algemene-voorwaarden');
+  await page.emulateMedia({ media: 'print' });
+  await expect(page.locator('#aansprakelijkheid-inhoud')).toBeVisible();
+  await expect(page.getByRole('heading', { level: 2, name: '11. Aansprakelijkheid' })).toBeVisible();
+  await expect(page.locator('.jd-acties')).toBeHidden();
+  await expect(page.locator('.jd-toetspunt').first()).toBeHidden();
+});
+
+test('verklaringen beschrijven invoer in het webadres en het gedeelde aanbestedingsarchief', async ({ page }) => {
+  await page.goto('/cookies#overzicht');
+  await expect(page.getByRole('heading', { level: 3, name: 'Uw invoer in het webadres' })).toBeVisible();
+  await page.goto('/privacy#database');
+  await expect(page.getByRole('heading', { level: 3, name: 'Gedeelde open gegevens voor alle leden' })).toBeVisible();
+  await expect(page.locator('#database')).toContainText('ververs-aanbestedingen');
+  await page.goto('/algemene-voorwaarden#persoonsgegevens');
+  await expect(page.locator('#persoonsgegevens')).toContainText('webadres');
+});
+
+test('focus is zichtbaar op de knoppen van de secties', async ({ page }) => {
   await page.goto('/privacy');
-  const link = page.getByRole('navigation', { name: 'Op deze pagina' }).getByRole('link').first();
+  const link = page.locator('.jd-sectie-knop').first();
   await link.focus();
   const outline = await link.evaluate((el) => getComputedStyle(el).outlineStyle + ' ' + getComputedStyle(el).outlineWidth);
   expect(outline).not.toMatch(/^none|0px$/);
@@ -145,6 +198,9 @@ test('geen cookies, alleen beschreven browseropslag en geen onbeschreven verbind
 
 test('toegankelijkheidsverklaring toont status, meting en bekende problemen uit de meetgegevens', async ({ page }) => {
   await page.goto('/toegankelijkheid');
+  await expect(page.getByRole('region', { name: 'In het kort' })).toContainText(`Status ${status.letter}`);
+  const uitklappen = page.getByRole('button', { name: 'Alles uitklappen' });
+  if (await uitklappen.isVisible()) await uitklappen.click();
   await expect(page.getByText(`Status ${status.letter}:`, { exact: false }).first()).toBeVisible();
   const schaal = page.getByRole('list', { name: 'Statussen A tot en met E' });
   await expect(schaal.getByRole('listitem')).toHaveCount(5);
@@ -162,7 +218,7 @@ test('kaart haalt geen kaarttegels of andere bestanden bij derden op', async ({ 
     if (new URL(r.url()).hostname !== eigenHost) extern.push(r.url());
   });
   await page.goto('/restafvalkaart');
-  await expect(page.locator('.leaflet-container')).toBeVisible();
+  await expect(page.locator('.kaart-vak svg path').first()).toBeVisible();
   await page.waitForLoadState('networkidle');
   expect(extern).toEqual([]);
 });

@@ -24,29 +24,31 @@ export interface BekendProbleem {
 }
 
 export const meting = {
-  datum: '2026-10-20',
-  omgeving: 'Productiebuild van het platform, lokaal geserveerd, in Chromium 141 (Playwright), zonder in te loggen.',
+  datum: '2026-10-27',
+  omgeving:
+    'Productiebuild van het platform zoals die op die dag in ontwikkeling was, lokaal geserveerd, in Chromium 141 (Playwright 1.56), zonder in te loggen.',
   axe: {
-    versie: '4.10.2',
+    versie: '4.14.0',
     regels: 'WCAG 2.0, 2.1 en 2.2, niveau A en AA',
     breedtes: [400, 1280],
+    /** 21 pagina's plus de foutpagina voor een onbekend adres. */
     aantalPaginas: 22,
-    paginasZonderBevindingen: 10,
+    paginasZonderBevindingen: 22,
   },
   lighthouse: {
     versie: '12.8.2',
     instelling: 'mobiele weergave, standaardinstellingen',
     uitkomsten: [
-      { pagina: 'Home', pad: '/', toegankelijkheid: 96, prestaties: 87 },
-      { pagina: 'Restafvalkaart', pad: '/restafvalkaart', toegankelijkheid: 97, prestaties: 53 },
-      { pagina: 'Indexcalculator', pad: '/tools/indexcalculator', toegankelijkheid: 97, prestaties: 97 },
-      { pagina: 'Lidmaatschap', pad: '/lidmaatschap', toegankelijkheid: 97, prestaties: 90 },
-      { pagina: 'Aanmelden', pad: '/lidmaatschap/aanmelden', toegankelijkheid: 96, prestaties: 94 },
-      { pagina: 'Algemene voorwaarden', pad: '/algemene-voorwaarden', toegankelijkheid: 100, prestaties: 95 },
-      { pagina: 'Privacyverklaring', pad: '/privacy', toegankelijkheid: 100, prestaties: 95 },
-      { pagina: 'Cookieverklaring', pad: '/cookies', toegankelijkheid: 100, prestaties: 97 },
-      { pagina: 'Toegankelijkheidsverklaring', pad: '/toegankelijkheid', toegankelijkheid: 100, prestaties: 95 },
-      { pagina: 'Disclaimer en colofon', pad: '/disclaimer', toegankelijkheid: 100, prestaties: 95 },
+      { pagina: 'Home', pad: '/', toegankelijkheid: 100, prestaties: 97 },
+      { pagina: 'Restafvalkaart', pad: '/restafvalkaart', toegankelijkheid: 100, prestaties: 97 },
+      { pagina: 'Indexcalculator', pad: '/tools/indexcalculator', toegankelijkheid: 100, prestaties: 97 },
+      { pagina: 'Lidmaatschap', pad: '/lidmaatschap', toegankelijkheid: 100, prestaties: 98 },
+      { pagina: 'Aanmelden', pad: '/lidmaatschap/aanmelden', toegankelijkheid: 100, prestaties: 98 },
+      { pagina: 'Algemene voorwaarden', pad: '/algemene-voorwaarden', toegankelijkheid: 100, prestaties: 97 },
+      { pagina: 'Privacyverklaring', pad: '/privacy', toegankelijkheid: 100, prestaties: 98 },
+      { pagina: 'Cookieverklaring', pad: '/cookies', toegankelijkheid: 100, prestaties: 98 },
+      { pagina: 'Toegankelijkheidsverklaring', pad: '/toegankelijkheid', toegankelijkheid: 100, prestaties: 97 },
+      { pagina: 'Disclaimer en colofon', pad: '/disclaimer', toegankelijkheid: 100, prestaties: 98 },
     ] as LighthouseUitkomst[],
   },
   /** Handmatige controles, uitgevoerd op de meetdatum met een script dat met de Tab-toets door de pagina's loopt. */
@@ -55,8 +57,8 @@ export const meting = {
     'Links en knoppen krijgen bij focus een paarse rand van 3 pixels. Invoervelden krijgen een dunne paarse rand; zie Bekende problemen.',
     'Op 400 en 1.280 pixels breed hoeft u op geen van de 22 pagina’s horizontaal te scrollen.',
     'Status en labels (lid, concept, voorbeeld, bèta) staan in tekst, niet alleen in kleur.',
+    'De onderdelen van de juridische pagina’s klappen open en dicht met Enter of de spatiebalk; de knop meldt of het onderdeel open of dicht is. Zoeken in de pagina vindt ook tekst in een dicht onderdeel.',
     'Op de Restafvalkaart kunt u een gemeente ook zoeken op naam of kiezen in een tabel met de cijfers per gemeente, zonder de kaart te gebruiken.',
-    'De brede tabel op de Restafvalkaart is op een smal scherm met het toetsenbord te scrollen.',
     'Grafieken in de rekentools hebben een tekstalternatief; de uitkomsten staan ook in tekst of in een tabel.',
     'axe vond op geen enkele pagina een invoerveld zonder label.',
   ],
@@ -68,50 +70,15 @@ export const meting = {
   ],
 };
 
+/**
+ * Opgelost sinds de meting van 20 oktober 2026 (niet meer gevonden op 27 oktober): contrast van blauwe links,
+ * grijze hulptekst op lichtpaarse vlakken, tekst in de paarse kerncijfertegel en de kleine links naar nieuwsbronnen.
+ */
 export const bekendeProblemen: BekendProbleem[] = [
-  {
-    id: 'linkkleur',
-    onderdeel: 'Blauwe links op lichte achtergronden',
-    paginas: ['Restafvalkaart', 'Kennisbank', 'Indexcalculator', 'CO2-heffingenscan', 'Bodemassencalculator', 'PMD-rekenmodel', 'Lidmaatschap', 'Aanmelden'],
-    probleem:
-      'Links in de inhoudsopgave van de tools en van Lidmaatschap, in het kruimelpad en in enkele toelichtingen hebben te weinig contrast met de achtergrond: 4,28:1 en op lichtpaarse vlakken 4,08:1, waar 4,5:1 nodig is.',
-    criterium: '1.4.3 Contrast (minimum)',
-    gevolg: 'Bij slecht zien of in fel licht zijn deze links moeilijker te lezen.',
-    aanpak: 'Een donkerder linkkleur in de huisstijlkleuren van het platform. Op de juridische pagina’s is dat al gedaan.',
-  },
-  {
-    id: 'grijze-hulptekst',
-    onderdeel: 'Grijze hulptekst op lichtpaarse vlakken',
-    paginas: ['Home', 'Restafvalkaart', 'Aanbestedingstool', 'Indexcalculator', 'CO2-heffingenscan', 'Bodemassencalculator', 'Over het platform'],
-    probleem:
-      'Eenheden naast invoervelden (zoals ton/jaar) en de kleine toelichting onder kerncijfers hebben een contrast van 4,32:1, waar 4,5:1 nodig is.',
-    criterium: '1.4.3 Contrast (minimum)',
-    gevolg: 'De eenheid of toelichting is minder goed leesbaar. De eenheid staat ook in het label van het veld.',
-    aanpak: 'Donkerder grijs voor deze teksten.',
-  },
-  {
-    id: 'uitgelichte-tegel',
-    onderdeel: 'Uitgelicht kerncijfer op paarse achtergrond',
-    paginas: ['Home', 'Restafvalkaart', 'Indexcalculator', 'CO2-heffingenscan', 'Bodemassencalculator'],
-    probleem: 'Het label en de toelichting in de paarse tegel met het belangrijkste cijfer hebben een contrast van 3,81:1, waar 4,5:1 nodig is.',
-    criterium: '1.4.3 Contrast (minimum)',
-    gevolg: 'De kleine tekst in de tegel is moeilijker te lezen. Het grote cijfer zelf is goed leesbaar.',
-    aanpak: 'Witte tekst of een donkerder paars voor de tegel.',
-  },
-  {
-    id: 'kleine-links',
-    onderdeel: 'Kleine links naar nieuwsbronnen',
-    paginas: ['Nieuws'],
-    probleem:
-      'De links naar de bronnen van het nieuwsoverzicht staan dicht op elkaar en zijn kleiner dan 24 bij 24 pixels.',
-    criterium: '2.5.8 Grootte van het aanwijsgebied (minimum), WCAG 2.2',
-    gevolg: 'Op een touchscreen of met een trillende hand raakt u makkelijk de verkeerde link.',
-    aanpak: 'Meer ruimte tussen de links of een groter klikgebied.',
-  },
   {
     id: 'invoerrand',
     onderdeel: 'Rand van invoervelden',
-    paginas: ['Aanmelden', 'alle rekentools', 'Restafvalkaart', 'Over het platform', 'Inloggen'],
+    paginas: ['Aanmelden', 'alle rekentools', 'Tools', 'Restafvalkaart', 'Nieuws', 'Kennisbank', 'Aanbestedingsarchief', 'Over het platform (feedbackformulier)', 'Inloggen'],
     probleem:
       'De rand van invoervelden heeft een contrast van 1,31:1 met de witte achtergrond, waar 3:1 nodig is. Bij focus wordt de rand paars (4,61:1), maar blijft één pixel dik; de lichte gloed eromheen valt nauwelijks op.',
     criterium: '1.4.11 Contrast van niet-tekstuele content',
