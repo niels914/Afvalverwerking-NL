@@ -194,7 +194,7 @@ test.describe('Aanbestedingstool', () => {
     await expect(page.getByText('Europees aanbesteden.', { exact: true })).toBeVisible();
     await page.getByLabel('Soort opdracht').selectOption('concessie');
     await expect(page.getByText('Onder de Europese drempel.', { exact: true })).toBeVisible();
-    await expect(page.getByText(/5\.404\.000/).first()).toBeVisible();
+    await expect(page.locator('.notitie').filter({ hasText: 'Onder de Europese drempel.' })).toContainText('€ 5.404.000');
     await page.getByLabel('Soort opdracht').selectOption('diensten');
     await page.getByLabel('Volume', { exact: true }).fill('40000');
     await page.getByRole('button', { name: 'Volgende: eisen en criteria' }).click();

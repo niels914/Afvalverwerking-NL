@@ -499,21 +499,27 @@ export function Aanbestedingstool() {
             </section>
           </Kaart>
           <Kaart titel="Downloaden en delen" className="geen-print">
-            <div className="stapel" style={{ gap: 12 }}>
-              <div className="knoppen">
-                <TekstDownloadKnop naam={`Aanbesteding ${stroom.naam}`} inhoud={() => overzichtTekst(overzicht())}>
-                  Tekstbestand downloaden
-                </TekstDownloadKnop>
-              </div>
-              <ExportKnoppen
-                naam={`Aanbesteding ${stroom.naam}`}
-                csvRijen={() => overzichtCsv(overzicht())}
-                params={deelParams}
-                pad={PAD}
-                toelichting="Het tekstbestand en de CSV bevatten opdracht, weging, alle gekozen eisen en criteria met herkomst, de checklist en de bronnen. De link opent dit overzicht met uw keuzes."
-              />
-              <PrintKnop />
-            </div>
+            <Delen
+              naam={`Aanbesteding ${stroom.naam}`}
+              csvRijen={() => overzichtCsv(overzicht())}
+              params={deelParams}
+              pad={PAD}
+              toelichting="De link opent dit overzicht met uw keuzes."
+              extra={
+                <>
+                  <TekstDownloadKnop naam={`Aanbesteding ${stroom.naam}`} inhoud={() => overzichtTekst(overzicht())}>
+                    Tekstbestand downloaden
+                  </TekstDownloadKnop>
+                  <button type="button" onClick={() => window.print()}>
+                    Printen of opslaan als PDF
+                  </button>
+                </>
+              }
+            />
+            <p className="klein muted" style={{ margin: 0 }}>
+              Het tekstbestand en de CSV bevatten opdracht, weging, alle gekozen eisen en criteria met herkomst, de checklist en
+              de bronnen. Printen opent het printvenster; kies “Opslaan als PDF” voor een bestand.
+            </p>
           </Kaart>
           <div className="knoppen geen-print">
             <button type="button" onClick={() => setStap(2)}>
