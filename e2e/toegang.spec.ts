@@ -42,10 +42,51 @@ test.describe('bezoeker', () => {
     expect(rand).not.toBe('none');
   });
 
-  test('inlogpagina verwijst naar privacyverklaring en aanmelden', async ({ page }) => {
+  test('inlogpagina laat zien wat leden krijgen en verwijst naar privacyverklaring en aanmelden', async ({ page }) => {
     await page.goto('/inloggen');
-    await expect(page.locator('main').getByRole('link', { name: 'privacyverklaring', exact: true })).toHaveAttribute('href', '/privacy');
+    const aanbod = page.locator('section.kaart').filter({ has: page.getByRole('heading', { level: 2, name: 'Wat leden krijgen' }) });
+    await expect(aanbod.getByRole('link', { name: 'Aanbestedingsarchief' })).toHaveAttribute('href', '/aanbestedingsarchief');
+    await expect(aanbod.getByRole('link', { name: 'Rekenmodel bron- en nascheiding PMD' })).toBeVisible();
+    await expect(aanbod.getByRole('link', { name: 'Restafvalkaart' })).toHaveAttribute('href', '/restafvalkaart');
     await expect(page.getByRole('link', { name: 'Meld uw organisatie aan' })).toHaveAttribute('href', '/lidmaatschap/aanmelden');
+    // Uitleg en privacylink zitten in een inklapbaar blok.
+    const privacy = page.locator('main').getByRole('link', { name: 'privacyverklaring', exact: true });
+    await expect(privacy).toBeHidden();
+    await page.getByText('Zo werkt de toegang').click();
+    await expect(privacy).toHaveAttribute('href', '/privacy');
+    await expect(privacy).toBeVisible();
+    await geenHorizontaleScroll(page);
+  });
+
+  test('nieuw account op een onbekend domein: uitleg in het Nederlands', async ({ page }) => {
+    await page.route('**/auth/v1/otp**', (route) =>
+      route.fulfill({
+        status: 403,
+        contentType: 'application/json',
+        body: JSON.stringify({ code: 403, error_code: 'unexpected_failure', msg: 'Geen organisatie bekend voor dit e-maildomein.' }),
+      }),
+    );
+    await page.goto('/inloggen');
+    await page.getByLabel('E-mailadres').fill('iemand@onbekend-voorbeeld.nl');
+    await page.getByRole('button', { name: 'Stuur mij een inloglink' }).click();
+    await expect(page.getByRole('alert').filter({ hasText: 'Dat lukte niet' })).toContainText('geen organisatie aangemeld');
+  });
+
+  test('account zonder sessie: doorsturen zonder verspringende pagina', async ({ page }) => {
+    await page.addInitScript(() => {
+      (window as unknown as { __cls: number }).__cls = 0;
+      new PerformanceObserver((lijst) => {
+        for (const e of lijst.getEntries() as unknown as { value: number; hadRecentInput: boolean }[]) {
+          if (!e.hadRecentInput) (window as unknown as { __cls: number }).__cls += e.value;
+        }
+      }).observe({ type: 'layout-shift', buffered: true });
+    });
+    await page.goto('/account');
+    await expect(page).toHaveURL(/\/inloggen\?terug=%2Faccount$/);
+    await expect(page.getByRole('heading', { level: 1, name: 'Inloggen' })).toBeVisible();
+    await page.waitForTimeout(500);
+    const cls = await page.evaluate(() => (window as unknown as { __cls: number }).__cls);
+    expect(cls, 'cumulatieve layout shift').toBeLessThan(0.1);
   });
 
   test('inlogformulier: labels, controle vooraf en foutmelding van de server', async ({ page }) => {
@@ -167,10 +208,25 @@ test.describe('ingelogd', () => {
 
     await knop.click();
     await expect(page.getByRole('heading', { level: 1, name: 'Mijn account' })).toBeVisible();
-    await expect(page.getByTestId('account-email')).toHaveText(EMAIL!);
-    await expect(page.getByTestId('organisatie')).toContainText('KplusV');
+    // Bovenaan de kern: status, organisatie en geldig tot.
     await expect(page.getByTestId('lidstatus')).toContainText('Actief');
+    await expect(page.getByTestId('organisatie')).toHaveText('KplusV');
     await expect(page.getByTestId('geldig-tot')).not.toBeEmpty();
+    // Ledendashboard: snelkoppelingen, nieuwste aanbestedingen en nieuws.
+    const snel = page.getByRole('region', { name: 'Snel naar' });
+    await expect(snel.getByRole('link', { name: /Aanbestedingsarchief/ })).toHaveAttribute('href', '/aanbestedingsarchief');
+    await expect(snel.getByRole('link', { name: /Indexcalculator/ })).toHaveAttribute('href', '/tools/indexcalculator');
+    await expect(snel.getByText('Alleen leden')).toHaveCount(0);
+    await expect(page.getByTestId('recente-aanbestedingen').getByRole('listitem').first()).toBeVisible();
+    await expect(page.getByRole('heading', { level: 2, name: 'Laatste nieuws' })).toBeVisible();
+    await geenHorizontaleScroll(page);
+
+    // Details zijn ingeklapt.
+    await expect(page.getByTestId('account-email')).toBeHidden();
+    await page.getByText('Lidmaatschap in detail').click();
+    await expect(page.getByText(/eigen afspraak met KplusV/)).toBeVisible();
+    await page.getByText('Inloggegevens en wachtwoord').click();
+    await expect(page.getByTestId('account-email')).toHaveText(EMAIL!);
     await expect(page.locator('main').getByRole('link', { name: 'privacyverklaring', exact: true })).toHaveAttribute('href', '/privacy');
     await geenHorizontaleScroll(page);
 
@@ -188,6 +244,26 @@ test.describe('ingelogd', () => {
 
     await page.goto('/aanbestedingsarchief');
     await expect(page.locator('.slotkaart').first()).toBeVisible();
+  });
+
+  test('lidmaatschap wordt per paginalading één keer gecontroleerd', async ({ page }) => {
+    await page.goto('/inloggen');
+    await logIn(page);
+    await expect(page).toHaveURL(/\/account$/);
+    await expect(page.getByTestId('lidstatus')).toContainText('Actief');
+
+    let aanroepen = 0;
+    page.on('request', (r) => {
+      if (r.url().includes('/rest/v1/rpc/is_lid')) aanroepen += 1;
+    });
+    await page.reload();
+    await expect(page.getByTestId('lidstatus')).toContainText('Actief');
+    await page.goto('/account');
+    await expect(page.getByTestId('lidstatus')).toContainText('Actief');
+    await page.waitForTimeout(1500);
+    expect(aanroepen, 'aantal is_lid-aanroepen bij twee paginaladingen').toBeLessThanOrEqual(2);
+    await page.getByRole('button', { name: 'Uitloggen' }).click();
+    await expect(page).toHaveURL(/\/inloggen\?melding=uitgelogd/);
   });
 
   test('ingelogd zonder lidmaatschap: passende uitleg in betaalmuur en account', async ({ page }) => {
@@ -225,6 +301,10 @@ test.describe('ingelogd', () => {
     await page.goto('/account');
     await expect(page.getByTestId('lidstatus')).toContainText('Verlopen');
     await expect(page.getByTestId('geldig-tot')).toHaveText('30 september 2026');
+    await expect(page.getByRole('link', { name: 'Lidmaatschap verlengen of opnieuw aanmelden' })).toBeVisible();
+    // Niet-leden zien welke onderdelen voor leden zijn, en geen ledendata.
+    await expect(page.getByRole('region', { name: 'Snel naar' }).getByText('Alleen leden').first()).toBeVisible();
+    await expect(page.getByTestId('recente-aanbestedingen')).toHaveCount(0);
 
     // Ander adres: uitloggen en terug naar het inlogformulier.
     await page.goto('/aanbestedingsarchief');

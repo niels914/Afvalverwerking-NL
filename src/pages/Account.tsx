@@ -372,7 +372,16 @@ export function Account() {
     );
   }
   if (status === 'uit') {
-    return <Navigate to={uitBezig ? '/inloggen?melding=uitgelogd' : '/inloggen?terug=%2Faccount'} replace />;
+    // Ook tijdens het doorsturen een schermhoogte vrijhouden: anders schiet de voettekst even omhoog.
+    return (
+      <div className="account-laden">
+        <PaginaKop titel="Mijn account" />
+        <p className="muted" role="status">
+          Doorsturen naar inloggen…
+        </p>
+        <Navigate to={uitBezig ? '/inloggen?melding=uitgelogd' : '/inloggen?terug=%2Faccount'} replace />
+      </div>
+    );
   }
 
   const beschrijving = beschrijfLidmaatschap(lidmaatschap, domein);

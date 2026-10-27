@@ -71,6 +71,12 @@ export function Over() {
           {staffels.map((s) => (
             <li key={s.id}>
               {s.naam}: <strong>{euro(s.prijsExclBtw)}</strong> <span className="muted">({s.voorWie.toLowerCase()})</span>
+              {s.aanname && !prijzenVastgesteld && (
+                <>
+                  {' '}
+                  <Badge soort="voorbeeld">Aanname</Badge> <span className="klein muted">nog zonder eerdere richtprijs</span>
+                </>
+              )}
             </li>
           ))}
         </ul>

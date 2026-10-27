@@ -358,7 +358,12 @@
 @media (max-width: 600px) {
   /* Op mobiel een korte lijst: alleen de namen. De uitleg staat op de pagina zelf. */
   .snelkoppelingen {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
+  }
+  .snel-titel {
+    overflow-wrap: anywhere;
+    hyphens: auto;
   }
   .snelkoppelingen li {
     padding: 10px 12px;

@@ -636,3 +636,9 @@
   color: var(--donkerviolet);
   font-variant-numeric: tabular-nums;
 }
+
+/* Postcode en plaats naast elkaar, ook op smalle schermen; labels en invoervakken op één lijn */
+.velden-2.lm-velden-gelijk {
+  grid-template-columns: minmax(7em, 2fr) minmax(0, 5fr);
+  align-items: start;
+}

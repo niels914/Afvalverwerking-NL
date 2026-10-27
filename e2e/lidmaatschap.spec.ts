@@ -8,6 +8,13 @@ async function geenHorizontaleScroll(page: Page) {
   expect(breedte.scroll, 'pagina scrollt horizontaal').toBeLessThanOrEqual(breedte.venster);
 }
 
+/** Klapt een inklapbaar blok open als het nog dicht is (op smal standaard dicht, op breed open). */
+async function openUitklap(page: Page, selector: string) {
+  const details = page.locator(`${selector} details`).first();
+  if ((await details.getAttribute('open')) === null) await details.locator('summary').click();
+  await expect(details).toHaveAttribute('open', '');
+}
+
 async function vulGegevensIn(page: Page) {
   await page.getByLabel('Naam organisatie').fill('Afvalsamenwerking Testregio');
   await page.getByLabel(/Samenwerkingsverband van gemeenten/).check();
@@ -33,43 +40,85 @@ test.describe('Lidmaatschap en prijzen', () => {
     for (const naam of ['Samenwerkingsverband, klein', 'Samenwerkingsverband, groot', 'Gemeente', 'Verwerker']) {
       await expect(page.getByRole('heading', { level: 3, name: naam })).toBeVisible();
     }
-    // Klein: € 2.500 excl., € 3.025,00 incl. 21 % btw (kaart en tabel)
-    const tabel = page.getByRole('table').first();
-    const rijKlein = tabel.getByRole('row', { name: /Samenwerkingsverband klein/ });
-    await expect(rijKlein).toContainText(/2\.500,00/);
-    await expect(rijKlein).toContainText(/525,00/);
-    await expect(rijKlein).toContainText(/3\.025,00/);
+    // Klein: € 2.500 excl., € 3.025,00 incl. 21 % btw
+    const kaartKlein = page.getByRole('region', { name: 'Samenwerkingsverband, klein' });
+    await expect(kaartKlein).toContainText('2.500');
+    await expect(kaartKlein).toContainText('3.025,00 incl. 21 % btw');
+    // De gemeenteprijs is zichtbaar gelabeld als aanname.
+    await expect(page.getByRole('region', { name: 'Gemeente' })).toContainText(/Aanname.*nog geen richtprijs/);
 
     await expect(page.getByText(/Stilzwijgend, steeds met 12 maanden/)).toBeVisible();
     await expect(page.locator('#voorwaarden').getByText(/uiterlijk 1 maand voor de einddatum/)).toBeVisible();
-    await expect(page.getByRole('row', { name: /Rekenmodel bron- en nascheiding PMD/ })).toContainText('Nee');
+    await expect(page.locator('#voorwaarden')).toContainText('behalve als het btw-tarief wettelijk verandert');
+    await expect(page.locator('#voorwaarden').getByRole('link', { name: 'n.ahsmann@kplusv.nl' })).toHaveAttribute('href', /^mailto:.*Opzegging/);
+
+    await openUitklap(page, '#vergelijking');
+    await expect(page.locator('#vergelijking').getByRole('row', { name: /Rekenmodel bron- en nascheiding PMD/ })).toContainText('Nee');
 
     const vraag = page.getByText('Hoeveel gebruikers mogen er inloggen?');
     await vraag.click();
     await expect(page.getByText(/U betaalt per organisatie/)).toBeVisible();
 
+    await openUitklap(page, '#bronnen');
     const bronnen = page.locator('#bronnen');
     await expect(bronnen.getByRole('link', { name: /Belastingdienst/ })).toHaveAttribute('href', /belastingdienst\.nl/);
     await expect(bronnen).toContainText(/geraadpleegd op \d+ oktober 2026/);
     await geenHorizontaleScroll(page);
   });
 
-  test('prijstabel en vergelijkingstabel passen zonder horizontaal scrollen; vergelijking volgt de tools', async ({ page }) => {
+  test('veelgestelde vragen: inkoop, mandaat, verwerkersovereenkomst, btw en e-mail per actie', async ({ page }) => {
     await page.goto('/lidmaatschap');
-    for (const id of ['#prijzen', '#vergelijking']) {
-      const pastErin = await page.locator(`${id} .tabel-container`).evaluate((el) => el.scrollWidth <= el.clientWidth + 1);
-      expect(pastErin, `tabel in ${id} scrolt horizontaal`).toBe(true);
+    const vragen = page.locator('#vragen');
+    await vragen.getByText('Wij werken met een offerte en een inkoopordernummer. Kan dat?').click();
+    await expect(vragen.getByRole('link', { name: /PIANOo/ })).toBeVisible();
+    await vragen.getByText('Wij hebben eigen inkoopvoorwaarden. Gelden die?').click();
+    await expect(vragen.getByRole('link', { name: 'Artikel 2 van de algemene voorwaarden' })).toHaveAttribute('href', '/algemene-voorwaarden#toepassing');
+    await vragen.getByText('Wie mag de aanmelding doen?').click();
+    await expect(vragen.getByText(/mandaat- en volmachtenbesluit/)).toBeVisible();
+    await vragen.getByText('Is een verwerkersovereenkomst nodig?').click();
+    await expect(vragen.getByText(/als verwerkingsverantwoordelijke/)).toBeVisible();
+    await vragen.getByText('Kan de prijs veranderen?').click();
+    await expect(vragen.getByText(/wettelijke wijziging van het btw-tarief/)).toBeVisible();
+    await vragen.getByText('Is er een proefperiode?').click();
+    await expect(vragen.getByRole('link', { name: 'Proeftoegang aanvragen per e-mail' })).toHaveAttribute('href', /^mailto:n\.ahsmann@kplusv\.nl\?subject=Proeftoegang/);
+    await vragen.getByText('Hoe lang loopt het lidmaatschap en hoe zeg ik op?').click();
+    await expect(vragen.getByRole('link', { name: 'Opzeggen per e-mail' })).toHaveAttribute('href', /subject=Opzegging%20lidmaatschap&body=Organisatie/);
+    await geenHorizontaleScroll(page);
+  });
+
+  test('prijzen en vergelijking passen zonder horizontaal scrollen; vergelijking volgt de tools', async ({ page }) => {
+    await page.goto('/lidmaatschap');
+    const smal = (page.viewportSize()?.width ?? 1280) <= 600;
+    const tabel = page.locator('#prijzen table');
+    if (smal) {
+      // Op de telefoon staan de bedragen in compacte kaarten; de tabel met dezelfde bedragen is verborgen.
+      await expect(tabel).toBeHidden();
+      await expect(page.getByRole('region', { name: 'Verwerker' })).toContainText('6.655,00 incl. 21 % btw');
+    } else {
+      const rijKlein = tabel.getByRole('row', { name: /Samenwerkingsverband klein/ });
+      await expect(rijKlein).toContainText(/2\.500,00/);
+      await expect(rijKlein).toContainText(/525,00/);
+      await expect(rijKlein).toContainText(/3\.025,00/);
+      await expect(tabel.getByRole('row', { name: /Gemeente \(aanname\)/ })).toBeVisible();
+      await expect(tabel.locator('tbody tr', { hasText: 'Verwerker' }).locator('td').last()).toContainText('6.655,00');
     }
-    // De kolom incl. btw en de kolom Lid staan in beeld, ook op 400 px.
-    const verwerker = page.locator('#prijzen tbody tr', { hasText: 'Verwerker' });
-    await verwerker.scrollIntoViewIfNeeded();
-    await expect(verwerker.locator('td').last()).toBeInViewport({ ratio: 1 });
-    await expect(verwerker.locator('td').last()).toContainText('6.655,00');
+    // Op smal is de vergelijking ingeklapt, op breed open.
+    const uitklap = page.locator('#vergelijking details');
+    if (smal) {
+      await expect(uitklap).not.toHaveAttribute('open', '');
+      await uitklap.locator('summary').click();
+    } else {
+      await expect(uitklap).toHaveAttribute('open', '');
+    }
+    const pastErin = await page.locator('#vergelijking .tabel-container').evaluate((el) => el.scrollWidth <= el.clientWidth + 1);
+    expect(pastErin, 'vergelijkingstabel scrolt horizontaal').toBe(true);
+    await expect(page.locator('#vergelijking')).toContainText('Gratis voor iedereen: de Restafvalkaart');
     // Rijen per rekentool komen uit src/data/tools.ts.
     const index = page.locator('#vergelijking tbody tr', { hasText: 'Indexcalculator' });
     await expect(index).toContainText('Eén CBS-reeks');
     await expect(index).toContainText('zes CBS-reeksen');
     await expect(page.locator('#vergelijking tbody tr', { hasText: 'Aanbestedingstool' })).toContainText('Ja');
+    await geenHorizontaleScroll(page);
   });
 
   test('aanmeldknop bij een staffel kiest het juiste type', async ({ page }) => {
@@ -137,10 +186,10 @@ test.describe('Aanmelden', () => {
     const prijs = page.getByRole('complementary', { name: 'Uw prijs' });
     await expect(prijs).toContainText('Samenwerkingsverband, klein');
     await expect(prijs).toContainText(/3\.025,00/);
-    // Op smalle schermen staat de prijs ook direct onder het type organisatie.
-    const inline = page.locator('.lm-prijs-inline');
-    if ((page.viewportSize()?.width ?? 1280) <= 900) await expect(inline).toContainText(/2\.500 per jaar excl\. btw/);
-    else await expect(inline).toBeHidden();
+    // Het prijsblok blijft in beeld als je verder naar beneden in het formulier gaat (smal: vaste balk bovenaan).
+    await page.getByLabel('Gewenste startdatum').scrollIntoViewIfNeeded();
+    await expect(prijs).toBeInViewport();
+    await expect(prijs).toContainText(/2\.500/);
     await geenHorizontaleScroll(page);
 
     await page.getByRole('button', { name: 'Verder naar controleren' }).click();
@@ -225,12 +274,54 @@ test.describe('Aanmelden', () => {
     await expect(page.getByLabel(/^Lid worden/)).toBeChecked();
   });
 
+  test('prijs verschijnt direct bij het type; ongeldig aantal gemeenten geeft een melding over het aantal', async ({ page }) => {
+    const prijs = page.getByRole('complementary', { name: 'Uw prijs' });
+    await expect(prijs).toContainText('Kies het type organisatie');
+    // De prijs staat al bij de keuze zelf.
+    await expect(page.getByLabel(/^Gemeente/)).toBeVisible();
+    await expect(page.locator('label', { hasText: /^Gemeente/ })).toContainText('1.500');
+    await page.getByLabel(/Samenwerkingsverband van gemeenten/).check();
+    await expect(prijs).toContainText('2.500');
+    await expect(prijs).toContainText('8.500');
+    for (const aantal of ['2.5', '1', 'abc']) {
+      await page.getByLabel('Aantal deelnemende gemeenten').fill(aantal);
+      await expect(prijs).toContainText('heel getal van 2 of meer');
+      await expect(prijs).not.toContainText('startdatum');
+    }
+    await page.getByLabel('Aantal deelnemende gemeenten').fill('4');
+    await expect(prijs).toContainText('Samenwerkingsverband, groot');
+    await expect(prijs).toContainText('10.285,00');
+    // Een ongeldige startdatum verbergt de prijs niet.
+    await page.getByLabel('Gewenste startdatum').fill('');
+    await expect(prijs).toContainText('8.500');
+    await expect(prijs).toBeInViewport();
+  });
+
+  test('optionele gegevens zijn ingeklapt en klappen open bij een fout', async ({ page }) => {
+    const aanvullend = page.locator('details.lm-aanvullend');
+    await expect(aanvullend).not.toHaveAttribute('open', '');
+    await expect(page.getByLabel(/^OIN/)).toBeHidden();
+    await vulGegevensIn(page);
+    await aanvullend.locator('summary').click();
+    await page.getByLabel(/^OIN/).fill('123');
+    await aanvullend.locator('summary').click();
+    await expect(page.getByLabel(/^OIN/)).toBeHidden();
+    await page.getByRole('button', { name: 'Verder naar controleren' }).click();
+    const samenvatting = page.getByRole('alert');
+    await expect(samenvatting).toContainText('20 cijfers');
+    await expect(aanvullend).toHaveAttribute('open', '');
+    await samenvatting.getByRole('link', { name: /OIN/ }).click();
+    await expect(page.getByLabel(/^OIN/)).toBeFocused();
+  });
+
   test('als verzenden mislukt: duidelijke melding, lokaal bewaard en e-mail als alternatief', async ({ page }) => {
     await page.route('**/', async (route) => {
       if (route.request().method() === 'POST') await route.fulfill({ status: 500, body: 'fout' });
       else await route.continue();
     });
     await vulGegevensIn(page);
+    await page.locator('details.lm-aanvullend summary').click();
+    await page.getByLabel(/^Opmerkingen/).fill('Graag factureren volgens onze inkoopvoorwaarden, artikel 4. '.repeat(30));
     await page.getByRole('button', { name: 'Verder naar controleren' }).click();
     await page.getByLabel(/ga akkoord met de/).check();
     await page.getByLabel(/Ik heb de privacyverklaring/).check();
@@ -238,7 +329,11 @@ test.describe('Aanmelden', () => {
 
     await expect(page.getByRole('heading', { level: 1, name: 'Aanmelding nog niet verzonden' })).toBeVisible();
     await expect(page.getByRole('alert')).toContainText('niet verzonden');
-    await expect(page.getByRole('link', { name: 'Aanmelding per e-mail sturen' })).toHaveAttribute('href', /^mailto:.*Testregio/);
+    const mail = page.getByRole('link', { name: 'Aanmelding per e-mail sturen' });
+    await expect(mail).toHaveAttribute('href', /^mailto:.*Testregio/);
+    // Lange opmerkingen: de link blijft onder de grens van mailprogramma's en de pagina zegt dat er is ingekort.
+    expect(((await mail.getAttribute('href')) ?? '').length).toBeLessThanOrEqual(1900);
+    await expect(page.getByText(/Uw opmerkingen zijn te lang voor een e-mail/)).toBeVisible();
     const bewaard = await page.evaluate(() => JSON.parse(localStorage.getItem('afvalplatform-aanmelding') ?? '[]'));
     expect(bewaard).toHaveLength(1);
     expect(bewaard[0].organisatie).toBe('Afvalsamenwerking Testregio');
