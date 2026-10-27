@@ -1,0 +1,60 @@
+/* Gedeelde opmaak voor de inhoudspagina's (home, kaart, nieuws, kennisbank). Wordt direct met de
+   pagina geladen; kaart.css komt pas mee met de kaart zelf. */
+
+/* Kaartvak: vaste hoogte, zodat er niets verspringt terwijl de vlakken laden. */
+.kaart-vak {
+  position: relative;
+  height: 600px;
+  border-radius: var(--radius-kaart);
+  overflow: hidden;
+  border: 1px solid var(--rand);
+  background: var(--wit);
+}
+.kaart-vak.mini {
+  height: 320px;
+}
+@media (max-width: 640px) {
+  .kaart-vak {
+    height: min(440px, 112vw);
+  }
+  .kaart-vak.mini {
+    height: 300px;
+  }
+}
+/* Homepage */
+.home-kaart {
+  margin: 0;
+}
+.mini-legenda {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.mini-legenda span {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+}
+.home-kaart figcaption a,
+.tegel small a {
+  display: inline-block;
+  min-height: 24px;
+}
+.definitie {
+  margin: 12px 0 0;
+}
+.home-staffels {
+  width: 100%;
+  margin: 12px 0 8px;
+  font-size: 14px;
+}
+.home-staffels th[scope='row'] {
+  font-weight: 500;
+  text-align: left;
+}
+.tabel-sub-blok {
+  display: block;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--tekst-secundair);
+}

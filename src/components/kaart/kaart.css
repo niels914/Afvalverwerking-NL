@@ -1,13 +1,91 @@
 /* Restafvalkaart: choropleet, legenda, zoeken, paneel en tabel. Kleuren uit tokens.css,
    behalve de kaartreeks (src/lib/kaartdata.ts, KLEUREN). */
 
-.kaart-wrap {
+.svgkaart {
   position: relative;
   height: 100%;
   width: 100%;
 }
-.kaart-wrap .leaflet-container {
+.svgkaart svg {
+  display: block;
+  width: 100%;
+  height: calc(100% - 22px);
+  cursor: pointer;
+  touch-action: auto;
+  user-select: none;
+}
+.svgkaart.mini svg {
+  cursor: inherit;
+  height: 100%;
+}
+.svgkaart.ingezoomd svg {
+  touch-action: none;
+  cursor: grab;
+}
+.svgkaart .vlakken path:hover {
+  filter: brightness(0.92);
+}
+.kaart-attributie {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 3px 10px;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--tekst-secundair);
+  text-align: right;
+}
+.svgkaart.mini .kaart-attributie {
+  display: none;
+}
+.kaart-tip {
+  position: absolute;
+  transform: translate(-50%, calc(-100% - 12px));
   background: var(--wit);
+  border: 1px solid var(--rand);
+  border-radius: var(--radius-klein);
+  box-shadow: 0 4px 14px rgb(17 24 39 / 0.14);
+  padding: 6px 10px;
+  font-size: 12.5px;
+  display: grid;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+}
+.kaart-zoom {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+.kaart-zoom button {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--rand);
+  border-radius: var(--radius-klein);
+  background: var(--wit);
+  color: var(--tekst);
+  font-size: 18px;
+  line-height: 1;
+  box-shadow: 0 1px 3px rgb(17 24 39 / 0.08);
+}
+.kaart-zoom button.tekst {
+  font-size: 12.5px;
+}
+.kaart-zoom button:disabled {
+  color: var(--tekst-secundair);
+  opacity: 0.6;
+  cursor: default;
+}
+.kaart-zoom button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
 }
 .kaart-laden,
 .kaart-melding {
@@ -26,19 +104,15 @@
   background: var(--waarschuwing-bg);
   color: var(--waarschuwing-tekst);
 }
-.kaart-mini {
-  cursor: default;
+/* Regel onder de kaart: gekozen gemeente en hoe je de kaart zonder muis gebruikt. */
+.kaart-onderschrift {
+  display: grid;
+  gap: 4px;
+  font-size: 13.5px;
+  margin: 0;
 }
-.leaflet-container .leaflet-control-attribution {
-  font-size: 10.5px;
-  max-width: 100%;
-  white-space: normal;
-}
-.leaflet-container a.leaflet-control-zoom-in:focus-visible,
-.leaflet-container a.leaflet-control-zoom-out:focus-visible,
-.leaflet-container:focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 2px;
+.kaart-onderschrift .muted {
+  font-size: 12.5px;
 }
 
 /* Legenda */
@@ -187,17 +261,10 @@
   min-width: 180px;
 }
 .kaarttabel {
-  max-height: 560px;
-  overflow: auto;
+  overflow-x: auto;
 }
 .kaarttabel table {
-  min-width: 640px;
-}
-.kaarttabel thead th {
-  position: sticky;
-  top: 0;
-  background: var(--wit);
-  z-index: 1;
+  width: 100%;
 }
 .kaarttabel th button {
   border: 0;
@@ -208,6 +275,7 @@
   color: inherit;
   cursor: pointer;
   text-align: inherit;
+  min-height: 24px;
 }
 .kaarttabel th button:focus-visible,
 .kaarttabel td button:focus-visible {
@@ -218,15 +286,117 @@
 .kaarttabel tr[aria-current='true'] th {
   background: var(--kaartvlak-2);
 }
-.kaarttabel td button {
-  border: 0;
-  background: none;
-  padding: 0;
+.kaarttabel tbody th button {
   color: var(--link);
   text-decoration: underline;
-  font: inherit;
-  cursor: pointer;
+  font-weight: 500;
   text-align: left;
+}
+.tabel-sub {
+  display: none;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--tekst-secundair);
+}
+/* Smal scherm: provincie onder de naam, inwoners weg; de drie cijfers blijven in beeld. */
+@media (max-width: 640px) {
+  .kaarttabel .kol-breed {
+    display: none;
+  }
+  .tabel-sub {
+    display: block;
+  }
+  .kaarttabel table {
+    font-size: 13px;
+  }
+  .kaarttabel th,
+  .kaarttabel td {
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+}
+.tabel-meer {
+  margin-top: 12px;
+}
+.bronregel {
+  margin: 4px 0 0;
+  color: var(--tekst-secundair);
+}
+.bronregel a {
+  display: inline-block;
+  min-height: 24px;
+}
+.nascheiding {
+  margin: 12px 0 0;
+}
+details.inklap > summary,
+details.inklap-tekst > summary {
+  cursor: pointer;
+  list-style-position: outside;
+  min-height: 24px;
+}
+details.inklap > summary {
+  display: grid;
+  gap: 2px;
+  list-style: none;
+  position: relative;
+  padding-right: 28px;
+}
+details.inklap > summary::-webkit-details-marker {
+  display: none;
+}
+details.inklap > summary::after {
+  content: '';
+  position: absolute;
+  right: 4px;
+  top: 6px;
+  width: 9px;
+  height: 9px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform 0.15s;
+}
+details.inklap[open] > summary::after {
+  transform: rotate(-135deg);
+  top: 10px;
+}
+details.inklap[open] > summary {
+  margin-bottom: 12px;
+}
+.inklap-titel {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--donkerviolet);
+}
+details.inklap .sub {
+  font-size: 12.5px;
+  color: var(--tekst-secundair);
+}
+details.inklap > summary:focus-visible,
+details.inklap-tekst > summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+details.inklap-tekst {
+  margin-top: 10px;
+}
+details.inklap-tekst > summary {
+  color: var(--link);
+  font-weight: 500;
+  font-size: 14px;
+}
+details.inklap-tekst[open] > summary {
+  margin-bottom: 10px;
+}
+.alleen-smal {
+  display: none;
+}
+@media (max-width: 900px) {
+  .alleen-smal {
+    display: inline;
+  }
 }
 .bronblok dl {
   display: grid;

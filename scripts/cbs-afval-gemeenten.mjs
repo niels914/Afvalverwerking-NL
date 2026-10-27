@@ -168,6 +168,17 @@ async function landelijk(jaar) {
   };
 }
 
+/** Laatste jaar met een landelijk cijfer in 83558NED (loopt vaak een jaar voor op de gemeentetabel). */
+async function landelijkLaatste() {
+  const perioden = (await haal(`${API}/${LANDELIJK}/Perioden?$format=json`)).value.map((p) => p.Key).sort().reverse();
+  for (const p of perioden.slice(0, 3)) {
+    const jaar = Number(p.slice(0, 4));
+    const land = await landelijk(jaar);
+    if (land && land.totaal) return { jaar, ...land };
+  }
+  return null;
+}
+
 async function namen() {
   const rijen = (await haal(`${API}/${TABEL}/RegioS?$format=json`)).value;
   return new Map(rijen.map((r) => [schoon(r.Key), schoon(r.Title)]));
@@ -176,7 +187,7 @@ async function namen() {
 async function main() {
   const jaar = Number(process.argv[2]) || (await laatsteJaar());
   console.log(`Peiljaar ${jaar}`);
-  const [info, infoBev, infoLand, perSoort, vorigJaar, inwoners, prov, land, naam] = await Promise.all([
+  const [info, infoBev, infoLand, perSoort, vorigJaar, inwoners, prov, land, naam, laatsteLand] = await Promise.all([
     tabelInfo(TABEL),
     tabelInfo(BEVOLKING),
     tabelInfo(LANDELIJK),
@@ -186,6 +197,7 @@ async function main() {
     provincies(jaar),
     landelijk(jaar),
     namen(),
+    landelijkLaatste(),
   ]);
 
   const gemeenten = [];
@@ -255,6 +267,21 @@ async function main() {
     },
     provincies: prov.tabelId ? { tabelId: prov.tabelId, url: STATLINE(prov.tabelId) } : null,
     controle,
+    // Landelijk cijfer van het nieuwste jaar (voor de homepage). Restafval = fijn + grof, zoals op de kaart;
+    // CBS-nieuwsberichten tellen verbouwingsrestafval vaak mee, daarom staat dat apart.
+    landelijkActueel: laatsteLand
+      ? {
+          jaar: laatsteLand.jaar,
+          tabelId: LANDELIJK,
+          url: STATLINE(LANDELIJK),
+          gewijzigd: infoLand.gewijzigd,
+          status: statusVan(infoLand.beschrijving, laatsteLand.jaar),
+          totaalKgPerInw: laatsteLand.totaal,
+          restafvalKgPerInw: laatsteLand.fijnRest + laatsteLand.grofRest,
+          verbouwingsrestafvalKgPerInw: laatsteLand.verbouwingRest,
+          scheidingsPct: laatsteLand.gescheidenPct,
+        }
+      : null,
     definities: {
       restafval: 'Fijn huishoudelijk restafval + grof huishoudelijk restafval, kg per inwoner (CBS 83452NED).',
       scheidingsPct:
@@ -268,9 +295,14 @@ async function main() {
   const tekst = `{\n  "peiljaar": ${jaar},\n  "gemeenten": [\n${rijen.map((g) => `    ${JSON.stringify(g)}`).join(',\n')}\n  ]\n}\n`;
   JSON.parse(tekst);
   await writeFile(UIT, tekst);
+  const opRestafval = [...rijen].sort((a, b) => a.restafval - b.restafval);
+  const kort = (g) => ({ code: g.code, naam: g.naam, restafval: g.restafval });
   const samenvatting = {
     aantalGemeenten: rijen.length,
     restafvalOnder100: rijen.filter((g) => g.restafval < 100).length,
+    // Voor het tekstalternatief van de kleine kaart op de homepage.
+    laagste: kort(opRestafval[0]),
+    hoogste: kort(opRestafval.at(-1)),
   };
   await writeFile(UIT_BRON, `${JSON.stringify({ ...kop, samenvatting }, null, 2)}\n`);
   console.log(`${gemeenten.length} gemeenten geschreven naar ${UIT}`);

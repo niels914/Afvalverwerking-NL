@@ -1,3 +1,6 @@
+/// <reference types="geojson" />
+// (De verwijzing hierboven houdt het GeoJSON-type beschikbaar voor src/data/types.ts; vroeger kwam dat
+// via Leaflet, dat de kaart niet meer gebruikt.)
 // Echte cijfers over huishoudelijk afval per gemeente (CBS) en de bron van de gemeentegrenzen (PDOK).
 // Bijwerken: node scripts/cbs-afval-gemeenten.mjs en daarna node scripts/pdok-gemeentegrenzen.mjs
 // (achter een proxy met NODE_USE_ENV_PROXY=1). Zie docs/stukken/inhoud.md.

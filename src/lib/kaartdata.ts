@@ -170,26 +170,51 @@ export function normaliseer(tekst: string): string {
     .trim();
 }
 
-/** Zoekt gemeenten op naam of CBS-code. Eerst namen die met de zoekterm beginnen, dan de rest. */
+/**
+ * Gangbare namen die afwijken van de officiële CBS-naam (genormaliseerd → CBS-code).
+ * Alleen eenduidige gevallen; "Bergen" is dubbelzinnig en geeft daarom twee treffers.
+ */
+export const ALIASSEN: Record<string, string> = {
+  'den bosch': 'GM0796',
+  'den haag': 'GM0518',
+  'the hague': 'GM0518',
+};
+
+/** Zoekt gemeenten op naam, gangbare naam (Den Haag, Den Bosch) of CBS-code. Eerst namen die met de zoekterm beginnen. */
 export function zoekGemeenten(term: string, lijst: GemeenteAfval[], max = 8): GemeenteAfval[] {
   const t = normaliseer(term);
   if (!t) return [];
   const code = term.trim().toUpperCase();
+  const viaAlias = new Set(Object.entries(ALIASSEN).filter(([a]) => a.startsWith(t)).map(([, c]) => c));
   const begin: GemeenteAfval[] = [];
   const midden: GemeenteAfval[] = [];
   for (const g of lijst) {
     const n = normaliseer(g.naam);
-    if (n.startsWith(t) || g.code === code) begin.push(g);
+    if (n.startsWith(t) || g.code === code || viaAlias.has(g.code)) begin.push(g);
     else if (n.includes(t)) midden.push(g);
   }
   return [...begin, ...midden].slice(0, max);
 }
 
-/** Vindt één gemeente bij een exacte naam (genormaliseerd) of code. */
+/** Vindt één gemeente bij een exacte naam (genormaliseerd), gangbare naam of code. */
 export function vindGemeente(term: string, lijst: GemeenteAfval[]): GemeenteAfval | undefined {
   const t = normaliseer(term);
-  const code = term.trim().toUpperCase();
+  if (!t) return undefined;
+  const code = (ALIASSEN[t] ?? term.trim()).toUpperCase();
   return lijst.find((g) => g.code === code || normaliseer(g.naam) === t);
+}
+
+/**
+ * Wat het zoekveld met Enter doet: één duidelijke gemeente kiezen, of zeggen dat er meer of geen zijn.
+ * Bij "Bergen" (NH. en L.) kiest het dus niet zelf.
+ */
+export function zoekUitkomst(term: string, lijst: GemeenteAfval[]): { soort: 'gevonden'; gemeente: GemeenteAfval } | { soort: 'meerdere'; treffers: GemeenteAfval[] } | { soort: 'geen' } {
+  const exact = vindGemeente(term, lijst);
+  if (exact) return { soort: 'gevonden', gemeente: exact };
+  const treffers = zoekGemeenten(term, lijst);
+  if (treffers.length === 1) return { soort: 'gevonden', gemeente: treffers[0] };
+  if (treffers.length > 1) return { soort: 'meerdere', treffers };
+  return { soort: 'geen' };
 }
 
 /** CSV met puntkomma en decimale komma (opent goed in Nederlandse Excel). */

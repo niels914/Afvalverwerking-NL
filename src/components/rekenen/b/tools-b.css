@@ -555,3 +555,14 @@ h3.tb-uitklap-titel {
     padding: 10px 12px;
   }
 }
+details.ab-meer > summary {
+  cursor: pointer;
+  font-size: 13.5px;
+  color: var(--link);
+  text-decoration: underline;
+  min-height: 28px;
+  width: fit-content;
+}
+details.ab-meer[open] > summary {
+  margin-bottom: 2px;
+}

@@ -2,6 +2,8 @@
 // Haalt de gegeneraliseerde gemeentegrenzen op bij PDOK (CBS Gebiedsindelingen, OGC API Features)
 // en schrijft een lichte GeoJSON naar public/data/gemeentegrenzen.geojson.
 // De bronvermelding komt in src/data/gemeentegrenzen-bron.json (klein, wordt meegebundeld).
+// Daarna zet het de grenzen om in SVG-paden voor de kaart: public/data/gemeentekaart.json
+// (zie scripts/pdok-gemeentekaart.mjs). De site laadt alleen dat laatste bestand.
 //
 // Gebruik:            node scripts/pdok-gemeentegrenzen.mjs          (jaar = peiljaar in src/data/afval-gemeenten.json)
 //                     node scripts/pdok-gemeentegrenzen.mjs 2024
@@ -16,10 +18,12 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { naarSvgKaart } from './pdok-gemeentekaart.mjs';
 
 const WORTEL = join(dirname(fileURLToPath(import.meta.url)), '..');
 const UIT_GEO = join(WORTEL, 'public', 'data', 'gemeentegrenzen.geojson');
 const UIT_BRON = join(WORTEL, 'src', 'data', 'gemeentegrenzen-bron.json');
+const UIT_KAART = join(WORTEL, 'public', 'data', 'gemeentekaart.json');
 const BASIS = 'https://api.pdok.nl/cbs/gebiedsindelingen/ogc/v1';
 const COLLECTIE = 'gemeente_gegeneraliseerd';
 const TOLERANTIE = 0.0015;
@@ -205,13 +209,17 @@ async function main() {
     url: 'https://www.pdok.nl/ogc-apis/-/article/cbs-gebiedsindelingen',
     api: url,
     licentie: 'CC BY 4.0 (zie PDOK-datasetpagina)',
-    bewerking: `Vereenvoudigd met Douglas-Peucker (tolerantie ${TOLERANTIE} graden, gedeelde grenzen gelijk gehouden) en afgerond op ${DECIMALEN} decimalen.`,
+    bewerking: `Vereenvoudigd met Douglas-Peucker (tolerantie ${TOLERANTIE} graden, gedeelde grenzen gelijk gehouden), afgerond op ${DECIMALEN} decimalen en voor de kaart omgezet in SVG-paden (ongeveer 130 meter per eenheid).`,
     bestand: '/data/gemeentegrenzen.geojson',
     bytes: Buffer.byteLength(tekst),
+    kaartbestand: '/data/gemeentekaart.json',
   };
+  const kaart = naarSvgKaart(geojson);
+  const kaartTekst = `{"breedte":${kaart.breedte},"hoogte":${kaart.hoogte},"gemeenten":[\n${kaart.gemeenten.map((g) => JSON.stringify(g)).join(',\n')}\n]}\n`;
   await mkdir(dirname(UIT_GEO), { recursive: true });
   await writeFile(UIT_GEO, tekst);
   await writeFile(UIT_BRON, `${JSON.stringify(bron, null, 2)}\n`);
+  await writeFile(UIT_KAART, kaartTekst);
   console.log(`${licht.length} gemeenten, ${punten(features)} → ${punten(licht)} punten, ${Math.round(bron.bytes / 1024)} kB`);
 }
 

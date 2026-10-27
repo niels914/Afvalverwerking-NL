@@ -2,7 +2,8 @@
 //
 // weging_i              = punten_i / Σ punten × 100 %   (prijs plus de gekozen gunningscriteria)
 // geraamde waarde       = volume per jaar × tarief × (looptijd + verlengingsopties)
-// Europees aanbesteden  = geraamde waarde ≥ drempelbedrag (PIANOo, 2026–2027)
+// Europees aanbesteden  = geraamde waarde ≥ drempelbedrag (PIANOo, 2026–2027), per soort opdracht
+// bandbreedte raming    = volume × (tarief laag, tarief hoog) × (looptijd + verlengingsopties), als het tarief een kental is
 //
 // De checklist is een hulpmiddel, geen juridisch advies.
 
@@ -61,6 +62,49 @@ export function drempelToets(waarde: number | null, drempel: number): DrempelUit
   return { waarde, drempel, europees: waarde >= drempel, factor: drempel > 0 ? waarde / drempel : 0 };
 }
 
+/** Geraamde waarde bij een laag en hoog tarief (bandbreedte van het tariefkental). null zonder bandbreedte. */
+export function ramingBandbreedte(r: Raming, tarief: { laag: number; hoog: number } | null): { laag: number; hoog: number } | null {
+  if (!tarief) return null;
+  const laag = geraamdeWaarde({ ...r, tarief: tarief.laag });
+  const hoog = geraamdeWaarde({ ...r, tarief: tarief.hoog });
+  return laag === null || hoog === null ? null : { laag: Math.min(laag, hoog), hoog: Math.max(laag, hoog) };
+}
+
+/** Oordeel over de drempel bij een bandbreedte: de hele band boven, de hele band onder, of de drempel valt erbinnen. */
+export function drempelBand(band: { laag: number; hoog: number } | null, drempel: number): 'boven' | 'onder' | 'grens' | null {
+  if (!band) return null;
+  if (band.laag >= drempel) return 'boven';
+  if (band.hoog < drempel) return 'onder';
+  return 'grens';
+}
+
+export interface RamingControle {
+  volume: number;
+  tarief: number | null;
+  /** 'ton' of 'stuks'. */
+  eenheid: 'ton' | 'stuks';
+  /** Tariefkental met bandbreedte, als de stroom er een heeft. */
+  kental?: { laag: number; hoog: number };
+  /** Fijn huishoudelijk restafval in heel Nederland (ton per jaar). */
+  restafvalNlTon: number;
+  inwonersNl: number;
+}
+
+/** Signalen bij een raming die niet past bij de werkelijkheid. Rekent nergens mee; het is een controle. */
+export function ramingSignalen(c: RamingControle): string[] {
+  const uit: string[] = [];
+  const nl = (n: number) => new Intl.NumberFormat('nl-NL').format(Math.round(n));
+  if (c.eenheid === 'ton' && c.volume > c.restafvalNlTon)
+    uit.push(`Het volume (${nl(c.volume)} ton per jaar) is groter dan al het fijne huishoudelijke restafval in Nederland (ongeveer ${nl(c.restafvalNlTon)} ton). Controleer de eenheid.`);
+  if (c.eenheid === 'stuks' && c.volume > c.inwonersNl) uit.push(`Meer containers per jaar (${nl(c.volume)}) dan Nederland inwoners heeft. Controleer het aantal.`);
+  if (c.kental && c.tarief !== null) {
+    if (c.tarief > c.kental.hoog * 3) uit.push(`Het tarief is meer dan drie keer de bovenkant van het kental (${nl(c.kental.hoog)} euro). Controleer of het per ton is.`);
+    else if (c.tarief > 0 && c.tarief < c.kental.laag / 3) uit.push(`Het tarief is minder dan een derde van de onderkant van het kental (${nl(c.kental.laag)} euro). Controleer de waarde.`);
+  }
+  if (c.volume === 0) uit.push('Het volume is 0: de geraamde waarde is dan ook 0.');
+  return uit;
+}
+
 export type PrijsSignaal = 'alleen-prijs' | 'zeer-zwaar' | 'geen-prijs' | null;
 
 /**
@@ -87,6 +131,10 @@ export interface ChecklistInvoer {
   aantalKwaliteit: number;
   /** True als twee CO2-methoden (basis en gedetailleerd) tegelijk zijn gekozen. */
   dubbeleCo2Methode: boolean;
+  /** Soort opdracht voor de drempel; standaard diensten of leveringen. */
+  opdrachtType?: string;
+  /** Ligt de drempel binnen de bandbreedte van de raming? */
+  drempelBinnenBand?: boolean;
 }
 
 /** Checklist voor de voorbereiding. Volgorde: procedure, criteria, contract. */
@@ -95,6 +143,9 @@ export function checklist(c: ChecklistInvoer): string[] {
   if (c.europees === true) punten.push('De geraamde waarde ligt op of boven het drempelbedrag: volg een Europese procedure en publiceer op TenderNed.');
   else if (c.europees === false) punten.push('De geraamde waarde ligt onder het drempelbedrag: kies een procedure volgens uw inkoopbeleid en de Gids Proportionaliteit.');
   else punten.push('Vul een geraamd tarief in om te bepalen of u Europees moet aanbesteden.');
+  if (c.drempelBinnenBand) punten.push('Het drempelbedrag valt binnen de bandbreedte van uw raming. Onderbouw de raming met een marktverkenning of uw huidige contract.');
+  if (c.opdrachtType === 'sociaal') punten.push('U rekent met de drempel voor sociale en andere specifieke diensten. Controleer of de dienst echt onder bijlage XIV valt; anders geldt het lagere drempelbedrag.');
+  if (c.opdrachtType === 'concessie') punten.push('U rekent met de drempel voor concessies. Controleer of het exploitatierisico echt bij de opdrachtnemer ligt; anders is het een overheidsopdracht met een lager drempelbedrag.');
   punten.push('Tel de waarde van soortgelijke opdrachten bij elkaar op en splits de opdracht niet om onder de drempel te blijven.');
   punten.push('Houd een marktconsultatie om eisen, gunningscriteria en ambitieniveau te toetsen.');
   if (c.aantalKwaliteit > 0) punten.push('Maak per gunningscriterium vooraf bekend hoe u beoordeelt en punten toekent.');
@@ -196,6 +247,8 @@ export function overzichtTekst(o: Overzicht): string {
 export interface AanbestedingInvoer {
   stroom: string;
   drempel: string;
+  /** Soort opdracht voor de drempeltoets: diensten, sociaal of concessie. */
+  opdrachtType: string;
   volume: number;
   tarief: number | null;
   looptijd: number;
@@ -209,6 +262,7 @@ export function aanbestedingNaarParams(i: AanbestedingInvoer): URLSearchParams {
   const p = new URLSearchParams();
   p.set('stroom', i.stroom);
   p.set('dienst', i.drempel);
+  p.set('type', i.opdrachtType);
   p.set('vol', String(i.volume));
   // Leeg tarief expliciet meegeven, anders vult de ontvanger het kental van de standaardstroom in.
   p.set('tarief', i.tarief !== null && Number.isFinite(i.tarief) ? String(i.tarief) : '');
@@ -227,6 +281,8 @@ export function aanbestedingNaarParams(i: AanbestedingInvoer): URLSearchParams {
 export interface ParamOpties {
   stromen: string[];
   drempels: string[];
+  /** Toegestane soorten opdracht. */
+  typen?: string[];
   /** Criterium-id's die bij een stroom horen. */
   geldig: (stroom: string) => string[];
   /** Standaardselectie van een stroom; gebruikt als de link een andere stroom maar geen selectie heeft. */
@@ -245,6 +301,8 @@ export function aanbestedingUitParams(p: URLSearchParams, standaard: Aanbestedin
   if (stroom && opties.stromen.includes(stroom)) uit.stroom = stroom;
   const dienst = p.get('dienst');
   if (dienst && opties.drempels.includes(dienst)) uit.drempel = dienst;
+  const type = p.get('type');
+  if (type && (opties.typen ?? ['diensten', 'sociaal', 'concessie']).includes(type)) uit.opdrachtType = type;
   const getal = (s: string | null, min = 0, max = Infinity) => {
     if (s === null || s.trim() === '') return null;
     const n = Number(s);

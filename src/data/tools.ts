@@ -41,8 +41,8 @@ export const tools: Tool[] = [
     titel: 'Bodemassencalculator',
     pad: '/tools/bodemassencalculator',
     toegang: 'gratis+pro',
-    omschrijving: 'Bereken hoeveel bodemas en metalen vrijkomen en wat de opwerking netto kost na aftrek van de metaalopbrengst.',
-    gratisDeel: 'Eén installatie met kentallen van Rijkswaterstaat en uw eigen tarieven.',
+    omschrijving: 'Bereken hoeveel bodemas en metalen vrijkomen en wat opwerken en het storten van residu netto kosten, met bandbreedte.',
+    gratisDeel: 'Eén installatie of gemeente, ingevuld met openbare kentallen of met uw eigen contracttarieven.',
     proDeel: 'Meerdere installaties, gevoeligheidsanalyse, CSV en rapport.',
   },
   {
@@ -51,15 +51,15 @@ export const tools: Tool[] = [
     pad: '/tools/pmd-rekenmodel',
     toegang: 'leden',
     omschrijving:
-      'Vergelijk de netto kosten van bron- en nascheiding van PMD voor uw gemeente, met de vergoedingen van Verpact voor 2026 en de afvalcijfers van CBS.',
+      'Vergelijk de netto kosten van bron- en nascheiding van PMD voor uw gemeente, met de vergoedingen van Verpact voor 2026, de afvalcijfers van CBS en een bandbreedte.',
   },
 ];
 
 /** Waar elke tool mee rekent. Getoond op de overzichtspagina. */
 export const toolBronnen: Record<string, string> = {
-  aanbesteding: 'MVI-criteriatool (Rijksoverheid) en drempelbedragen van PIANOo',
+  aanbesteding: 'MVI-criteriatool (Rijksoverheid), drempelbedragen van PIANOo en tariefkental Strategy& 2025',
   index: 'CBS: CPI, cao-lonen, producentenprijzen en dieselprijs',
   co2: 'Wet belastingen op milieugrondslag, Wet milieubeheer, NEa en Belastingplan 2027',
-  bodemas: 'Rijkswaterstaat, Afvalverwerking in Nederland 2024',
-  pmd: 'Akkoord Verpact, VNG en NVRD (2025), CBS per gemeente en Belastingdienst',
+  bodemas: 'Rijkswaterstaat, Afvalverwerking in Nederland 2024; Staatsblad 2021, 235; CBS en Belastingdienst',
+  pmd: 'Akkoord Verpact, VNG en NVRD (2025), CBS per gemeente, IPR Normag (2021), Strategy& en Belastingdienst',
 };

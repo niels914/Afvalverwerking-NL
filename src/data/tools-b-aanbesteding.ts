@@ -7,7 +7,7 @@
 // Onderhoud: controleer de MVI-codes en versiedatum bij elke nieuwe versie van de MVI-criteriatool (zie docs/stukken/tools-b.md).
 
 import { bronnen, PEILDATUM, type Bron } from './tools-b-bronnen';
-import { kentalVerbrandingstarief, poorttariefBandbreedte, asb2026 } from './tools-b-pmd';
+import { kentalVerbrandingstarief, poorttariefBandbreedte, asb2026, verbrandingstariefBand, cbsPmd, pmdGrenzen } from './tools-b-pmd';
 
 export { PEILDATUM };
 
@@ -87,7 +87,7 @@ export interface Stroom {
   /** Eenheid van het geraamde tarief. */
   tariefEenheid: string;
   /** Kental voor het tarief met bron, als die er is. */
-  tariefKental?: { waarde: number; toelichting: string; bron: Bron[] };
+  tariefKental?: { waarde: number; laag: number; hoog: number; toelichting: string; bron: Bron[] };
 }
 
 const mviAfval = bronnen.mviAfval;
@@ -104,7 +104,9 @@ export const stroomLijst: Stroom[] = [
     tariefEenheid: '€/ton',
     tariefKental: {
       waarde: kentalVerbrandingstarief,
-      toelichting: `Kental: midden van het poorttarief bij aanbesteding (€ ${poorttariefBandbreedte.laag}–${poorttariefBandbreedte.hoog} per ton, Strategy& 2025 op basis van ACM 2023) plus afvalstoffenbelasting 2026 (€ ${String(asb2026).replace('.', ',')} per ton). Vul uw eigen raming in.`,
+      laag: verbrandingstariefBand.laag,
+      hoog: verbrandingstariefBand.hoog,
+      toelichting: `Kental: midden van het poorttarief bij aanbesteding (€ ${poorttariefBandbreedte.laag}–${poorttariefBandbreedte.hoog} per ton, Strategy& 2025 op basis van ACM 2023) plus afvalstoffenbelasting 2026 (€ ${String(asb2026).replace('.', ',')} per ton). De raming toont daarom een bandbreedte. Vul uw eigen raming in.`,
       bron: [bronnen.strategyVa2025, bronnen.asb],
     },
   },
@@ -153,9 +155,9 @@ export const stroomLijst: Stroom[] = [
   {
     id: 'inzameling',
     naam: 'Inzameling huishoudelijk afval',
-    omschrijving: 'Inzameldienst met voertuigen en personeel, voor één of meer stromen.',
+    omschrijving: 'Inzameldienst met voertuigen en personeel. De MVI-productgroep huishoudelijk afval omvat ook het inzamelen van restafval.',
     opdrachtsoort: 'dienst',
-    mvi: mviVoertuigen,
+    mvi: mviAfval,
     volumeEenheid: 'ton/jaar',
     tariefEenheid: '€/ton',
   },
@@ -172,12 +174,34 @@ export const stroomLijst: Stroom[] = [
 
 export const stromen = Object.fromEntries(stroomLijst.map((s) => [s.id, s])) as Record<StroomId, Stroom>;
 
-/** Drempelbedragen 2026–2027, euro excl. btw. Bron: PIANOo. */
+/** Soort opdracht voor de drempeltoets. */
+export type OpdrachtType = 'diensten' | 'sociaal' | 'concessie';
+export const opdrachtTypen: Record<OpdrachtType, { label: string; uitleg: string }> = {
+  diensten: { label: 'Diensten of leveringen', uitleg: 'De gewone opdracht: inzamelen, verwerken of leveren voor een vergoeding van de opdrachtgever.' },
+  sociaal: {
+    label: 'Sociale en andere specifieke diensten',
+    uitleg: 'Alleen voor diensten uit bijlage XIV van de aanbestedingsrichtlijn, zoals zorg en re-integratie. Afvalinzameling en -verwerking vallen daar in de regel niet onder.',
+  },
+  concessie: {
+    label: 'Dienstenconcessie',
+    uitleg: 'De opdrachtnemer krijgt het recht de dienst te exploiteren en draagt zelf het exploitatierisico, bijvoorbeeld omdat hij zijn inkomsten bij gebruikers haalt.',
+  },
+};
+
+/**
+ * Drempelbedragen 1 januari 2026 tot en met 31 december 2027, euro excl. btw. Bron: PIANOo.
+ * `bedrag` is het drempelbedrag voor leveringen en diensten; `bedragen` per soort opdracht.
+ */
 export const drempels = {
-  decentraal: { kort: 'Decentrale overheid', label: 'Decentrale overheid (gemeente, provincie, waterschap, gemeenschappelijke regeling)', bedrag: 216000 },
-  centraal: { kort: 'Centrale overheid', label: 'Centrale overheid (Rijk)', bedrag: 140000 },
-  speciaal: { kort: 'Speciale-sectorbedrijf', label: 'Speciale-sectorbedrijf', bedrag: 432000 },
-} as const;
+  decentraal: {
+    kort: 'Decentrale overheid',
+    label: 'Decentrale overheid (gemeente, provincie, waterschap, gemeenschappelijke regeling)',
+    bedrag: 216000,
+    bedragen: { diensten: 216000, sociaal: 750000, concessie: 5404000 },
+  },
+  centraal: { kort: 'Centrale overheid', label: 'Centrale overheid (Rijk)', bedrag: 140000, bedragen: { diensten: 140000, sociaal: 750000, concessie: 5404000 } },
+  speciaal: { kort: 'Speciale-sectorbedrijf', label: 'Speciale-sectorbedrijf', bedrag: 432000, bedragen: { diensten: 432000, sociaal: 1000000, concessie: 5404000 } },
+} as const satisfies Record<string, { kort: string; label: string; bedrag: number; bedragen: Record<OpdrachtType, number> }>;
 export type DrempelId = keyof typeof drempels;
 export const drempelBron = bronnen.pianooDrempels;
 
@@ -613,6 +637,24 @@ export function standaardSelectie(stroom: StroomId): string[] {
     .filter((c) => !c.mvi || (c.mvi.ambitie >= 1 && c.mvi.ambitie <= 2))
     .map((c) => c.id);
 }
+
+/** Of een MVI-criterium bij de productgroep van deze stroom hoort ('eigen') of uit een andere productgroep komt. */
+export type MviStatus = 'eigen' | 'andere';
+export function mviStatus(c: Criterium, stroom: StroomId): MviStatus | null {
+  if (!c.mvi) return null;
+  return stromen[stroom].mvi === c.mvi.bron ? 'eigen' : 'andere';
+}
+
+/** Naam van de MVI-productgroep. */
+export function productgroepNaam(b: Bron): string {
+  if (b === mviAfval) return 'Verwerking huishoudelijk afval';
+  if (b === mviVoertuigen) return 'Zware voertuigen – aanschaf';
+  return b.titel;
+}
+
+/** Landelijke hoeveelheid fijn huishoudelijk restafval (ton), voor de plausibiliteitscontrole van het volume. */
+export const restafvalNlTon = Math.round((pmdGrenzen.inwonersNl * cbsPmd.landelijk.restafvalKgPerInw) / 1000);
+export const inwonersNl = pmdGrenzen.inwonersNl;
 
 /** Voorstel punten voor prijs, als uitgangspunt voor de weging. De gebruiker stelt zelf in. */
 export const prijsPuntenVoorstel = 50;

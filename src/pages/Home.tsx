@@ -1,19 +1,21 @@
+import '../components/kaart/inhoud.css';
 import { lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { Badge, Kaart, Tegel, ToegangBadge } from '../components/ui';
 import { nieuws } from '../data/nieuws';
 import { publicaties } from '../data/kennisbank';
 import { tools } from '../data/tools';
-import { prijsklassen } from '../data/lidmaatschap';
+import { prijzenVastgesteld, staffels } from '../data/lidmaatschap';
 import { afvalBron } from '../data/afvalbron';
 import { KLEUREN } from '../lib/kaartdata';
 import { datum, euro, getal, procent } from '../lib/format';
 
-// Leaflet pas laden als de pagina in beeld is.
+// De kaart en de 342 gemeenterijen laden pas na de eerste weergave, in een apart bestand.
 const RestafvalKaart = lazy(() => import('../components/kaart/RestafvalKaart').then((m) => ({ default: m.RestafvalKaart })));
 
-const controle = afvalBron.controle;
-const { aantalGemeenten, restafvalOnder100 } = afvalBron.samenvatting;
+const land = afvalBron.landelijkActueel;
+const { aantalGemeenten, restafvalOnder100, laagste, hoogste } = afvalBron.samenvatting;
+const peiljaar = afvalBron.peiljaar;
 
 export function Home() {
   const laatsteNieuws = nieuws.slice(0, 4);
@@ -22,7 +24,6 @@ export function Home() {
     .sort((a, b) => b.datum!.localeCompare(a.datum!))
     .slice(0, 3);
   const uitgelicht = tools.filter((t) => ['aanbesteding', 'index', 'pmd'].includes(t.id));
-  const laagste = Math.min(...prijsklassen.map((p) => p.van));
 
   return (
     <>
@@ -30,9 +31,9 @@ export function Home() {
         <div className="stapel">
           <h1>Cijfers, kennis en rekentools voor afvalverwerking</h1>
           <p className="lead">
-            Voor contractmanagers en beleidsmedewerkers van gemeenten, samenwerkingsverbanden en afvalverwerkers. De
-            Restafvalkaart toont per gemeente hoeveel restafval er wordt ingezameld, met officiële CBS-cijfers. Leden krijgen
-            daarnaast rekentools voor indexering, heffingen en bodemas, en een archief van aanbestedingen.
+            Voor contractmanagers en beleidsmedewerkers van gemeenten, samenwerkingsverbanden en afvalverwerkers. De Restafvalkaart toont per
+            gemeente hoeveel restafval er wordt ingezameld, met officiële CBS-cijfers. Leden krijgen daarnaast rekentools voor indexering,
+            heffingen en bodemas, en een archief van aanbestedingen.
           </p>
           <div className="knoppen">
             <Link className="knop primair" to="/restafvalkaart">
@@ -43,48 +44,99 @@ export function Home() {
             </Link>
           </div>
         </div>
-        <figure className="stapel" style={{ margin: 0 }}>
-          <div className="leaflet-vak mini" role="img" aria-label={`Kaart van Nederland met restafval per inwoner per gemeente in ${afvalBron.peiljaar}. De cijfers staan in de tabel op de kaartpagina.`}>
+        <figure className="stapel home-kaart">
+          <div className="kaart-vak mini">
             <Suspense fallback={null}>
-              <RestafvalKaart indicator="restafval" mini />
+              <RestafvalKaart
+                indicator="restafval"
+                mini
+                titel={`Kaart van Nederland met restafval per inwoner per gemeente in ${peiljaar}. Van ${getal(laagste.restafval)} kg in ${laagste.naam} tot ${getal(hoogste.restafval)} kg in ${hoogste.naam}.`}
+              />
             </Suspense>
           </div>
           <figcaption className="klein muted">
-            <span aria-hidden="true" style={{ display: 'inline-flex', verticalAlign: 'middle', marginRight: 6 }}>
+            <span aria-hidden="true" className="mini-legenda">
               {KLEUREN.map((k) => (
-                <span key={k} style={{ background: k, width: 14, height: 10, display: 'inline-block' }} />
+                <span key={k} style={{ background: k }} />
               ))}
             </span>
-            Restafval per inwoner per gemeente, {afvalBron.peiljaar}: lichter is minder, donkerder is meer. Bron: CBS.
+            Restafval per inwoner per gemeente, {peiljaar}: lichter is minder, donkerder is meer. Van {getal(laagste.restafval)} kg (
+            {laagste.naam}) tot {getal(hoogste.restafval)} kg ({hoogste.naam}). Bron: CBS.{' '}
+            <Link to="/restafvalkaart#tabel">Alle gemeenten in een tabel</Link>
           </figcaption>
         </figure>
       </section>
 
       <Kaart
-        titel={`Huishoudelijk afval in Nederland, ${afvalBron.peiljaar}`}
+        titel={land ? `Huishoudelijk afval in Nederland, ${land.jaar}` : `Huishoudelijk afval in Nederland, ${peiljaar}`}
         className="sectie"
         sub={
-          <>
-            Bron: CBS, tabellen {afvalBron.bron.tabelId} en {controle?.tabelId ?? '83558NED'} (cijfers {afvalBron.status.label}). Opgehaald op{' '}
-            {datum(afvalBron.opgehaald)}.
-          </>
-        }
-        actie={
-          <Link className="link-pijl klein" to="/restafvalkaart">
-            Cijfers per gemeente
-          </Link>
+          land ? (
+            <>
+              Landelijk: CBS, tabel{' '}
+              <a href={land.url} target="_blank" rel="noopener noreferrer">
+                {land.tabelId}
+              </a>{' '}
+              ({land.jaar}, {land.status.label}). Per gemeente: tabel {afvalBron.bron.tabelId} ({peiljaar}, het nieuwste jaar met
+              gemeentecijfers). Opgehaald op {datum(afvalBron.opgehaald)}.
+            </>
+          ) : (
+            <>
+              Bron: CBS, tabel {afvalBron.bron.tabelId} ({afvalBron.status.label}). Opgehaald op {datum(afvalBron.opgehaald)}.
+            </>
+          )
         }
       >
         <div className="tegels">
-          {controle && (
+          {land && (
             <>
-              <Tegel label="Restafval per inwoner" waarde={`${getal(controle.landelijkRestafvalKgPerInw)} kg`} toelichting="fijn en grof restafval, landelijk" hero />
-              <Tegel label="Gescheiden ingezameld" waarde={procent(controle.landelijkScheidingsPctCbs, 0)} toelichting="van al het huishoudelijk afval" />
-              <Tegel label="Totaal huishoudelijk afval" waarde={`${getal(controle.landelijkTotaalKgPerInw)} kg`} toelichting="per inwoner" />
+              <Tegel
+                label="Restafval per inwoner"
+                waarde={`${getal(land.restafvalKgPerInw)} kg`}
+                toelichting={
+                  <>
+                    fijn + grof, landelijk {land.jaar} · <Link to="/restafvalkaart?toon=restafval#tabel">per gemeente</Link>
+                  </>
+                }
+                hero
+              />
+              <Tegel
+                label="Gescheiden ingezameld"
+                waarde={procent(land.scheidingsPct, 0)}
+                toelichting={
+                  <>
+                    van al het huishoudelijk afval · <Link to="/restafvalkaart?toon=scheidingsPct#tabel">per gemeente</Link>
+                  </>
+                }
+              />
+              <Tegel
+                label="Totaal huishoudelijk afval"
+                waarde={`${getal(land.totaalKgPerInw)} kg`}
+                toelichting={
+                  <>
+                    per inwoner · <Link to="/restafvalkaart?toon=totaal#tabel">per gemeente</Link>
+                  </>
+                }
+              />
             </>
           )}
-          <Tegel label="Minder dan 100 kg restafval" waarde={`${restafvalOnder100} van ${aantalGemeenten}`} toelichting="gemeenten" />
+          <Tegel
+            label="Minder dan 100 kg restafval"
+            waarde={`${restafvalOnder100} van ${aantalGemeenten}`}
+            toelichting={
+              <>
+                gemeenten in {peiljaar} · <Link to="/restafvalkaart?toon=restafval#tabel">bekijk ze</Link>
+              </>
+            }
+          />
         </div>
+        {land && (
+          <p className="klein muted definitie">
+            Restafval is hier fijn plus grof huishoudelijk restafval, net als op de kaart. CBS telt in nieuwsberichten ook verbouwingsrestafval
+            mee ({getal(land.verbouwingsrestafvalKgPerInw)} kg) en komt dan op {getal(land.restafvalKgPerInw + land.verbouwingsrestafvalKgPerInw)}{' '}
+            kg. Gescheiden ingezameld volgt de CBS-definitie: nascheiding telt niet mee.
+          </p>
+        )}
       </Kaart>
 
       <div className="raster raster-2 sectie">
@@ -144,14 +196,34 @@ export function Home() {
           </ul>
         </Kaart>
 
-        <Kaart titel="Lidmaatschap">
+        <Kaart titel="Lidmaatschap" actie={!prijzenVastgesteld ? <Badge>Concept</Badge> : undefined}>
           <p>
-            Een jaarabonnement per organisatie, niet per gebruiker. Leden krijgen de volledige rekentools en het
-            aanbestedingsarchief.
+            Een jaarabonnement per organisatie, niet per gebruiker. Leden krijgen de volledige rekentools en het aanbestedingsarchief. Betalen
+            gaat op factuur.
           </p>
-          <p className="klein">
-            Vanaf <strong>{euro(laagste)}</strong> per jaar, exclusief btw.
-          </p>
+          <table className="home-staffels">
+            <caption className="visueel-verborgen">Jaarprijs per soort organisatie, exclusief btw</caption>
+            <thead>
+              <tr>
+                <th scope="col">Organisatie</th>
+                <th scope="col" className="num">
+                  Per jaar, excl. btw
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {staffels.map((s) => (
+                <tr key={s.id}>
+                  <th scope="row">
+                    {s.korteNaam}
+                    <span className="tabel-sub-blok">{s.voorWie}</span>
+                  </th>
+                  <td className="num">{euro(s.prijsExclBtw)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!prijzenVastgesteld && <p className="klein muted">De prijzen zijn een concept en kunnen nog veranderen.</p>}
           <div className="knoppen">
             <Link className="knop primair" to="/lidmaatschap">
               Bekijk lidmaatschap

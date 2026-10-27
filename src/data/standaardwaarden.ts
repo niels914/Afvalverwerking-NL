@@ -69,6 +69,7 @@ export const pmdStandaard: PmdInvoer = {
 export const aanbestedingStandaard = {
   stroom: 'restafval' as StroomId,
   drempel: 'decentraal' as DrempelId,
+  opdrachtType: 'diensten' as const,
   looptijdJaren: 5, // voorbeeld
   verlengingJaren: 2, // voorbeeld
   volumeTon: 40000, // voorbeeld

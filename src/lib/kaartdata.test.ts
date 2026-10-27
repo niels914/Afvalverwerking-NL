@@ -13,6 +13,7 @@ import {
   rangVan,
   vindGemeente,
   zoekGemeenten,
+  zoekUitkomst,
 } from './kaartdata';
 
 const g = (code: string, naam: string, inwoners: number, restafval: number, totaal: number | null, scheidingsPct: number | null): GemeenteAfval => ({
@@ -78,6 +79,17 @@ describe('zoeken', () => {
     expect(zoekGemeenten('hertog', lijst).map((x) => x.code)).toEqual(['GM0002']);
     expect(vindGemeente('gm0001', lijst)?.naam).toBe('Aa');
   });
+  it('kent Den Haag en Den Bosch en kiest niet zelf bij een dubbelzinnige naam', () => {
+    expect(vindGemeente('Den Bosch', gemeenten)?.code).toBe('GM0796');
+    expect(vindGemeente('den haag', gemeenten)?.code).toBe('GM0518');
+    expect(zoekGemeenten('den b', gemeenten)[0].code).toBe('GM0796');
+    const bergen = zoekUitkomst('Bergen', gemeenten);
+    expect(bergen.soort).toBe('meerdere');
+    if (bergen.soort === 'meerdere') expect(bergen.treffers.map((x) => x.naam)).toEqual(expect.arrayContaining(['Bergen (NH.)', 'Bergen (L.)']));
+    expect(zoekUitkomst('Atlantis', gemeenten).soort).toBe('geen');
+    const utrecht = zoekUitkomst('utrecht', gemeenten);
+    expect(utrecht.soort === 'gevonden' && utrecht.gemeente.code).toBe('GM0344');
+  });
   it('maakt een CSV met puntkomma en decimale komma', () => {
     const csv = naarCsv([g('GM0001', 'Aa', 1000, 100.5, 400, 75.2)], 2024).split('\r\n');
     expect(csv[0]).toContain('Restafval kg/inw 2024');
@@ -111,6 +123,24 @@ describe('echte data', () => {
     expect(grenzenBron.jaar).toBe(afvalBron.peiljaar);
     expect(codes.size).toBe(gemeenten.length);
     for (const x of gemeenten) expect(codes.has(x.code)).toBe(true);
+  });
+  it('heeft SVG-paden voor dezelfde gemeenten, binnen het kaartvak', () => {
+    const kaart = JSON.parse(readFileSync(new URL('../../public/data/gemeentekaart.json', import.meta.url), 'utf8'));
+    expect(grenzenBron.kaartbestand).toBe('/data/gemeentekaart.json');
+    expect(kaart.gemeenten).toHaveLength(gemeenten.length);
+    for (const v of kaart.gemeenten) {
+      expect(gemeenten.some((x) => x.code === v.c)).toBe(true);
+      expect(v.d).toMatch(/^M\d+ \d+l/);
+      expect(v.b[0]).toBeGreaterThanOrEqual(0);
+      expect(v.b[2]).toBeLessThanOrEqual(kaart.breedte);
+      expect(v.b[3]).toBeLessThanOrEqual(kaart.hoogte);
+    }
+  });
+  it('heeft een landelijk cijfer van het nieuwste jaar met dezelfde definitie', () => {
+    const l = afvalBron.landelijkActueel!;
+    expect(l.jaar).toBeGreaterThanOrEqual(afvalBron.peiljaar);
+    expect(l.restafvalKgPerInw).toBeGreaterThan(100);
+    expect(l.url).toMatch(/^https:\/\/opendata\.cbs\.nl\//);
   });
 });
 

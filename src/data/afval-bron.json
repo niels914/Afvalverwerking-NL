@@ -1,6 +1,6 @@
 {
   "peiljaar": 2024,
-  "opgehaald": "2026-10-19",
+  "opgehaald": "2026-10-27",
   "status": {
     "tekst": "De cijfers over 2022, 2023 en 2024 zijn nader voorlopig; alle overige cijfers zijn definitief.",
     "label": "nader voorlopig"
@@ -31,6 +31,20 @@
     "landelijkScheidingsPctCbs": 61,
     "landelijkScheidingsPctBerekend": 60.4
   },
+  "landelijkActueel": {
+    "jaar": 2025,
+    "tabelId": "83558NED",
+    "url": "https://opendata.cbs.nl/statline/#/CBS/nl/dataset/83558NED/table",
+    "gewijzigd": "2026-07-16",
+    "status": {
+      "tekst": "De cijfers over 2025 zijn voorlopig. De cijfers over 2022, 2023 en 2024 zijn nader voorlopig; alle overige cijfers zijn definitief.",
+      "label": "voorlopig"
+    },
+    "totaalKgPerInw": 449,
+    "restafvalKgPerInw": 175,
+    "verbouwingsrestafvalKgPerInw": 4,
+    "scheidingsPct": 60
+  },
   "definities": {
     "restafval": "Fijn huishoudelijk restafval + grof huishoudelijk restafval, kg per inwoner (CBS 83452NED).",
     "scheidingsPct": "Gescheiden ingezameld deel van al het huishoudelijk afval: (totaal − fijn restafval − grof restafval − verbouwingsrestafval) / totaal. Nascheiding telt niet mee.",
@@ -38,6 +52,16 @@
   },
   "samenvatting": {
     "aantalGemeenten": 342,
-    "restafvalOnder100": 84
+    "restafvalOnder100": 84,
+    "laagste": {
+      "code": "GM1667",
+      "naam": "Reusel-De Mierden",
+      "restafval": 17.1
+    },
+    "hoogste": {
+      "code": "GM0096",
+      "naam": "Vlieland",
+      "restafval": 554.2
+    }
   }
 }

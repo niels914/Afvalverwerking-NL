@@ -1,13 +1,14 @@
 {
   "jaar": 2024,
   "aantal": 342,
-  "opgehaald": "2026-10-19",
+  "opgehaald": "2026-10-27",
   "uitgever": "CBS en Kadaster via PDOK",
   "titel": "CBS Gebiedsindelingen, Gemeente gegeneraliseerd (jaarcode 2024)",
   "url": "https://www.pdok.nl/ogc-apis/-/article/cbs-gebiedsindelingen",
   "api": "https://api.pdok.nl/cbs/gebiedsindelingen/ogc/v1/collections/gemeente_gegeneraliseerd/items?f=json&limit=1000&jaarcode=2024",
   "licentie": "CC BY 4.0 (zie PDOK-datasetpagina)",
-  "bewerking": "Vereenvoudigd met Douglas-Peucker (tolerantie 0.0015 graden, gedeelde grenzen gelijk gehouden) en afgerond op 4 decimalen.",
+  "bewerking": "Vereenvoudigd met Douglas-Peucker (tolerantie 0.0015 graden, gedeelde grenzen gelijk gehouden), afgerond op 4 decimalen en voor de kaart omgezet in SVG-paden (ongeveer 130 meter per eenheid).",
   "bestand": "/data/gemeentegrenzen.geojson",
-  "bytes": 389138
+  "bytes": 389138,
+  "kaartbestand": "/data/gemeentekaart.json"
 }

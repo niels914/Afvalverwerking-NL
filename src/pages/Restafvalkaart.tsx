@@ -1,3 +1,4 @@
+import '../components/kaart/inhoud.css';
 import { useEffect, useId, useMemo, useRef, useState, type RefObject } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { RestafvalKaart } from '../components/kaart/RestafvalKaart';
@@ -12,12 +13,16 @@ import {
   vindGemeente,
   waardeVan,
   zoekGemeenten,
+  zoekUitkomst,
   type IndicatorId,
 } from '../lib/kaartdata';
 import { datum, getal, procent } from '../lib/format';
 
 const INDICATOR_IDS: IndicatorId[] = ['restafval', 'scheidingsPct', 'totaal'];
 const STANDAARD = 'GM0363'; // Amsterdam: grootste gemeente, herkenbaar startpunt.
+const EERSTE_RIJEN = 25;
+/** Onder deze hoeveelheid gescheiden ingezameld PMD (kg per inwoner) is nascheiding waarschijnlijk. */
+const PMD_DREMPEL = 2;
 
 const landelijk = {
   restafval: gewogenGemiddelde(gemeenten, 'restafval'),
@@ -25,11 +30,16 @@ const landelijk = {
   totaal: gewogenGemiddelde(gemeenten, 'totaal'),
 };
 
+/** Breed scherm: details standaard open. Alleen bij de eerste weergave bepaald. */
+const isBreed = () => typeof window !== 'undefined' && !!window.matchMedia?.('(min-width: 900px)').matches;
+
 export default function Restafvalkaart() {
   const [params, setParams] = useSearchParams();
   const indicator = (INDICATOR_IDS.includes(params.get('toon') as IndicatorId) ? params.get('toon') : 'restafval') as IndicatorId;
-  const gekozen = vindGemeente(params.get('gemeente') ?? '', gemeenten) ?? vindGemeente(STANDAARD, gemeenten)!;
-  const [zoomVerzoek, setZoomVerzoek] = useState(0);
+  const gevraagd = params.get('gemeente');
+  const gevonden = gevraagd ? vindGemeente(gevraagd, gemeenten) : undefined;
+  const gekozen = gevonden ?? vindGemeente(STANDAARD, gemeenten)!;
+  const [zoomVerzoek, setZoomVerzoek] = useState(() => (gevonden ? 1 : 0));
   const paneelRef = useRef<HTMLHeadingElement>(null);
 
   const zet = (wijziging: Record<string, string>) => {
@@ -42,6 +52,8 @@ export default function Restafvalkaart() {
     if (opties.zoom) setZoomVerzoek((n) => n + 1);
     if (opties.focus) requestAnimationFrame(() => paneelRef.current?.focus());
   };
+  const ind = indicatoren[indicator];
+  const waarde = waardeVan(gekozen, indicator);
 
   return (
     <>
@@ -54,10 +66,25 @@ export default function Restafvalkaart() {
           </>
         }
       >
-        Hoeveel restafval zamelt elke gemeente in per inwoner, en welk deel van het huishoudelijk afval wordt gescheiden
-        ingezameld? Kies een gemeente op de kaart, zoek op naam of gebruik de tabel. Alle {gemeenten.length} gemeenten,
-        peiljaar {afvalBron.peiljaar}.
+        Restafval en gescheiden inzameling per gemeente, voor alle {gemeenten.length} gemeenten. Kies een gemeente op de kaart, zoek op
+        naam of gebruik de tabel.
       </PaginaKop>
+      <p className="bronregel klein">
+        Bron: CBS,{' '}
+        <a href={afvalBron.bron.url} target="_blank" rel="noopener noreferrer">
+          tabel {afvalBron.bron.tabelId}
+          <span className="visueel-verborgen"> (opent CBS StatLine in nieuw tabblad)</span>
+        </a>
+        , peiljaar {afvalBron.peiljaar} ({afvalBron.status.label}), opgehaald {datum(afvalBron.opgehaald)}.{' '}
+        <a href="#bron">Rekenwijze en bronnen</a>
+      </p>
+
+      {gevraagd && !gevonden && (
+        <div className="notitie sectie" role="status">
+          De gemeente “{gevraagd}” uit de link bestaat niet in de CBS-cijfers over {afvalBron.peiljaar}. U ziet nu {gekozen.naam}. Zoek hieronder
+          een andere gemeente; na een herindeling heeft een gemeente soms een nieuwe naam of code.
+        </div>
+      )}
 
       <div className="kaart-bediening sectie">
         <Chips<IndicatorId>
@@ -70,16 +97,29 @@ export default function Restafvalkaart() {
       </div>
 
       <div className="kaart-layout sectie">
-        <div className="stapel">
-          <div className="leaflet-vak" role="region" aria-label={`Kaart van Nederland: ${indicatoren[indicator].label.toLowerCase()} per gemeente`}>
+        <div className="stapel kaart-kolom">
+          <div className="kaart-vak" role="region" aria-label="Kaart">
             <RestafvalKaart
               gemeenten={gemeenten}
               indicator={indicator}
               geselecteerd={gekozen.code}
               onSelecteer={(code) => kies(code)}
               zoomVerzoek={zoomVerzoek}
+              titel={`Kaart van Nederland: ${ind.label.toLowerCase()} per gemeente, ${afvalBron.peiljaar}. Gekozen: ${gekozen.naam}.`}
             />
           </div>
+          <p className="kaart-onderschrift">
+            <span aria-live="polite">
+              Gekozen: <strong>{gekozen.naam}</strong>, {ind.kort.toLowerCase()}{' '}
+              {waarde === null ? 'geen cijfer' : `${getal(waarde, ind.decimalen)}${ind.eenheid === '%' ? ' %' : ` ${ind.eenheid} per inwoner`}`}.{' '}
+              <a href="#paneel-titel" className="alleen-smal">
+                Naar de kerncijfers
+              </a>
+            </span>
+            <span className="muted">
+              Zonder muis: kies een gemeente met het zoekveld of in de <a href="#tabel">tabel</a>. De zoomknoppen werken met het toetsenbord.
+            </span>
+          </p>
           <Kaart>
             <Legenda gemeenten={gemeenten} indicator={indicator} />
           </Kaart>
@@ -115,9 +155,16 @@ function ZoekGemeente({ onKies }: { onKies: (g: GemeenteAfval) => void }) {
       aria-label="Gemeente zoeken"
       onSubmit={(e) => {
         e.preventDefault();
-        const g = exact ?? treffers[0];
-        if (g) kies(g);
-        else setMelding(term.trim() ? `Geen gemeente gevonden voor “${term.trim()}”.` : 'Typ eerst een gemeentenaam.');
+        const t = term.trim();
+        if (!t) {
+          setMelding('Typ eerst een gemeentenaam.');
+          return;
+        }
+        const uitkomst = zoekUitkomst(t, gemeenten);
+        if (uitkomst.soort === 'gevonden') kies(uitkomst.gemeente);
+        else if (uitkomst.soort === 'meerdere')
+          setMelding(`${uitkomst.treffers.length} gemeenten gevonden voor “${t}”. Kies er een uit de lijst.`);
+        else setMelding(`Geen gemeente gevonden voor “${t}”. Controleer de spelling of zoek op een deel van de naam.`);
       }}
     >
       <div className="veld">
@@ -129,7 +176,7 @@ function ZoekGemeente({ onKies }: { onKies: (g: GemeenteAfval) => void }) {
               type="search"
               value={term}
               autoComplete="off"
-              placeholder="Bijv. Utrecht of GM0344"
+              placeholder="Bijv. Utrecht, Den Bosch of GM0344"
               aria-describedby={`${id}-melding`}
               onChange={(e) => {
                 setTerm(e.target.value);
@@ -178,11 +225,13 @@ function GemeentePaneel({
   indicator: IndicatorId;
   kopRef: RefObject<HTMLHeadingElement>;
 }) {
+  const [stromenOpen, setStromenOpen] = useState(isBreed);
   const rang = rangVan(g, gemeenten, indicator);
   const ind = indicatoren[indicator];
   const tovLand = verschilTekst(g.restafval, landelijk.restafval, ' kg');
   const tovVorig = verschilTekst(g.restafval, g.restafvalVorigJaar, ' kg', 1);
   const scheidingTov = verschilTekst(g.scheidingsPct, landelijk.scheidingsPct, ' procentpunt');
+  const nascheidingWaarschijnlijk = g.pmd < PMD_DREMPEL;
 
   const stromen: [string, number | null][] = [
     ['Fijn restafval', g.fijnRest],
@@ -209,16 +258,11 @@ function GemeentePaneel({
           </div>
         </div>
         <div className="tegels" aria-live="polite">
-          <Tegel
-            label="Restafval"
-            waarde={`${getal(g.restafval)} kg`}
-            toelichting={`per inwoner, fijn + grof, ${afvalBron.peiljaar}`}
-            hero
-          />
+          <Tegel label="Restafval" waarde={`${getal(g.restafval)} kg`} toelichting={`per inwoner, fijn + grof, ${afvalBron.peiljaar}`} hero />
           <Tegel
             label="Gescheiden ingezameld"
             waarde={g.scheidingsPct === null ? 'geen cijfer' : procent(g.scheidingsPct, 0)}
-            toelichting="van al het huishoudelijk afval"
+            toelichting="bij inzameling; nascheiding telt niet mee"
           />
           <Tegel label="Totaal huishoudelijk afval" waarde={g.totaal === null ? 'geen cijfer' : `${getal(g.totaal)} kg`} toelichting="per inwoner" />
           <Tegel
@@ -238,18 +282,32 @@ function GemeentePaneel({
               Restafval: {tovVorig} in {afvalBron.peiljaar - 1} ({getal(g.restafvalVorigJaar ?? NaN, 1)} kg).
             </li>
           )}
-          {scheidingTov && <li>Gescheiden inzameling: {scheidingTov} het landelijk gemiddelde ({procent(landelijk.scheidingsPct ?? NaN, 0)}).</li>}
+          {scheidingTov && (
+            <li>
+              Gescheiden inzameling: {scheidingTov} het landelijk gemiddelde ({procent(landelijk.scheidingsPct ?? NaN, 0)}).
+            </li>
+          )}
           {rang && (
             <li>
-              {ind.label}: plaats {getal(rang.plaats)} van {getal(rang.van)} gemeenten (plaats 1 ={' '}
-              {ind.lagerIsBeter ? 'laagste' : 'hoogste'} waarde).
+              {ind.label}: plaats {getal(rang.plaats)} van {getal(rang.van)} gemeenten (plaats 1 = {ind.lagerIsBeter ? 'laagste' : 'hoogste'} waarde).
             </li>
           )}
           {g.totaal === null && <li>CBS publiceert voor deze gemeente geen totaal; het scheidingspercentage ontbreekt daarom.</li>}
         </ul>
+        {nascheidingWaarschijnlijk && g.scheidingsPct !== null && (
+          <p className="notitie klein nascheiding">
+            CBS registreert in {g.naam} {g.pmd === 0 ? 'geen' : `maar ${getal(g.pmd, 1)} kg`} apart ingezameld PMD per inwoner. Haalt de gemeente
+            plastic en blik achteraf uit het restafval (nascheiding), dan telt CBS dat niet als gescheiden ingezameld. Het percentage valt dan
+            lager uit dan in eigen rapportages van gemeente of verwerker.
+          </p>
+        )}
       </section>
 
-      <Kaart titel="Afvalstromen per inwoner" kopNiveau={3} sub={`kg per inwoner, ${afvalBron.peiljaar}`}>
+      <details className="kaart inklap" open={stromenOpen} onToggle={(e) => setStromenOpen((e.target as HTMLDetailsElement).open)}>
+        <summary>
+          <span className="inklap-titel">Afvalstromen per inwoner</span>
+          <span className="sub">kg per inwoner, {afvalBron.peiljaar}</span>
+        </summary>
         <table className="samenstelling">
           <caption className="visueel-verborgen">Ingezamelde afvalstromen in {g.naam}</caption>
           <thead>
@@ -272,7 +330,7 @@ function GemeentePaneel({
             ))}
           </tbody>
         </table>
-      </Kaart>
+      </details>
 
       <div className="aanbesteding-link">
         <h3>Aanbestedingen van {g.naam}</h3>
@@ -289,8 +347,12 @@ function GemeentePaneel({
 type SorteerKolom = 'naam' | 'inwoners' | 'restafval' | 'scheidingsPct' | 'totaal';
 
 function Tabelweergave({ indicator, gekozen, onKies }: { indicator: IndicatorId; gekozen: string; onKies: (code: string) => void }) {
-  const provincies = useMemo(() => [...new Set(gemeenten.map((g) => g.provincie).filter((p): p is string => !!p))].sort((a, b) => a.localeCompare(b, 'nl')), []);
+  const provincies = useMemo(
+    () => [...new Set(gemeenten.map((g) => g.provincie).filter((p): p is string => !!p))].sort((a, b) => a.localeCompare(b, 'nl')),
+    [],
+  );
   const [provincie, setProvincie] = useState('alle');
+  const [alles, setAlles] = useState(false);
   const [sortering, setSortering] = useState<{ kolom: SorteerKolom; op: boolean }>({ kolom: indicator, op: indicatoren[indicator].lagerIsBeter });
   useEffect(() => setSortering({ kolom: indicator, op: indicatoren[indicator].lagerIsBeter }), [indicator]);
 
@@ -307,6 +369,9 @@ function Tabelweergave({ indicator, gekozen, onKies }: { indicator: IndicatorId;
       return op ? wa - wb : wb - wa;
     });
   }, [provincie, sortering]);
+  // Per provincie alles tonen (hooguit enkele tientallen); landelijk eerst de eerste 25.
+  const ingekort = !alles && provincie === 'alle' && rijen.length > EERSTE_RIJEN;
+  const zichtbaar = ingekort ? rijen.slice(0, EERSTE_RIJEN) : rijen;
 
   const downloadCsv = () => {
     const blob = new Blob(['﻿', naarCsv(rijen, afvalBron.peiljaar)], { type: 'text/csv;charset=utf-8' });
@@ -318,10 +383,10 @@ function Tabelweergave({ indicator, gekozen, onKies }: { indicator: IndicatorId;
     URL.revokeObjectURL(url);
   };
 
-  const kop = (kolom: SorteerKolom, label: string, num = true) => {
+  const kop = (kolom: SorteerKolom, label: string, extra = 'num') => {
     const actief = sortering.kolom === kolom;
     return (
-      <th scope="col" className={num ? 'num' : undefined} aria-sort={actief ? (sortering.op ? 'ascending' : 'descending') : 'none'}>
+      <th scope="col" className={extra || undefined} aria-sort={actief ? (sortering.op ? 'ascending' : 'descending') : 'none'}>
         <button type="button" onClick={() => setSortering({ kolom, op: actief ? !sortering.op : kolom === 'naam' })}>
           {label}
           <span aria-hidden="true">{actief ? (sortering.op ? ' ▲' : ' ▼') : ''}</span>
@@ -331,7 +396,12 @@ function Tabelweergave({ indicator, gekozen, onKies }: { indicator: IndicatorId;
   };
 
   return (
-    <Kaart titel="Alle gemeenten in een tabel" className="sectie" id="tabel" sub="Zelfde cijfers als de kaart. Klik op een kolomkop om te sorteren.">
+    <Kaart
+      titel="Alle gemeenten in een tabel"
+      className="sectie"
+      id="tabel"
+      sub="Zelfde cijfers als de kaart, in kilo per inwoner. Klik op een kolomkop om te sorteren."
+    >
       <div className="tabel-bediening">
         <KeuzeVeld
           label="Provincie"
@@ -343,34 +413,39 @@ function Tabelweergave({ indicator, gekozen, onKies }: { indicator: IndicatorId;
           Download als CSV
         </button>
         <p className="klein muted" aria-live="polite">
-          {rijen.length} gemeenten
+          {ingekort ? `${zichtbaar.length} van ${rijen.length} gemeenten` : `${rijen.length} gemeenten`}
         </p>
       </div>
-      <div className="tabel-container kaarttabel" tabIndex={0} role="region" aria-label="Tabel met cijfers per gemeente">
+      <div className="kaarttabel">
         <table>
           <caption>
             Huishoudelijk afval per gemeente, {afvalBron.peiljaar}, kilo per inwoner. Bron: CBS, tabel {afvalBron.bron.tabelId}.
           </caption>
           <thead>
             <tr>
-              {kop('naam', 'Gemeente', false)}
-              <th scope="col">Provincie</th>
-              {kop('inwoners', 'Inwoners')}
+              {kop('naam', 'Gemeente', '')}
+              <th scope="col" className="kol-breed">
+                Provincie
+              </th>
+              {kop('inwoners', 'Inwoners', 'num kol-breed')}
               {kop('restafval', 'Restafval kg')}
               {kop('scheidingsPct', 'Gescheiden %')}
               {kop('totaal', 'Totaal kg')}
             </tr>
           </thead>
           <tbody>
-            {rijen.map((g) => (
+            {zichtbaar.map((g) => (
               <tr key={g.code} aria-current={g.code === gekozen ? 'true' : undefined}>
                 <th scope="row">
                   <button type="button" onClick={() => onKies(g.code)} aria-label={`${g.naam} tonen op de kaart`}>
                     {g.naam}
                   </button>
+                  <span className="tabel-sub" aria-hidden="true">
+                    {g.provincie ?? ''}
+                  </span>
                 </th>
-                <td>{g.provincie ?? '–'}</td>
-                <td className="num">{g.inwoners ? getal(g.inwoners) : '–'}</td>
+                <td className="kol-breed">{g.provincie ?? '–'}</td>
+                <td className="num kol-breed">{g.inwoners ? getal(g.inwoners) : '–'}</td>
                 <td className="num">{getal(g.restafval)}</td>
                 <td className="num">{g.scheidingsPct === null ? '–' : getal(g.scheidingsPct)}</td>
                 <td className="num">{g.totaal === null ? '–' : getal(g.totaal)}</td>
@@ -379,6 +454,13 @@ function Tabelweergave({ indicator, gekozen, onKies }: { indicator: IndicatorId;
           </tbody>
         </table>
       </div>
+      {ingekort && (
+        <div className="knoppen tabel-meer">
+          <button type="button" onClick={() => setAlles(true)}>
+            Toon alle {rijen.length} gemeenten
+          </button>
+        </div>
+      )}
     </Kaart>
   );
 }
@@ -388,52 +470,67 @@ function Bronblok() {
   const c = afvalBron.controle;
   return (
     <Kaart titel="Bron, peiljaar en rekenwijze" className="sectie bronblok" id="bron">
-      <dl>
-        <dt>Cijfers</dt>
-        <dd>
-          CBS, <a href={afvalBron.bron.url} target="_blank" rel="noopener noreferrer">{afvalBron.bron.titel} ({afvalBron.bron.tabelId})</a>. Peiljaar{' '}
-          {afvalBron.peiljaar}. Tabel gewijzigd op {datum(afvalBron.bron.gewijzigd)}. {afvalBron.status.tekst}
-        </dd>
-        <dt>Inwoners</dt>
-        <dd>
-          CBS, <a href={afvalBron.bevolking.url} target="_blank" rel="noopener noreferrer">{afvalBron.bevolking.titel} ({afvalBron.bevolking.tabelId})</a>:{' '}
-          {afvalBron.bevolking.onderwerp.toLowerCase()}. Gebruikt voor tonnen en gewogen gemiddelden.
-        </dd>
-        <dt>Gemeentegrenzen</dt>
-        <dd>
-          <a href={grenzenBron.url} target="_blank" rel="noopener noreferrer">{grenzenBron.titel}</a>, {grenzenBron.uitgever}, {grenzenBron.licentie}.{' '}
-          {grenzenBron.bewerking}
-        </dd>
-        <dt>Opgehaald</dt>
-        <dd>
-          Cijfers op {datum(afvalBron.opgehaald)}, grenzen op {datum(grenzenBron.opgehaald)}.
-        </dd>
-        <dt>Restafval</dt>
-        <dd>{afvalBron.definities.restafval}</dd>
-        <dt>Gescheiden ingezameld</dt>
-        <dd>
-          {afvalBron.definities.scheidingsPct} Dit is de definitie van CBS. Het wijkt af van afvalscheidingscijfers die
-          nascheiding meetellen.
-          {c && (
-            <>
-              {' '}
-              Controle: landelijk komt deze rekenwijze uit op {procent(c.landelijkScheidingsPctBerekend, 1)}; CBS publiceert{' '}
-              {procent(c.landelijkScheidingsPctCbs, 0)} (tabel {c.tabelId}).
-            </>
-          )}
-        </dd>
-        <dt>Landelijk gemiddelde</dt>
-        <dd>
-          Gemiddelde van alle gemeenten, gewogen naar inwoners (scheiding: naar hoeveelheid afval). Restafval{' '}
-          {getal(landelijk.restafval ?? NaN)} kg per inwoner
-          {c ? `; CBS landelijk: ${getal(c.landelijkRestafvalKgPerInw)} kg (fijn + grof)` : ''}.
-        </dd>
-        <dt>Samenwerkingsverbanden</dt>
-        <dd>
-          De kaart toont gemeenten, geen samenwerkingsverbanden. Er is geen openbare, onderhouden bron met de indeling van
-          gemeenten in afvalsamenwerkingsverbanden die we kunnen controleren.
-        </dd>
-      </dl>
+      <p className="klein">
+        Cijfers: CBS,{' '}
+        <a href={afvalBron.bron.url} target="_blank" rel="noopener noreferrer">
+          {afvalBron.bron.titel} ({afvalBron.bron.tabelId})
+        </a>
+        . Peiljaar {afvalBron.peiljaar}, {afvalBron.status.label}. Grenzen:{' '}
+        <a href={grenzenBron.url} target="_blank" rel="noopener noreferrer">
+          {grenzenBron.titel}
+        </a>
+        , {grenzenBron.uitgever}, {grenzenBron.licentie}.
+      </p>
+      <details className="inklap-tekst">
+        <summary>Definities, rekenwijze en controle</summary>
+        <dl>
+          <dt>Status</dt>
+          <dd>
+            Tabel gewijzigd op {datum(afvalBron.bron.gewijzigd)}. {afvalBron.status.tekst}
+          </dd>
+          <dt>Inwoners</dt>
+          <dd>
+            CBS,{' '}
+            <a href={afvalBron.bevolking.url} target="_blank" rel="noopener noreferrer">
+              {afvalBron.bevolking.titel} ({afvalBron.bevolking.tabelId})
+            </a>
+            : {afvalBron.bevolking.onderwerp.toLowerCase()}. Gebruikt voor tonnen en gewogen gemiddelden.
+          </dd>
+          <dt>Gemeentegrenzen</dt>
+          <dd>{grenzenBron.bewerking}</dd>
+          <dt>Opgehaald</dt>
+          <dd>
+            Cijfers op {datum(afvalBron.opgehaald)}, grenzen op {datum(grenzenBron.opgehaald)}.
+          </dd>
+          <dt>Restafval</dt>
+          <dd>
+            {afvalBron.definities.restafval} Verbouwingsrestafval telt niet mee; CBS-nieuwsberichten tellen dat soms wel mee en komen daardoor een
+            paar kilo hoger uit.
+          </dd>
+          <dt>Gescheiden ingezameld</dt>
+          <dd>
+            {afvalBron.definities.scheidingsPct} Dit is de definitie van CBS. Het wijkt af van afvalscheidingscijfers die nascheiding meetellen.
+            {c && (
+              <>
+                {' '}
+                Controle: landelijk komt deze rekenwijze uit op {procent(c.landelijkScheidingsPctBerekend, 1)}; CBS publiceert{' '}
+                {procent(c.landelijkScheidingsPctCbs, 0)} (tabel {c.tabelId}).
+              </>
+            )}
+          </dd>
+          <dt>Landelijk gemiddelde</dt>
+          <dd>
+            Gemiddelde van alle gemeenten, gewogen naar inwoners (scheiding: naar hoeveelheid afval). Restafval {getal(landelijk.restafval ?? NaN)} kg
+            per inwoner
+            {c ? `; CBS landelijk: ${getal(c.landelijkRestafvalKgPerInw)} kg (fijn + grof)` : ''}.
+          </dd>
+          <dt>Samenwerkingsverbanden</dt>
+          <dd>
+            De kaart toont gemeenten, geen samenwerkingsverbanden. Er is geen openbare, onderhouden bron met de indeling van gemeenten in
+            afvalsamenwerkingsverbanden die we kunnen controleren.
+          </dd>
+        </dl>
+      </details>
     </Kaart>
   );
 }

@@ -19,8 +19,26 @@ export interface AfvalBron {
     landelijkScheidingsPctCbs: number;
     landelijkScheidingsPctBerekend: number;
   } | null;
+  /** Landelijk cijfer van het nieuwste jaar uit 83558NED; kan een jaar verder zijn dan de gemeentecijfers. */
+  landelijkActueel: {
+    jaar: number;
+    tabelId: string;
+    url: string;
+    gewijzigd: string;
+    status: { tekst: string; label: string };
+    totaalKgPerInw: number;
+    /** Fijn + grof restafval, zelfde definitie als op de kaart. */
+    restafvalKgPerInw: number;
+    verbouwingsrestafvalKgPerInw: number;
+    scheidingsPct: number;
+  } | null;
   definities: { restafval: string; scheidingsPct: string; pmd: string };
-  samenvatting: { aantalGemeenten: number; restafvalOnder100: number };
+  samenvatting: {
+    aantalGemeenten: number;
+    restafvalOnder100: number;
+    laagste: { code: string; naam: string; restafval: number };
+    hoogste: { code: string; naam: string; restafval: number };
+  };
 }
 
 export interface GrenzenBron {
@@ -35,6 +53,8 @@ export interface GrenzenBron {
   bewerking: string;
   bestand: string;
   bytes: number;
+  /** SVG-paden voor de kaart (scripts/pdok-gemeentekaart.mjs). */
+  kaartbestand: string;
 }
 
 export const afvalBron: AfvalBron = bron as AfvalBron;

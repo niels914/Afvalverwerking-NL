@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { criteria, criteriaVoorStroom, drempels, standaardSelectie, stroomLijst, stromen } from '../../data/tools-b-aanbesteding';
+import { criteria, criteriaVoorStroom, drempels, mviStatus, productgroepNaam, restafvalNlTon, standaardSelectie, stroomLijst, stromen } from '../../data/tools-b-aanbesteding';
 import { naarCsv } from '../../components/rekenen/export';
 import {
   aanbestedingNaarParams,
   aanbestedingUitParams,
   checklist,
+  drempelBand,
   drempelToets,
+  ramingBandbreedte,
+  ramingSignalen,
   geraamdeWaarde,
   normaliseerWeging,
   overzichtCsv,
@@ -166,6 +169,7 @@ describe('deellink', () => {
   const standaard: AanbestedingInvoer = {
     stroom: 'restafval',
     drempel: 'decentraal',
+    opdrachtType: 'diensten',
     volume: 40000,
     tarief: null,
     looptijd: 5,
@@ -180,15 +184,16 @@ describe('deellink', () => {
   };
 
   it('zet de invoer om en terug', () => {
-    const i: AanbestedingInvoer = { ...standaard, stroom: 'gft', tarief: 80.5, gekozen: ['gft-co2-basis', 'alg-index'], punten: { prijs: 60, 'gft-co2-basis': 20 } };
+    const i: AanbestedingInvoer = { ...standaard, stroom: 'gft', opdrachtType: 'concessie', tarief: 80.5, gekozen: ['gft-co2-basis', 'alg-index'], punten: { prijs: 60, 'gft-co2-basis': 20 } };
     const terug = aanbestedingUitParams(aanbestedingNaarParams(i), standaard, opties);
     expect(terug).toEqual(i);
   });
 
   it('negeert onbekende stromen, criteria en ongeldige getallen', () => {
-    const t = aanbestedingUitParams(new URLSearchParams('stroom=kernafval&dienst=x&jr=99&sel=rest-r1,bestaatniet,gft-piek&w=prijs:200,rest-r1:10'), standaard, opties);
+    const t = aanbestedingUitParams(new URLSearchParams('stroom=kernafval&dienst=x&type=werken&jr=99&sel=rest-r1,bestaatniet,gft-piek&w=prijs:200,rest-r1:10'), standaard, opties);
     expect(t.stroom).toBe('restafval');
     expect(t.drempel).toBe('decentraal');
+    expect(t.opdrachtType).toBe('diensten');
     expect(t.looptijd).toBe(5);
     expect(t.gekozen).toEqual(['rest-r1']);
     expect(t.punten.prijs).toBe(50);
@@ -220,5 +225,86 @@ describe('deellink', () => {
     const metKental: AanbestedingInvoer = { ...standaard, tarief: 103.35 };
     expect(aanbestedingUitParams(new URLSearchParams('stroom=restafval&vol=1000'), metKental, opties).tarief).toBe(103.35);
     expect(aanbestedingUitParams(new URLSearchParams('vol=&jr='), metKental, opties).volume).toBe(40000);
+  });
+});
+
+describe('ronde 2: drempels per soort opdracht (PIANOo 2026–2027)', () => {
+  it('heeft de drempels voor diensten, sociale diensten en concessies', () => {
+    expect(drempels.decentraal.bedragen).toEqual({ diensten: 216000, sociaal: 750000, concessie: 5404000 });
+    expect(drempels.centraal.bedragen).toEqual({ diensten: 140000, sociaal: 750000, concessie: 5404000 });
+    expect(drempels.speciaal.bedragen).toEqual({ diensten: 432000, sociaal: 1000000, concessie: 5404000 });
+    for (const d of Object.values(drempels)) expect(d.bedrag).toBe(d.bedragen.diensten);
+  });
+
+  it('noemt de controle bij sociale diensten en concessies in de checklist', () => {
+    const basis = { stroomNaam: 'GFT', looptijdJaren: 4, verlengingJaren: 0, europees: true, gekozen: [], prijsPct: 50, aantalKwaliteit: 1, dubbeleCo2Methode: false };
+    expect(checklist({ ...basis, opdrachtType: 'sociaal' }).some((p) => p.includes('bijlage XIV'))).toBe(true);
+    expect(checklist({ ...basis, opdrachtType: 'concessie' }).some((p) => p.includes('exploitatierisico'))).toBe(true);
+    expect(checklist({ ...basis, drempelBinnenBand: true }).some((p) => p.includes('binnen de bandbreedte'))).toBe(true);
+  });
+});
+
+describe('ronde 2: bandbreedte van de raming', () => {
+  const r = { volumePerJaar: 40000, tarief: 103.35, looptijdJaren: 5, verlengingJaren: 2 };
+  it('rekent de raming bij laag en hoog tarief', () => {
+    // 40.000 × 7 = 280.000 ton ; × 95,85 = 26.838.000 ; × 110,85 = 31.038.000
+    const b = ramingBandbreedte(r, { laag: 95.85, hoog: 110.85 })!;
+    expect(b.laag).toBeCloseTo(26838000, 4);
+    expect(b.hoog).toBeCloseTo(31038000, 4);
+    expect(ramingBandbreedte(r, null)).toBeNull();
+    expect(ramingBandbreedte({ ...r, tarief: null }, { laag: 1, hoog: 2 })).not.toBeNull();
+  });
+
+  it('oordeelt boven, onder of op de grens', () => {
+    expect(drempelBand({ laag: 300000, hoog: 400000 }, 216000)).toBe('boven');
+    expect(drempelBand({ laag: 100000, hoog: 200000 }, 216000)).toBe('onder');
+    expect(drempelBand({ laag: 200000, hoog: 230000 }, 216000)).toBe('grens');
+    expect(drempelBand({ laag: 216000, hoog: 230000 }, 216000)).toBe('boven');
+    expect(drempelBand(null, 216000)).toBeNull();
+  });
+});
+
+describe('ronde 2: plausibiliteit van de raming', () => {
+  const basis = { volume: 40000, tarief: 100, eenheid: 'ton' as const, kental: { laag: 95.85, hoog: 110.85 }, restafvalNlTon, inwonersNl: 18_000_000 };
+  it('geeft geen signaal bij een gewone raming', () => {
+    expect(ramingSignalen(basis)).toEqual([]);
+  });
+  it('signaleert een volume groter dan al het restafval in Nederland', () => {
+    expect(restafvalNlTon).toBeGreaterThan(2_000_000);
+    expect(ramingSignalen({ ...basis, volume: 40_000_000 })[0]).toContain('groter dan al het fijne huishoudelijke restafval');
+  });
+  it('signaleert een tarief ver buiten het kental', () => {
+    expect(ramingSignalen({ ...basis, tarief: 1000 })[0]).toContain('drie keer');
+    expect(ramingSignalen({ ...basis, tarief: 10 })[0]).toContain('een derde');
+    expect(ramingSignalen({ ...basis, kental: undefined, tarief: 1000 })).toEqual([]);
+  });
+  it('signaleert te veel containers en volume 0', () => {
+    expect(ramingSignalen({ ...basis, eenheid: 'stuks', kental: undefined, volume: 20_000_000 })).toHaveLength(1);
+    expect(ramingSignalen({ ...basis, volume: 0 })).toEqual(['Het volume is 0: de geraamde waarde is dan ook 0.']);
+  });
+});
+
+describe('ronde 2: MVI-codes alleen bij de eigen productgroep', () => {
+  it('markeert social return (049.012) als eigen bij restafval en als andere productgroep bij textiel, PMD en papier', () => {
+    const sr = criteria.find((c) => c.id === 'alg-sr-eis')!;
+    for (const s of ['restafval', 'grof', 'gft', 'minicontainers', 'inzameling'] as const) expect(mviStatus(sr, s)).toBe('eigen');
+    for (const s of ['textiel', 'pmd', 'papier'] as const) expect(mviStatus(sr, s)).toBe('andere');
+  });
+
+  it('markeert de voertuigcriteria (042) als andere productgroep bij inzameling', () => {
+    const ze = criteria.find((c) => c.id === 'inz-ze')!;
+    expect(mviStatus(ze, 'inzameling')).toBe('andere');
+    expect(productgroepNaam(ze.mvi!.bron)).toBe('Zware voertuigen – aanschaf');
+  });
+
+  it('heeft voor stromen zonder MVI-productgroep geen eigen MVI-criteria', () => {
+    for (const s of stroomLijst) {
+      const eigen = criteriaVoorStroom(s.id).filter((c) => mviStatus(c, s.id) === 'eigen');
+      if (!s.mvi) expect(eigen).toEqual([]);
+    }
+  });
+
+  it('geeft geen status zonder MVI-code', () => {
+    expect(mviStatus(criteria.find((c) => c.id === 'alg-index')!, 'restafval')).toBeNull();
   });
 });
