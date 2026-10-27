@@ -3,8 +3,8 @@ import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { Kaart, PaginaKop, ToegangBadge } from '../components/ui';
 import { useAuth } from '../lib/auth';
 import { beschrijfLidmaatschap, organisatietypeLabel, organisatietypeUitleg, type StatusBeschrijving } from '../lib/authStatus';
-import { alleOnderdelen } from '../lib/authAanbod';
-import { LEGE_FILTERS, STATUS_LABEL, zoekAanbestedingen, type AanbestedingRegel } from '../lib/aanbestedingen';
+import { alleOnderdelen, ledenOnderdelen } from '../lib/authAanbod';
+import { LEGE_FILTERS, STATUS_LABEL, zoekAanbestedingen, type AanbestedingRegel, type Filters } from '../lib/aanbestedingen';
 import { nieuws } from '../data/nieuws';
 import { MIN_WACHTWOORD, authFoutmelding, controleerNieuwWachtwoord } from '../lib/authFouten';
 import { supabase } from '../lib/supabase';
@@ -138,9 +138,9 @@ function WachtwoordWijzigen() {
 }
 
 /** Opent in een nieuw venster; dat melden we ook aan schermlezers. */
-function Extern({ href, children }: { href: string; children: ReactNode }) {
+function Extern({ href, children, className }: { href: string; children: ReactNode; className?: string }) {
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer">
+    <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
       {children}
       <span className="visueel-verborgen"> (opent in nieuw venster)</span>
     </a>
@@ -233,20 +233,29 @@ function SnelNaar() {
   const { isLid, lidStatus } = useAuth();
   // Slotjes pas tonen als vaststaat dat iemand geen lid is, anders knipperen ze bij leden.
   const toonToegang = lidStatus === 'klaar' && !isLid;
+  const open = alleOnderdelen.filter((o) => !o.ledenDeel);
   return (
     <section className="sectie" aria-labelledby="snel-naar">
       <h2 id="snel-naar">Snel naar</h2>
       <ul className="snelkoppelingen">
-        {alleOnderdelen.map((o) => (
+        {ledenOnderdelen.map((o) => (
           <li key={o.pad}>
             <Link to={o.pad}>
               <span className="snel-titel">{o.titel}</span>
               <span className="snel-tekst">{o.omschrijving}</span>
             </Link>
-            {toonToegang && o.toegang !== 'gratis' && <ToegangBadge toegang={o.toegang} />}
+            {toonToegang && <ToegangBadge toegang={o.toegang} />}
           </li>
         ))}
       </ul>
+      <p className="snel-open">
+        <span>Open voor iedereen:</span>
+        {open.map((o) => (
+          <Link key={o.pad} to={o.pad}>
+            {o.titel}
+          </Link>
+        ))}
+      </p>
     </section>
   );
 }
@@ -254,54 +263,81 @@ function SnelNaar() {
 /* ---------- Recent: aanbestedingen (alleen leden) en nieuws ---------- */
 
 type Laadstand<T> = { stand: 'laden' } | { stand: 'fout' } | { stand: 'klaar'; data: T };
+type Keuze = 'nieuw' | 'sluit';
+
+const KEUZES: { waarde: Keuze; label: string; filters: Partial<Filters>; archief: string }[] = [
+  {
+    waarde: 'nieuw',
+    label: 'Nieuwst gepubliceerd',
+    filters: { sortering: 'publicatie-nieuw' },
+    archief: '/aanbestedingsarchief',
+  },
+  {
+    waarde: 'sluit',
+    label: 'Open, sluit het eerst',
+    filters: { status: 'open', sortering: 'sluiting-op' },
+    archief: '/aanbestedingsarchief?status=open&sortering=sluiting-op',
+  },
+];
 
 function NieuwsteAanbestedingen() {
+  const [keuze, setKeuze] = useState<Keuze>('nieuw');
   const [r, setR] = useState<Laadstand<AanbestedingRegel[]>>({ stand: 'laden' });
+  const huidig = KEUZES.find((k) => k.waarde === keuze)!;
   useEffect(() => {
     let actief = true;
-    zoekAanbestedingen({ ...LEGE_FILTERS, sortering: 'publicatie-nieuw' })
+    setR({ stand: 'laden' });
+    zoekAanbestedingen({ ...LEGE_FILTERS, ...huidig.filters })
       .then((res) => actief && setR({ stand: 'klaar', data: res.regels.slice(0, 3) }))
       .catch(() => actief && setR({ stand: 'fout' }));
     return () => {
       actief = false;
     };
-  }, []);
+  }, [huidig]);
 
   return (
-    <Kaart
-      titel="Nieuwste aanbestedingen"
-      sub="Laatst gepubliceerd op TenderNed, uit het aanbestedingsarchief."
-      className="recent"
-      actie={
-        <Link className="knop" to="/aanbestedingsarchief">
-          Alle aanbestedingen
-        </Link>
-      }
-    >
-      {r.stand === 'laden' && (
-        <p role="status" className="muted recent-laden">
-          Aanbestedingen laden…
-        </p>
-      )}
-      {r.stand === 'fout' && (
-        <p role="alert">
-          De aanbestedingen konden niet worden geladen. Probeer het later opnieuw in het <Link to="/aanbestedingsarchief">archief</Link>.
-        </p>
-      )}
-      {r.stand === 'klaar' && r.data.length === 0 && <p>Er staan nog geen aanbestedingen in het archief.</p>}
-      {r.stand === 'klaar' && r.data.length > 0 && (
-        <ul className="recent-lijst" data-testid="recente-aanbestedingen">
-          {r.data.map((a) => (
-            <li key={a.kenmerk}>
-              <Extern href={a.tenderned_url}>{a.titel}</Extern>
-              <span className="klein muted">
-                {a.opdrachtgever} · gepubliceerd {datum(a.publicatiedatum.slice(0, 10))} · {STATUS_LABEL[a.status]}
-                {a.status === 'open' && a.sluitingsdatum ? `, sluit ${datum(a.sluitingsdatum.slice(0, 10))}` : ''}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
+    <Kaart titel="Aanbestedingen" sub="Uit het aanbestedingsarchief, bron TenderNed. Elke ochtend bijgewerkt." className="recent">
+      <div className="keuzeknoppen" role="group" aria-label="Welke aanbestedingen">
+        {KEUZES.map((k) => (
+          <button key={k.waarde} type="button" aria-pressed={keuze === k.waarde} onClick={() => setKeuze(k.waarde)}>
+            {k.label}
+          </button>
+        ))}
+      </div>
+      <div className="recent-inhoud" aria-live="polite">
+        {r.stand === 'laden' && (
+          <p role="status" className="muted">
+            Aanbestedingen laden…
+          </p>
+        )}
+        {r.stand === 'fout' && (
+          <p role="alert">
+            De aanbestedingen konden niet worden geladen. Probeer het later opnieuw in het <Link to="/aanbestedingsarchief">archief</Link>.
+          </p>
+        )}
+        {r.stand === 'klaar' && r.data.length === 0 && <p>Geen aanbestedingen gevonden.</p>}
+        {r.stand === 'klaar' && r.data.length > 0 && (
+          <ul className="recent-lijst aanbesteding-lijst" data-testid="recente-aanbestedingen">
+            {r.data.map((a) => (
+              <li key={a.kenmerk}>
+                <span className="recent-titel">{a.titel}</span>
+                <span className="klein">{a.opdrachtgever}</span>
+                <span className="klein muted">
+                  {STATUS_LABEL[a.status]}
+                  {a.status === 'open' && a.sluitingsdatum ? `, sluit ${datum(a.sluitingsdatum.slice(0, 10))}` : ''} · gepubliceerd{' '}
+                  {datum(a.publicatiedatum.slice(0, 10))}
+                </span>
+                <Extern href={a.tenderned_url} className="tenderned-link">
+                  Bekijk op TenderNed<span className="visueel-verborgen">: {a.titel}</span>
+                </Extern>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <p className="recent-voet">
+        <Link to={huidig.archief}>{keuze === 'sluit' ? 'Alle open aanbestedingen in het archief' : 'Alle aanbestedingen in het archief'}</Link>
+      </p>
     </Kaart>
   );
 }
@@ -389,7 +425,7 @@ export function Account() {
   const typeUitleg = lidmaatschap ? organisatietypeUitleg(lidmaatschap.organisatietype) : '';
 
   return (
-    <>
+    <div className="account-pagina">
       <PaginaKop titel="Mijn account">
         Ingelogd als <strong className="account-wie">{email}</strong>
       </PaginaKop>
@@ -476,6 +512,6 @@ export function Account() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }

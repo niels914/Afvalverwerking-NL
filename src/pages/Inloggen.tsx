@@ -13,6 +13,9 @@ import {
 } from '../lib/authFouten';
 import { contact, platform } from '../data/site';
 import { alleOnderdelen, ledenOnderdelen } from '../lib/authAanbod';
+import { archiefVoorbeeld, vandaagInNederland, voorbeeldStand } from '../lib/authVoorbeeld';
+import { btwPercentage, prijzenVastgesteld, staffels, voorwaarden } from '../data/lidmaatschap';
+import { datum, euro, getal } from '../lib/format';
 import '../components/betaalmuur/toegang.css';
 
 type Stap = 'inloggen' | 'link-verstuurd' | 'vergeten' | 'herstel-verstuurd';
@@ -153,12 +156,111 @@ function InlogUitleg() {
   );
 }
 
-function AanbodPaneel() {
+/** Opent in een nieuw venster; dat melden we ook aan schermlezers. */
+function Extern({ href, children, className }: { href: string; children: ReactNode; className?: string }) {
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className={className}>
+      {children}
+      <span className="visueel-verborgen"> (opent in nieuw venster)</span>
+    </a>
+  );
+}
+
+/** Echt voorbeeld uit het archief, met bron en peildatum (src/lib/authVoorbeeld.ts). */
+function VoorbeeldKaart() {
+  const { regels, telling, bron, peildatum } = archiefVoorbeeld;
+  const vandaag = vandaagInNederland();
+  return (
+    <Kaart
+      titel="Voorbeeld uit het aanbestedingsarchief"
+      sub={
+        <>
+          Leden zoeken in {getal(telling.totaal)} aanbestedingen over afval sinds {new Date(telling.sinds).getFullYear()}, waarvan{' '}
+          {getal(telling.open)} open voor inschrijving (stand {datum(peildatum)}). Drie daarvan:
+        </>
+      }
+      className="voorbeeld"
+    >
+      <ul className="voorbeeld-lijst" data-testid="voorbeeld-archief">
+        {regels.map((a) => {
+          const stand = voorbeeldStand(a.sluitingsdatum, vandaag);
+          const sluit = `${datum(a.sluitingsdatum.slice(0, 10))}, ${a.sluitingsdatum.slice(11, 16)} uur`;
+          return (
+            <li key={a.kenmerk}>
+              <span className="voorbeeld-titel">{a.titel}</span>
+              <span className="voorbeeld-wie">{a.opdrachtgever}</span>
+              <span className="voorbeeld-meta">
+                <span className="badge status-lopend">{stand === 'open' ? `Open tot ${sluit}` : `Inschrijving sloot ${sluit}`}</span>
+                {a.stromen.map((s) => (
+                  <span key={s} className="badge thema">
+                    {s}
+                  </span>
+                ))}
+              </span>
+              <span className="klein muted">
+                {a.procedure} · gepubliceerd {datum(a.publicatiedatum)}
+              </span>
+              <Extern href={a.tenderned_url} className="voorbeeld-link">
+                Aankondiging op TenderNed<span className="visueel-verborgen">: {a.titel}</span>
+              </Extern>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="bronregel">
+        Bron: <Extern href={bron.url}>{bron.titel}</Extern>, peildatum {datum(peildatum)}. De afvalstroom is de indeling van dit platform. In het
+        archief filteren leden op afvalstroom, status, provincie en soort dienst en zien ze de tijdlijn van elke aanbesteding.
+      </p>
+    </Kaart>
+  );
+}
+
+/** Prijsindicatie uit src/data/lidmaatschap.ts. Zolang de prijzen niet vastgesteld zijn: label Concept. */
+function PrijsKaart() {
+  const opPrijs = [...staffels].sort((a, b) => a.prijsExclBtw - b.prijsExclBtw);
+  const vanaf = opPrijs[0].prijsExclBtw;
+  return (
+    <Kaart titel="Lid worden" className="prijs">
+      <p className="prijs-kern">
+        Vanaf <strong>{euro(vanaf)}</strong> per jaar
+        {!prijzenVastgesteld && <span className="badge voorbeeld">Concept</span>}
+      </p>
+      <p>
+        Exclusief btw, voor de hele organisatie: iedereen met een e-mailadres op uw domein. Betalen op factuur, looptijd{' '}
+        {voorwaarden.looptijdMaanden} maanden.
+      </p>
+      <details className="inklap">
+        <summary>Prijs per soort organisatie</summary>
+        <dl className="gegevens prijs-staffels">
+          {opPrijs.map((s) => (
+            <div key={s.id}>
+              <dt>{s.voorWie}</dt>
+              <dd>{euro(s.prijsExclBtw)} per jaar</dd>
+            </div>
+          ))}
+        </dl>
+        {!prijzenVastgesteld && <p className="klein muted">Concept: KplusV stelt de prijzen nog vast. Bedragen exclusief {btwPercentage} % btw.</p>}
+      </details>
+      <div className="knoppen">
+        <Link className="knop primair" to="/lidmaatschap/aanmelden">
+          Meld uw organisatie aan
+        </Link>
+        <Link className="knop" to="/lidmaatschap">
+          Prijzen en voorwaarden
+        </Link>
+      </div>
+    </Kaart>
+  );
+}
+
+/** Wat leden verder krijgen, en wat zonder account open is. */
+function AanbodKaart({ zonderArchief = false }: { zonderArchief?: boolean }) {
+  const lijst = zonderArchief ? ledenOnderdelen.filter((o) => o.pad !== '/aanbestedingsarchief') : ledenOnderdelen;
   const metPro = alleOnderdelen.filter((o) => o.toegang === 'gratis+pro');
   return (
-    <Kaart titel="Wat leden krijgen" kopNiveau={2} className="aanbod">
+    <Kaart titel={zonderArchief ? 'Wat leden verder krijgen' : 'Wat leden krijgen'} className="aanbod">
       <ul className="aanbod-lijst">
-        {ledenOnderdelen.map((o) => (
+        {lijst.map((o) => (
           <li key={o.pad}>
             <Link to={o.pad}>{o.titel}</Link>
             <span>{o.ledenDeel}</span>
@@ -176,14 +278,6 @@ function AanbodPaneel() {
         ))}
         .
       </p>
-      <div className="knoppen">
-        <Link className="knop" to="/lidmaatschap/aanmelden">
-          Meld uw organisatie aan
-        </Link>
-        <Link className="knop" to="/lidmaatschap">
-          Prijzen en voorwaarden
-        </Link>
-      </div>
       <details className="inklap">
         <summary>Zo werkt de toegang</summary>
         <InlogUitleg />
@@ -352,8 +446,7 @@ export function Inloggen() {
     </Veld>
   );
 
-  // Naast het formulier: wat leden krijgen, wat open is, en hoe inloggen werkt (inklapbaar).
-  const aanbod = <AanbodPaneel />;
+  const aanbod = <AanbodKaart zonderArchief />;
   // Bij de tussenstappen alleen hulp, zodat de pagina op mobiel kort blijft.
   const hulp = (
     <Kaart titel="Hulp bij inloggen" kopNiveau={2}>
@@ -444,7 +537,7 @@ export function Inloggen() {
               </Link>
             </div>
           </Kaart>
-          {aanbod}
+          <AanbodKaart />
         </div>
       </>
     );
@@ -535,44 +628,50 @@ export function Inloggen() {
           <span aria-hidden="true">✓ </span>U bent uitgelogd.
         </p>
       )}
-      <div className="toegang-raster sectie">
-        <Kaart>
-          <form className="toegang-formulier" onSubmit={inloggenMetWachtwoord} noValidate aria-describedby={`${id}-uitleg`}>
-            <p id={`${id}-uitleg`} className="visueel-verborgen">
-              Inloggen met e-mailadres en wachtwoord, of met een inloglink per e-mail.
-            </p>
-            <Foutblok melding={serverFout} blokRef={foutRef} />
-            {emailVeld}
-            <WachtwoordVeld
-              id={`${id}-wachtwoord`}
-              label="Wachtwoord"
-              waarde={wachtwoord}
-              onChange={setWachtwoord}
-              fout={fouten.wachtwoord}
-              invoerRef={wachtwoordRef}
-              labelRechts={
-                <button type="button" className="linkknop" onClick={() => { wisMeldingen(); setStap('vergeten'); }}>
-                  Wachtwoord vergeten?
-                </button>
-              }
-            />
-            <button type="submit" className="primair" disabled={bezig !== null}>
-              {bezig === 'wachtwoord' ? 'Inloggen…' : 'Inloggen'}
-            </button>
-            <div className="toegang-scheiding" aria-hidden="true">
-              of
-            </div>
-            <div className="veld">
-              <button type="button" onClick={stuurInloglink} disabled={bezig !== null} aria-describedby={`${id}-link-hint`}>
-                {bezig === 'link' ? 'Versturen…' : 'Stuur mij een inloglink'}
+      <div className="toegang-raster inlog-raster sectie">
+        <div className="inlog-kolom">
+          <Kaart className="inlog-kaart">
+            <form className="toegang-formulier" onSubmit={inloggenMetWachtwoord} noValidate aria-describedby={`${id}-uitleg`}>
+              <p id={`${id}-uitleg`} className="visueel-verborgen">
+                Inloggen met e-mailadres en wachtwoord, of met een inloglink per e-mail.
+              </p>
+              <Foutblok melding={serverFout} blokRef={foutRef} />
+              {emailVeld}
+              <WachtwoordVeld
+                id={`${id}-wachtwoord`}
+                label="Wachtwoord"
+                waarde={wachtwoord}
+                onChange={setWachtwoord}
+                fout={fouten.wachtwoord}
+                invoerRef={wachtwoordRef}
+                labelRechts={
+                  <button type="button" className="linkknop" onClick={() => { wisMeldingen(); setStap('vergeten'); }}>
+                    Wachtwoord vergeten?
+                  </button>
+                }
+              />
+              <button type="submit" className="primair" disabled={bezig !== null}>
+                {bezig === 'wachtwoord' ? 'Inloggen…' : 'Inloggen'}
               </button>
-              <span className="hint" id={`${id}-link-hint`}>
-                Geen wachtwoord nodig: u krijgt een link per e-mail op het adres hierboven. Ook voor de eerste keer.
-              </span>
-            </div>
-          </form>
-        </Kaart>
-        {aanbod}
+              <div className="toegang-scheiding" aria-hidden="true">
+                of
+              </div>
+              <div className="veld">
+                <button type="button" onClick={stuurInloglink} disabled={bezig !== null} aria-describedby={`${id}-link-hint`}>
+                  {bezig === 'link' ? 'Versturen…' : 'Stuur mij een inloglink'}
+                </button>
+                <span className="hint" id={`${id}-link-hint`}>
+                  Geen wachtwoord nodig: u krijgt een link per e-mail op het adres hierboven. Ook voor de eerste keer.
+                </span>
+              </div>
+            </form>
+          </Kaart>
+          <PrijsKaart />
+          {aanbod}
+        </div>
+        <div className="inlog-kolom">
+          <VoorbeeldKaart />
+        </div>
       </div>
     </>
   );

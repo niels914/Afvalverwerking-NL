@@ -1,6 +1,6 @@
 # Toegang: inloggen, account en betaalmuur
 
-Stand: 27 oktober 2026 (ronde 2: typecheck, unittests, build, end-to-end op 400 px en 1280 px met het testaccount, axe, advisors). Supabase-project `afvalverwerking-nl`, ref `mnwynrioozcqqvhelqku`.
+Stand: 27 oktober 2026 (ronde 3: typecheck, unittests, build, end-to-end op 400 px en 1280 px met het testaccount, Lighthouse op `/inloggen`). Supabase-project `afvalverwerking-nl`, ref `mnwynrioozcqqvhelqku`.
 
 ## Wat er gebouwd is
 
@@ -11,10 +11,11 @@ Stand: 27 oktober 2026 (ronde 2: typecheck, unittests, build, end-to-end op 400 
 | Foutmeldingen | `src/lib/authFouten.ts` | Supabase-foutcodes naar gewoon Nederlands; de Engelse tekst komt nooit in beeld. Ook de afwijzing door de domeinhook (zie hieronder), controle op e-mailadres, veilig terugpad na inloggen (alleen paden binnen de site), controle nieuw wachtwoord (minimaal 10 tekens). |
 | Status in woorden | `src/lib/authStatus.ts` | Lidmaatschapsrij naar label, uitleg en "geldig tot" (actief, loopt binnen 30 dagen af, verlopen, aangevraagd, opgezegd, geen organisatie). Soort organisatie met uitleg: de tariefgroep komt uit `src/data/lidmaatschap.ts`; `overig` heet "Overig, eigen afspraak met KplusV" met een zin uitleg. |
 | Aanbod | `src/lib/authAanbod.ts` | Lijst van alle onderdelen (archief, tools, kaart, kennisbank, nieuws) met wat alleen leden krijgen. Afgeleid van `src/data/tools.ts`, dus een nieuwe tool komt vanzelf op de inlogpagina en het ledendashboard. |
-| `/inloggen` | `src/pages/Inloggen.tsx` | Formulier bovenaan (op mobiel eerst), ernaast **Wat leden krijgen**: per ledenonderdeel een link en wat leden extra krijgen, wat zonder account open is, knoppen **Meld uw organisatie aan** en **Prijzen en voorwaarden**, en inklapbaar "Zo werkt de toegang". Verder: e-mail + wachtwoord, inloglink per e-mail (magic link, ook voor de eerste keer), wachtwoord vergeten, nieuw wachtwoord na de herstellink, melding bij verlopen links, "opnieuw versturen" pas na 60 seconden, na inloggen terug naar de pagina van herkomst (`?terug=`). |
-| `/account` | `src/pages/Account.tsx` | Ledendashboard. Bovenaan de kern: status, organisatie en geldig tot, met de uitleg en de knop die bij de status past (verlengen, lid worden). Daaronder **Snel naar** (tegels naar alle onderdelen; niet-leden zien welke voor leden zijn), **Nieuwste aanbestedingen** (drie laatste uit het archief, alleen voor leden), **Laatste nieuws** (drie berichten met bron en datum). Details staan ingeklapt: "Lidmaatschap in detail" (soort organisatie met uitleg, domein) en "Inloggegevens en wachtwoord" (wachtwoord instellen of wijzigen, verwijdering of inzage aanvragen). Uitloggen staat altijd zichtbaar. Zonder sessie door naar `/inloggen?terug=/account`; tijdens laden en doorsturen blijft een schermhoogte vrij (CLS was 0,79, nu < 0,01 gemeten). |
+| `/inloggen` | `src/pages/Inloggen.tsx` | Formulier linksboven (op mobiel eerst). Daarnaast **bewijs van waarde vóór inloggen**: **Voorbeeld uit het aanbestedingsarchief**, drie echte aanbestedingen over afval die op de peildatum openstonden, elk met opdrachtgever, sluitingsdatum, afvalstroom en een directe link naar de aankondiging op TenderNed, plus de omvang van het archief (1.435 aanbestedingen sinds 2013, waarvan 40 open) en een bronregel met peildatum. Onder het formulier **Lid worden**: "Vanaf € 1.500 per jaar" met label *Concept*, exclusief btw, op factuur, en inklapbaar de prijs per soort organisatie (uit `src/data/lidmaatschap.ts`, dus altijd gelijk aan `/lidmaatschap`). Daaronder **Wat leden verder krijgen** en wat zonder account open is, en inklapbaar "Zo werkt de toegang". Op mobiel is de volgorde: formulier, voorbeeld, prijs, aanbod. Verder: e-mail + wachtwoord, inloglink per e-mail (magic link, ook voor de eerste keer), wachtwoord vergeten, nieuw wachtwoord na de herstellink, melding bij verlopen links, "opnieuw versturen" pas na 60 seconden, na inloggen terug naar de pagina van herkomst (`?terug=`). Omlijnde knoppen op de toegangspagina's zijn donkerviolet (5,8:1) in plaats van paars (4,6:1). |
+| Voorbeelddata | `src/lib/authVoorbeeld.ts` | Momentopname van het archief voor bezoekers, met herkomst, peildatum en bron (zie "Voorbeeld op de inlogpagina"). Na de sluitingsdatum toont een regel vanzelf "Inschrijving sloot …" in plaats van "Open tot …". Tests in `authVoorbeeld.test.ts`. |
+| `/account` | `src/pages/Account.tsx` | Ledendashboard. Bovenaan de kern: status, organisatie en geldig tot, met de uitleg en de knop die bij de status past (verlengen, lid worden). Daaronder **Snel naar**: tegels voor de onderdelen met ledeninhoud, met de volledige beschrijving (niet afgekapt), op mobiel in één kolom zodat geen woord midden in breekt; daaronder één regel "Open voor iedereen" met de open onderdelen. Niet-leden zien welke tegels voor leden zijn. **Aanbestedingen** (alleen leden): keuze "Nieuwst gepubliceerd" of "Open, sluit het eerst", drie regels met opdrachtgever, status, sluit- en publicatiedatum en per regel **Bekijk op TenderNed**; onderaan een link naar het archief met hetzelfde filter (`/aanbestedingsarchief?status=open&sortering=sluiting-op`). **Laatste nieuws** (drie berichten met bron en datum). Details staan ingeklapt: "Lidmaatschap in detail" en "Inloggegevens en wachtwoord". Uitloggen staat altijd zichtbaar. Zonder sessie door naar `/inloggen?terug=/account`; tijdens laden en doorsturen blijft een schermhoogte vrij. |
 | Accountknop | `src/components/betaalmuur/AccountKnop.tsx` | Rechts in de navbar: "Inloggen" of "Mijn account" met de status als tekst ("Lid" / "Geen lid"). |
-| Betaalmuur | `src/components/betaalmuur/Vergrendeld.tsx` | Leden zien de inhoud. Bezoekers: uitleg, wat leden krijgen, knoppen **Inloggen** en **Lid worden**. Ingelogde niet-leden: met welk adres ze zijn ingelogd, waarom ze geen toegang hebben (geen organisatie, verlopen, aangevraagd, opgezegd) en knoppen **Lid worden** en **Inloggen met ander adres**. Tijdens het controleren: "Ledentoegang controleren…". De kop van de slotkaart is nu een h2 (kopvolgorde). |
+| Betaalmuur | `src/components/betaalmuur/Vergrendeld.tsx` | Leden zien de inhoud. Bezoekers: uitleg, wat leden krijgen, knoppen **Inloggen** en **Lid worden**. Ingelogde niet-leden: met welk adres ze zijn ingelogd, waarom ze geen toegang hebben (geen organisatie, verlopen, aangevraagd, opgezegd) en knoppen **Lid worden** en **Inloggen met ander adres**. Tijdens het controleren: "Ledentoegang controleren…". De inhoud staat altijd op dezelfde plek in de React-boom (`.vergrendeld-preview` wordt `.vergrendeld-inhoud` met `display: contents`), dus als de controle klaar is bouwt de tool niet opnieuw op en blijft invoer behouden. Zolang iemand (nog) geen lid is, staan `inert` en `aria-hidden` direct in de HTML (niet meer via een effect na het tekenen): ook tijdens het laden is de preview niet te bedienen. De kop van de slotkaart is een h2. |
 | Stijl | `src/components/betaalmuur/toegang.css` | Alleen tokens uit `tokens.css`. Status heeft altijd tekst en een teken (✓, !, –), nooit alleen kleur. Inklapbare blokken met zichtbare focus en een doelgebied van 44 px. |
 | Database | `supabase/migrations/20261014204324_is_lid_niet_voor_anon.sql`, `20261014205119_mijn_lidmaatschap.sql`, `20261026202544_hook_alleen_bekende_domeinen.sql` | `is_lid()` niet voor bezoekers zonder sessie; `mijn_lidmaatschap()` (SECURITY INVOKER, valt onder de RLS-policy op `organisaties`); `hook_alleen_bekende_domeinen()` voor de Auth-hook (zie hieronder). Alle drie staan in de database (gecontroleerd met `list_migrations`). |
 
@@ -68,6 +69,28 @@ Gevolgen: bestaande accounts blijven werken (de hook draait alleen bij aanmaken)
 
 CAPTCHA (Authentication → Attack Protection, bijvoorbeeld Cloudflare Turnstile) blijft een extra stap voor livegang; daarvoor moet de site een CAPTCHA-widget krijgen (nu niet gebouwd).
 
+## Voorbeeld op de inlogpagina
+
+Waarom: bezoekers moeten vóór het inloggen zien wat het lidmaatschap oplevert. Het archief zelf is alleen voor leden (RLS op `is_lid()`), dus bezoekers krijgen geen databasetoegang; ze zien een vaste momentopname in `src/lib/authVoorbeeld.ts`.
+
+Herkomst (peildatum 27 oktober 2026):
+
+- Regels: `public.aanbestedingen_overzicht`, status `open`, afval als hoofdopdracht, nieuwste publicatie eerst. Gekozen: NV BAR Afvalbeheer (huishoudelijk restafval, relevant voor gemeenten), VGGM en Waterbedrijf Groningen. Titels en opdrachtgevers letterlijk zoals op TenderNed. Elke regel is gecontroleerd via de TenderNed-API (`https://www.tenderned.nl/papi/tenderned-rs-tns/v2/publicaties/<publicatie-id>`): 445210, 445787 en 446087.
+- Telling: `select status, count(*) from public.aanbestedingen_overzicht group by status` gaf 1.435 in totaal, waarvan 40 open; oudste publicatiedatum 28 maart 2013.
+- Afvalstroom is de indeling van het platform (`supabase/functions/ververs-aanbestedingen/afleiding.ts`), niet van TenderNed; dat staat in de bronregel.
+
+Bijwerken (eens per kwartaal, of als alle drie de regels gesloten zijn): draai in de SQL Editor
+
+```sql
+select kenmerk, titel, opdrachtgever, procedure, publicatiedatum, sluitingsdatum, stromen, tenderned_url
+from public.aanbestedingen_overzicht where status = 'open' and afval_hoofd order by publicatiedatum desc limit 8;
+select status, count(*) from public.aanbestedingen_overzicht group by status;
+```
+
+en zet drie regels, de telling en `peildatum` in `authVoorbeeld.ts`. `npx vitest run src/lib/authVoorbeeld` controleert dat elke regel op de peildatum open was en naar een TenderNed-aankondiging linkt. Vergeet je het bijwerken, dan klopt de pagina nog steeds: de peildatum staat erbij en gesloten regels heten dan "Inschrijving sloot …".
+
+De prijsindicatie komt rechtstreeks uit `src/data/lidmaatschap.ts` (laagste staffel). Het label *Concept* verdwijnt vanzelf als `prijzenVastgesteld` op `true` gaat.
+
 ## Instellingen in het Supabase-dashboard
 
 Gecontroleerd via `GET /auth/v1/settings` op 15, 19 en 20 oktober 2026: aanmelden staat aan (`disable_signup: false`) en e-mailbevestiging staat aan (`mailer_autoconfirm: false`). **Dat laatste moet zo blijven**: met automatische bevestiging kan iedereen een account maken op een domein van een lid-organisatie zonder toegang tot die mailbox.
@@ -111,9 +134,9 @@ Gecontroleerd op 20 oktober 2026, met een tijdelijke gebruiker in een transactie
 
 Subdomeinen tellen niet automatisch mee: `naam@mail.voorbeeld.nl` is geen lid via `voorbeeld.nl`. Voeg zo'n subdomein zo nodig apart toe aan `emaildomeinen`.
 
-Let op voor de lead: het bestand `20261014_kern_organisaties_en_lidmaatschap.sql` heeft een andere versie in de naam dan de migratie in de database (`20261014203636`). Wie later `supabase db push` gebruikt, moet dat bestand hernoemen naar `20261014203636_kern_organisaties_en_lidmaatschap.sql`, anders probeert de CLI het opnieuw toe te passen.
+De bestandsnaam van de eerste migratie (`20261014203636_kern_organisaties_en_lidmaatschap.sql`) komt overeen met de versie in de database.
 
-Let op: de betaalmuur in de browser bepaalt wat er in beeld komt. De inhoud achter de muur zit nu nog in de JavaScript-bundel (het is voorbeelddata). Zodra er echte ledendata komt (aanbestedingsarchief, rapporten), moet die in Supabase staan met RLS `using (public.is_lid())`, zodat niet-leden de data ook via de API niet kunnen ophalen.
+Let op: de betaalmuur in de browser bepaalt wat er in beeld komt. Het aanbestedingsarchief staat in Supabase met RLS `using (public.is_lid())`. De Pro-delen van de rekentools zitten wel in de JavaScript-bundel (rekenen in de browser met openbare bronnen); wie de bundel leest, kan ze dus zien. Nieuwe echte ledendata hoort in Supabase achter `is_lid()`.
 
 Testorganisatie: de rij voor `kplusv.nl` heette "KplusV (eigen organisatie, beheer en test)" en die naam stond zichtbaar op `/account`. Op 26 oktober 2026 hernoemd naar "KplusV" (alleen de naam; type `overig`, status `actief`, geldig tot leeg).
 
@@ -122,7 +145,7 @@ Browseropslag na inloggen met het testaccount (27 oktober 2026, gecontroleerd in
 ## Onderhoud
 
 - Nieuwe foutcode van Supabase: toevoegen in `authFoutmelding()` (`src/lib/authFouten.ts`) met een test in `authFouten.test.ts`.
-- Wat op de inlogpagina en het dashboard staat: `src/lib/authAanbod.ts` (volgt `src/data/tools.ts`).
+- Wat op de inlogpagina en het dashboard staat: `src/lib/authAanbod.ts` (volgt `src/data/tools.ts`); het archiefvoorbeeld in `src/lib/authVoorbeeld.ts`.
 - Teksten per status: `beschrijfLidmaatschap()` in `src/lib/authStatus.ts` (met tests in `authStatus.test.ts`). De waarschuwingstermijn staat in `WAARSCHUW_DAGEN` (30).
 - Wachtwoordlengte: `MIN_WACHTWOORD` in `authFouten.ts`, en dezelfde waarde in het dashboard.
 - Testen: `npx vitest run src/lib/auth*` en de end-to-end test `e2e/toegang.spec.ts`. Voor de inlogtests zijn `E2E_EMAIL` en `E2E_WACHTWOORD` nodig (testaccount op een actief domein; het wachtwoord staat niet in de repository). E-mails worden in de test niet echt verstuurd: de aanroepen naar `/auth/v1/otp` en `/auth/v1/recover` worden onderschept. De situatie "ingelogd maar geen lid" en "verlopen" wordt nagebootst door de antwoorden van `is_lid` en `mijn_lidmaatschap` te onderscheppen.
@@ -136,9 +159,7 @@ Browseropslag na inloggen met het testaccount (27 oktober 2026, gecontroleerd in
 5. Beheerscherm voor Niels (organisaties activeren zonder SQL) is nog niet gebouwd; nu via SQL of Table Editor.
 6. Organisaties met medewerkers op een gedeeld of publiek maildomein kunnen niet via het domein worden herkend. Daarvoor is later een lijst met losse e-mailadressen per organisatie nodig.
 7. Niet van dit onderdeel, wel nodig:
-   - `src/styles/components.css` bevat nog de ongebruikte stijl van de oude schakelaar (`/* Rolschakelaar: Bekijk als … */`, `.rol`, `.rol-groep`).
-   - `src/pages/juridisch/Cookies.tsx` (regel ~54) zegt dat inloggen met een echt account niet is getest. Dat is nu wel gecontroleerd: na inloggen alleen `sb-mnwynrioozcqqvhelqku-auth-token` in `localStorage`, geen cookies, geen `sessionStorage`.
-   - `zoek_aanbestedingen` wordt nu ook op `/account` aangeroepen (drie nieuwste, alleen voor leden). De beschrijving in `supabaseGebruik` (`src/pages/juridisch/gegevens.ts`) klopt nog, maar noemt alleen het archief.
-   - axe meldt op elke pagina `region` voor `.banner` (bètamelding staat buiten een landmark). Oplossing in `Banner.tsx`/`Layout.tsx`: de banner binnen `<header>` zetten of als `<aside aria-label="Bètaversie">`.
-   - De Suspense-terugval in `Layout.tsx` heeft `margin-top: 20px` (`.sectie`), de paginakop 28 px: bij elke lazy pagina verschuift de inhoud een paar pixels (gemeten 0,004–0,007).
-   - Migratiebestand `20261014_kern_organisaties_en_lidmaatschap.sql` heeft een andere versie dan in de database (`20261014203636`); hernoemen voordat iemand `supabase db push` gebruikt.
+   - `zoek_aanbestedingen`/`aanbestedingen_zoeken` wordt ook op `/account` aangeroepen (drie regels, alleen voor leden). De beschrijving in `supabaseGebruik` (`src/pages/juridisch/gegevens.ts`) noemt alleen het archief.
+   - Het archief heeft geen eigen pagina per aanbesteding. Met een route als `/aanbestedingsarchief/<kenmerk>` kan het dashboard naast "Bekijk op TenderNed" ook naar de tijdlijn in het archief linken.
+   - Opgelost sinds ronde 2 (door anderen): ongebruikte rolschakelaar-stijl, de verouderde zin in `Cookies.tsx`, de naam van het eerste migratiebestand, de bètamelding als `<aside>`, en de terugval van Suspense.
+8. De voorbeelddata op `/inloggen` is een momentopname; zie "Voorbeeld op de inlogpagina" voor bijwerken.

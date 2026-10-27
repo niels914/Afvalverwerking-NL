@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { isToegangOnbekend, useAuth } from '../../lib/auth';
 import { beschrijfLidmaatschap } from '../../lib/authStatus';
@@ -20,18 +20,10 @@ interface Props {
 export function Vergrendeld({ titel, ledenKrijgen, children }: Props) {
   const auth = useAuth();
   const { isLid, status, lidStatus, email, domein, lidmaatschap, verversLidmaatschap, uitloggen } = auth;
-  const previewRef = useRef<HTMLDivElement>(null);
   const { pathname, search } = useLocation();
   const navigate = useNavigate();
   const [bezig, setBezig] = useState(false);
   const laden = isToegangOnbekend(auth);
-
-  // inert maakt de preview onbereikbaar voor toetsenbord en schermlezer.
-  useEffect(() => {
-    previewRef.current?.setAttribute('inert', '');
-  }, [isLid, laden]);
-
-  if (isLid) return <>{children}</>;
 
   const terug = encodeURIComponent(pathname + search);
   const inlogPad = `/inloggen?terug=${terug}`;
@@ -43,8 +35,10 @@ export function Vergrendeld({ titel, ledenKrijgen, children }: Props) {
     navigate(inlogPad);
   }
 
-  let inhoud: ReactNode;
-  if (laden) {
+  let inhoud: ReactNode = null;
+  if (isLid) {
+    // Leden: geen slotkaart.
+  } else if (laden) {
     inhoud = (
       <p role="status" aria-live="polite">
         Ledentoegang controleren…
@@ -106,19 +100,26 @@ export function Vergrendeld({ titel, ledenKrijgen, children }: Props) {
     );
   }
 
+  // De inhoud staat altijd op dezelfde plek in de boom. Zo blijft wat een lid al invulde behouden als de
+  // controle klaar is, en bouwt React de tool niet opnieuw op. Zolang iemand (nog) geen lid is, is de preview
+  // inert: niet te bedienen met muis of toetsenbord en onzichtbaar voor schermlezers. inert staat direct in de
+  // HTML (niet via een effect), dus ook bij de eerste weergave is er geen bedienbare kopie.
+  const previewAttributen: Record<string, string> = isLid ? {} : { inert: '', 'aria-hidden': 'true' };
   return (
-    <div className="vergrendeld">
-      <div className="vergrendeld-preview" ref={previewRef} aria-hidden="true">
+    <div className={isLid ? 'vergrendeld-open' : 'vergrendeld'} data-testid="vergrendeld" data-stand={isLid ? 'open' : laden ? 'laden' : 'dicht'}>
+      <div className={isLid ? 'vergrendeld-inhoud' : 'vergrendeld-preview'} {...previewAttributen}>
         {children}
       </div>
-      <div className="vergrendeld-slot">
-        <section className="slotkaart" aria-label={`${titel} (alleen voor leden)`}>
-          <h2>
-            <span aria-hidden="true">🔒</span> {titel}
-          </h2>
-          {inhoud}
-        </section>
-      </div>
+      {!isLid && (
+        <div className="vergrendeld-slot">
+          <section className="slotkaart" aria-label={`${titel} (alleen voor leden)`}>
+            <h2>
+              <span aria-hidden="true">🔒</span> {titel}
+            </h2>
+            {inhoud}
+          </section>
+        </div>
+      )}
     </div>
   );
 }
