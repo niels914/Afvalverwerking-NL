@@ -352,6 +352,33 @@
 .snelkoppelingen .badge {
   justify-self: start;
 }
+/* Snelkeuzes in de archieftegel: eigen links boven de klikbare tegel. */
+.snel-keuzes {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 13.5px;
+}
+.snel-keuzes a {
+  color: var(--link);
+  font-weight: 500;
+}
+/* Vijf tegels evenwichtig: op twee en op drie kolommen is de eerste (het archief) twee kolommen breed. */
+@media (min-width: 601px) {
+  .snelkoppelingen {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .snelkoppelingen li.breed {
+    grid-column: span 2;
+  }
+}
+@media (min-width: 1000px) {
+  .snelkoppelingen {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 @media (max-width: 600px) {
   /* Op mobiel één kolom met de volledige tekst: geen afgebroken woorden en geen afgekapte zinnen. */
   .snelkoppelingen {
@@ -400,7 +427,28 @@
 }
 /* Ruimte voor drie regels, zodat de kaart niet verspringt bij laden of wisselen. */
 .recent-inhoud {
-  min-height: 190px;
+  min-height: 300px;
+}
+.recent-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin-bottom: 12px;
+}
+.recent-filters .keuzeknoppen {
+  margin-bottom: 0;
+}
+.recent-stroom {
+  margin: 0;
+  min-width: min(100%, 15rem);
+}
+.recent-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin: 3px 0 1px;
 }
 .keuzeknoppen {
   display: flex;
@@ -468,65 +516,141 @@
   border-color: var(--donkerviolet);
 }
 
-/* ---------- Inlogpagina: volgorde en voorbeeld ---------- */
+/* ---------- Inlogpagina: eerst wat zonder account kan, dan het formulier ---------- */
 .inlog-kolom {
   display: grid;
   gap: 16px;
   align-content: start;
   min-width: 0;
 }
+.naar-formulier {
+  display: none;
+  color: var(--link);
+  font-weight: 600;
+  white-space: nowrap;
+}
 @media (max-width: 820px) {
-  /* Op mobiel één kolom in de volgorde: formulier, voorbeeld, prijs, aanbod. */
+  /* Op mobiel één kolom: zoeken in open aanbestedingen, gratis tools, formulier, prijs, aanbod.
+     Wie van een vergrendelde pagina komt of net uitlogde (.formulier-eerst), krijgt het formulier bovenaan. */
   .inlog-kolom {
     display: contents;
   }
-  .inlog-raster > .inlog-kolom > .inlog-kaart {
+  .inlog-raster > .inlog-kolom > .open-zoek {
     order: 1;
   }
-  .inlog-raster > .inlog-kolom > .voorbeeld {
+  .inlog-raster > .inlog-kolom > .gratis {
     order: 2;
   }
-  .inlog-raster > .inlog-kolom > .prijs {
+  .inlog-raster > .inlog-kolom > .inlog-kaart {
     order: 3;
   }
-  .inlog-raster > .inlog-kolom > .aanbod {
+  .inlog-raster.formulier-eerst > .inlog-kolom > .inlog-kaart {
+    order: 0;
+  }
+  .inlog-raster > .inlog-kolom > .prijs {
     order: 4;
   }
+  .inlog-raster > .inlog-kolom > .aanbod {
+    order: 5;
+  }
+  .naar-formulier {
+    display: inline;
+  }
 }
-.voorbeeld-lijst {
+.inlog-kaart {
+  scroll-margin-top: 12px;
+}
+.open-kern {
+  margin: 0 0 12px;
+  font-size: 16px;
+  line-height: 1.35;
+  color: var(--tekst);
+  min-height: 2.7em;
+}
+.open-kern strong {
+  font-size: 28px;
+  color: var(--donkerviolet);
+  margin-right: 4px;
+  font-variant-numeric: tabular-nums;
+}
+.open-zoekvorm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: end;
+}
+.open-zoekvorm .veld {
+  margin: 0;
+}
+.open-zoekvorm button {
+  min-height: 44px;
+}
+.open-subkop {
+  margin: 18px 0 6px;
+  font-size: 15px;
+}
+/* Ruimte voor drie regels, zodat de pagina niet verspringt als de lijst binnenkomt. */
+.open-actueel {
+  min-height: 230px;
+}
+.open-actueel-lijst {
   list-style: none;
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 0;
 }
-.voorbeeld-lijst li {
+.open-actueel-lijst li {
   display: grid;
-  gap: 4px;
-  padding: 12px 0;
+  gap: 3px;
+  padding: 10px 0;
   border-top: 1px solid var(--rand);
 }
-.voorbeeld-lijst li:first-child {
+.open-actueel-lijst li:first-child {
   border-top: 0;
-  padding-top: 0;
+  padding-top: 2px;
 }
-.voorbeeld-titel {
+.open-titel {
   font-weight: 600;
-  color: var(--tekst);
+  color: var(--link);
   line-height: 1.35;
+  overflow-wrap: break-word;
 }
-.voorbeeld-wie {
+.open-wie {
   font-size: 13.5px;
   color: var(--tekst-2);
+  overflow-wrap: break-word;
 }
-.voorbeeld-meta {
+.open-wanneer {
+  font-size: 13.5px;
+  color: var(--tekst);
+}
+.open-alles {
+  margin: 8px 0 0;
+  font-size: 14.5px;
+}
+.open-alles a {
+  color: var(--link);
+  font-weight: 600;
+}
+.gratis-lijst {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: 6px 16px;
+}
+.gratis-lijst li {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin: 2px 0;
+  align-items: baseline;
+  gap: 2px 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--rand);
 }
-.voorbeeld-lijst a {
+.gratis-lijst a {
   color: var(--link);
+  font-weight: 600;
 }
 .bronregel {
   margin: 12px 0 0;
@@ -567,9 +691,4 @@
 .vergrendeld-open,
 .vergrendeld-inhoud {
   display: contents;
-}
-.voorbeeld-lijst .voorbeeld-link {
-  justify-self: start;
-  font-size: 13.5px;
-  font-weight: 500;
 }

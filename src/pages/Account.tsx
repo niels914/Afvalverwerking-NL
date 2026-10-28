@@ -4,11 +4,23 @@ import { Kaart, PaginaKop, ToegangBadge } from '../components/ui';
 import { useAuth } from '../lib/auth';
 import { beschrijfLidmaatschap, organisatietypeLabel, organisatietypeUitleg, type StatusBeschrijving } from '../lib/authStatus';
 import { alleOnderdelen, ledenOnderdelen } from '../lib/authAanbod';
-import { LEGE_FILTERS, STATUS_LABEL, zoekAanbestedingen, type AanbestedingRegel, type Filters } from '../lib/aanbestedingen';
+import {
+  LEGE_FILTERS,
+  SNELKEUZES,
+  STATUS_LABEL,
+  STROMEN,
+  filtersNaarUrl,
+  statusBadge,
+  tijdstempel,
+  zoekAanbestedingen,
+  type AanbestedingRegel,
+  type Filters,
+} from '../lib/aanbestedingen';
+import { haalOpenbareStand, type OpenbareStand } from '../lib/authOpen';
 import { nieuws } from '../data/nieuws';
 import { MIN_WACHTWOORD, authFoutmelding, controleerNieuwWachtwoord } from '../lib/authFouten';
 import { supabase } from '../lib/supabase';
-import { datum } from '../lib/format';
+import { datum, getal } from '../lib/format';
 import { contact, platform } from '../data/site';
 import '../components/betaalmuur/toegang.css';
 
@@ -229,21 +241,65 @@ function StatusKaart({ beschrijving }: { beschrijving: StatusBeschrijving }) {
 
 /* ---------- Snel naar ---------- */
 
-function SnelNaar() {
+/** Stand van het archief (totalen en laatste verversing), één keer per paginalading. */
+function useOpenbareStand(): OpenbareStand | null {
+  const [stand, setStand] = useState<OpenbareStand | null>(null);
+  useEffect(() => {
+    let actief = true;
+    haalOpenbareStand().then(
+      (s) => actief && setStand(s),
+      () => undefined,
+    );
+    return () => {
+      actief = false;
+    };
+  }, []);
+  return stand;
+}
+
+/** Snelkeuzes in de brede archieftegel: open aanbestedingen voor iedereen, de rest voor leden. */
+function ArchiefKeuzes({ isLid, stand }: { isLid: boolean; stand: OpenbareStand | null }) {
+  const keuzes = SNELKEUZES.filter((k) => isLid || k.filters.status === 'open');
+  return (
+    <span className="snel-keuzes">
+      {keuzes.map((k) => {
+        const isOpen = k.filters.status === 'open';
+        const label = isOpen ? 'Open voor inschrijving' : k.label;
+        return (
+          <Link key={k.label} to={archiefPad({ ...LEGE_FILTERS, ...k.filters })}>
+            {label}
+            {isOpen && stand ? ` (${getal(stand.open)})` : ''}
+          </Link>
+        );
+      })}
+    </span>
+  );
+}
+
+function SnelNaar({ stand }: { stand: OpenbareStand | null }) {
   const { isLid, lidStatus } = useAuth();
   // Slotjes pas tonen als vaststaat dat iemand geen lid is, anders knipperen ze bij leden.
   const toonToegang = lidStatus === 'klaar' && !isLid;
   const open = alleOnderdelen.filter((o) => !o.ledenDeel);
+  // Archief eerst (breed); daarnaast de tegel met de kortste beschrijving, zodat de eerste rij niet leeg oogt.
+  const [archief, ...rest] = ledenOnderdelen;
+  const kortste = rest.reduce((k, o) => (o.omschrijving.length < k.omschrijving.length ? o : k), rest[0]);
+  const tegels = [archief, kortste, ...rest.filter((o) => o !== kortste)];
   return (
     <section className="sectie" aria-labelledby="snel-naar">
       <h2 id="snel-naar">Snel naar</h2>
       <ul className="snelkoppelingen">
-        {ledenOnderdelen.map((o) => (
-          <li key={o.pad}>
+        {tegels.map((o, i) => (
+          // De eerste tegel (het archief) is breed: zo vullen vijf tegels op desktop twee rijen van drie kolommen.
+          <li key={o.pad} className={i === 0 ? 'breed' : undefined}>
             <Link to={o.pad}>
               <span className="snel-titel">{o.titel}</span>
-              <span className="snel-tekst">{o.omschrijving}</span>
+              <span className="snel-tekst">
+                {o.omschrijving}
+                {o.pad === '/aanbestedingsarchief' && stand && ` Nu ${getal(stand.totaal)} aanbestedingen, waarvan ${getal(stand.open)} open.`}
+              </span>
             </Link>
+            {o.pad === '/aanbestedingsarchief' && <ArchiefKeuzes isLid={isLid} stand={stand} />}
             {toonToegang && <ToegangBadge toegang={o.toegang} />}
           </li>
         ))}
@@ -265,44 +321,70 @@ function SnelNaar() {
 type Laadstand<T> = { stand: 'laden' } | { stand: 'fout' } | { stand: 'klaar'; data: T };
 type Keuze = 'nieuw' | 'sluit';
 
-const KEUZES: { waarde: Keuze; label: string; filters: Partial<Filters>; archief: string }[] = [
-  {
-    waarde: 'nieuw',
-    label: 'Nieuwst gepubliceerd',
-    filters: { sortering: 'publicatie-nieuw' },
-    archief: '/aanbestedingsarchief',
-  },
-  {
-    waarde: 'sluit',
-    label: 'Open, sluit het eerst',
-    filters: { status: 'open', sortering: 'sluiting-op' },
-    archief: '/aanbestedingsarchief?status=open&sortering=sluiting-op',
-  },
+const KEUZES: { waarde: Keuze; label: string; filters: Partial<Filters> }[] = [
+  { waarde: 'nieuw', label: 'Nieuwst gepubliceerd', filters: { sortering: 'publicatie-nieuw' } },
+  { waarde: 'sluit', label: 'Open, sluit het eerst', filters: { status: 'open', sortering: 'sluiting-op' } },
 ];
 
-function NieuwsteAanbestedingen() {
+/** Adres van het archief met dezelfde filters als de lijst op de accountpagina. */
+function archiefPad(f: Filters): string {
+  const q = filtersNaarUrl(f).toString();
+  return q ? `/aanbestedingsarchief?${q}` : '/aanbestedingsarchief';
+}
+
+function NieuwsteAanbestedingen({ stand }: { stand: OpenbareStand | null }) {
+  const id = useId();
   const [keuze, setKeuze] = useState<Keuze>('nieuw');
-  const [r, setR] = useState<Laadstand<AanbestedingRegel[]>>({ stand: 'laden' });
+  const [stroom, setStroom] = useState('');
+  const [r, setR] = useState<Laadstand<{ regels: AanbestedingRegel[]; totaal: number }>>({ stand: 'laden' });
+  const bijgewerkt = stand?.laatsteVerversing ?? null;
   const huidig = KEUZES.find((k) => k.waarde === keuze)!;
+  const filters: Filters = { ...LEGE_FILTERS, ...huidig.filters, stroom };
+
   useEffect(() => {
     let actief = true;
     setR({ stand: 'laden' });
-    zoekAanbestedingen({ ...LEGE_FILTERS, ...huidig.filters })
-      .then((res) => actief && setR({ stand: 'klaar', data: res.regels.slice(0, 3) }))
+    zoekAanbestedingen({ ...LEGE_FILTERS, ...huidig.filters, stroom })
+      .then((res) => actief && setR({ stand: 'klaar', data: { regels: res.regels.slice(0, 3), totaal: res.totaal } }))
       .catch(() => actief && setR({ stand: 'fout' }));
     return () => {
       actief = false;
     };
-  }, [huidig]);
+  }, [huidig, stroom]);
 
+  const open = keuze === 'sluit';
   return (
-    <Kaart titel="Aanbestedingen" sub="Uit het aanbestedingsarchief, bron TenderNed. Elke ochtend bijgewerkt." className="recent">
-      <div className="keuzeknoppen" role="group" aria-label="Welke aanbestedingen">
-        {KEUZES.map((k) => (
-          <button key={k.waarde} type="button" aria-pressed={keuze === k.waarde} onClick={() => setKeuze(k.waarde)}>
-            {k.label}
-          </button>
-        ))}
+    <Kaart
+      titel="Aanbestedingen"
+      sub={
+        <>
+          Uit het aanbestedingsarchief, bron TenderNed. Elke ochtend bijgewerkt
+          {bijgewerkt ? <>, laatst op {tijdstempel(bijgewerkt)}</> : null}.
+        </>
+      }
+      className="recent"
+    >
+      <div className="recent-filters">
+        <div className="keuzeknoppen" role="group" aria-label="Welke aanbestedingen">
+          {KEUZES.map((k) => (
+            <button key={k.waarde} type="button" aria-pressed={keuze === k.waarde} onClick={() => setKeuze(k.waarde)}>
+              {k.label}
+            </button>
+          ))}
+        </div>
+        <div className="veld recent-stroom">
+          <label htmlFor={`${id}-stroom`}>Afvalstroom</label>
+          <div className="invoer">
+            <select id={`${id}-stroom`} value={stroom} onChange={(e) => setStroom(e.target.value)}>
+              <option value="">Alle afvalstromen</option>
+              {STROMEN.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
       <div className="recent-inhoud" aria-live="polite">
         {r.stand === 'laden' && (
@@ -315,17 +397,31 @@ function NieuwsteAanbestedingen() {
             De aanbestedingen konden niet worden geladen. Probeer het later opnieuw in het <Link to="/aanbestedingsarchief">archief</Link>.
           </p>
         )}
-        {r.stand === 'klaar' && r.data.length === 0 && <p>Geen aanbestedingen gevonden.</p>}
-        {r.stand === 'klaar' && r.data.length > 0 && (
+        {r.stand === 'klaar' && r.data.regels.length === 0 && (
+          <p>
+            Geen {open ? 'open ' : ''}aanbestedingen gevonden{stroom ? ` voor de afvalstroom “${stroom}”` : ''}.
+          </p>
+        )}
+        {r.stand === 'klaar' && r.data.regels.length > 0 && (
           <ul className="recent-lijst aanbesteding-lijst" data-testid="recente-aanbestedingen">
-            {r.data.map((a) => (
+            {r.data.regels.map((a) => (
               <li key={a.kenmerk}>
                 <span className="recent-titel">{a.titel}</span>
                 <span className="klein">{a.opdrachtgever}</span>
+                <span className="recent-meta">
+                  <span className={`badge ${statusBadge(a.status)}`} data-testid="aanbesteding-status">
+                    {STATUS_LABEL[a.status]}
+                    {a.status === 'open' && a.sluitingsdatum ? `, sluit ${datum(a.sluitingsdatum.slice(0, 10))}` : ''}
+                  </span>
+                  {/* Maximaal drie afvalstromen; een gekozen afvalstroom staat altijd vooraan. */}
+                  {[...a.stromen].sort((x, y) => Number(y === stroom) - Number(x === stroom)).slice(0, 3).map((s) => (
+                    <span key={s} className="badge thema">
+                      {s}
+                    </span>
+                  ))}
+                </span>
                 <span className="klein muted">
-                  {STATUS_LABEL[a.status]}
-                  {a.status === 'open' && a.sluitingsdatum ? `, sluit ${datum(a.sluitingsdatum.slice(0, 10))}` : ''} · gepubliceerd{' '}
-                  {datum(a.publicatiedatum.slice(0, 10))}
+                  {a.procedure} · gepubliceerd {datum(a.publicatiedatum.slice(0, 10))}
                 </span>
                 <Extern href={a.tenderned_url} className="tenderned-link">
                   Bekijk op TenderNed<span className="visueel-verborgen">: {a.titel}</span>
@@ -336,7 +432,10 @@ function NieuwsteAanbestedingen() {
         )}
       </div>
       <p className="recent-voet">
-        <Link to={huidig.archief}>{keuze === 'sluit' ? 'Alle open aanbestedingen in het archief' : 'Alle aanbestedingen in het archief'}</Link>
+        <Link to={archiefPad(filters)}>
+          {open ? 'Alle open aanbestedingen in het archief' : 'Alle aanbestedingen in het archief'}
+          {r.stand === 'klaar' ? ` (${getal(r.data.totaal)})` : ''}
+        </Link>
       </p>
     </Kaart>
   );
@@ -379,6 +478,7 @@ export function Account() {
   const navigate = useNavigate();
   const [uitBezig, setUitBezig] = useState(false);
   const [uitFout, setUitFout] = useState<string | null>(null);
+  const stand = useOpenbareStand();
 
   useEffect(() => {
     document.title = `Mijn account · ${platform.korteNaam}`;
@@ -437,10 +537,10 @@ export function Account() {
 
       <StatusKaart beschrijving={beschrijving} />
 
-      <SnelNaar />
+      <SnelNaar stand={stand} />
 
       <div className="raster-recent sectie">
-        {isLid && <NieuwsteAanbestedingen />}
+        {isLid && <NieuwsteAanbestedingen stand={stand} />}
         <LaatsteNieuws />
       </div>
 

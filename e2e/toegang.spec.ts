@@ -42,24 +42,33 @@ test.describe('bezoeker', () => {
     expect(rand).not.toBe('none');
   });
 
-  test('inlogpagina toont vóór inloggen een echt voorbeeld met bron, peildatum en prijsindicatie', async ({ page }) => {
+  test('inlogpagina is zonder account bruikbaar: live open aanbestedingen, zoeken, gratis tools en prijsindicatie', async ({ page }) => {
     await page.goto('/inloggen');
     const main = page.locator('main');
 
-    // Echt voorbeeld uit het archief: drie aanbestedingen, elk met een eigen TenderNed-link, plus bron en peildatum.
-    const voorbeeld = main.locator('section.kaart').filter({ has: page.getByRole('heading', { level: 2, name: 'Voorbeeld uit het aanbestedingsarchief' }) });
-    await expect(voorbeeld).toBeVisible();
-    const regels = voorbeeld.getByTestId('voorbeeld-archief').getByRole('listitem');
-    await expect(regels).toHaveCount(3);
-    for (let i = 0; i < 3; i++) {
-      await expect(regels.nth(i).getByRole('link', { name: /Aankondiging op TenderNed/ })).toHaveAttribute(
-        'href',
-        /^https:\/\/www\.tenderned\.nl\/aankondigingen\/overzicht\/\d+$/,
-      );
+    // Live uit de database (openbare functies), geen vaste momentopname.
+    const open = page.getByTestId('open-zoek');
+    await expect(open.getByRole('heading', { level: 2, name: 'Open aanbestedingen zoeken' })).toBeVisible();
+    await expect(page.getByTestId('open-aantal')).toContainText(/\d+ aanbestedingen? over afval open voor inschrijving/);
+    const regels = page.getByTestId('open-actueel').getByRole('listitem');
+    await expect(regels.first()).toBeVisible();
+    expect(await regels.count()).toBeLessThanOrEqual(3);
+    for (const r of await regels.all()) {
+      await expect(r.getByRole('link')).toHaveAttribute('href', /^https:\/\/www\.tenderned\.nl\/aankondigingen\/overzicht\/\d+$/);
+      await expect(r).toContainText(/Sluit \d{1,2} \w+ \d{4}/);
     }
-    await expect(voorbeeld).toContainText('1.435 aanbestedingen');
-    await expect(voorbeeld.getByText(/Bron: .*peildatum 27 oktober 2026/)).toBeVisible();
-    await expect(voorbeeld.getByRole('link', { name: /TenderNed, aankondigingen/ })).toHaveAttribute('href', 'https://www.tenderned.nl/aankondigingen/overzicht');
+    // Bron met de laatste verversing, en het totaal van het archief.
+    const bron = page.getByTestId('open-bron');
+    await expect(bron.getByRole('link', { name: /TenderNed/ })).toHaveAttribute('href', 'https://www.tenderned.nl/aankondigingen/overzicht');
+    await expect(bron).toContainText(/Het archief bevat [\d.]+ aanbestedingen sinds \d{4}, laatst bijgewerkt \d{1,2} \w+ \d{4} om \d{2}:\d{2}/);
+    await expect(open.getByRole('link', { name: /Alle \d+ open aanbestedingen bekijken/ })).toHaveAttribute('href', '/aanbestedingsarchief');
+
+    // Gratis tools als directe links.
+    const gratis = main.locator('section.kaart').filter({ has: page.getByRole('heading', { level: 2, name: 'Zonder account te gebruiken' }) });
+    await expect(gratis.getByRole('link', { name: 'Restafvalkaart' })).toHaveAttribute('href', '/restafvalkaart');
+    await expect(gratis.getByRole('link', { name: 'Aanbestedingstool' })).toHaveAttribute('href', '/tools/aanbestedingstool');
+    await expect(gratis.getByRole('link', { name: 'Indexcalculator' })).toHaveAttribute('href', '/tools/indexcalculator');
+    await expect(gratis.getByRole('link', { name: 'Rekenmodel bron- en nascheiding PMD' })).toHaveCount(0);
 
     // Prijsindicatie: vanaf … per jaar, met conceptlabel.
     const prijs = main.locator('section.kaart').filter({ has: page.getByRole('heading', { level: 2, name: 'Lid worden' }) });
@@ -69,25 +78,51 @@ test.describe('bezoeker', () => {
     await expect(prijs.getByText('Eén gemeente die zelf inzameling of verwerking contracteert')).toBeVisible();
     await expect(prijs.getByRole('link', { name: 'Meld uw organisatie aan' })).toHaveAttribute('href', '/lidmaatschap/aanmelden');
 
-    // Wat leden verder krijgen en wat open is.
+    // Wat leden verder krijgen; uitleg en privacylink in een inklapbaar blok.
     const aanbod = main.locator('section.kaart').filter({ has: page.getByRole('heading', { level: 2, name: 'Wat leden verder krijgen' }) });
     await expect(aanbod.getByRole('link', { name: 'Rekenmodel bron- en nascheiding PMD' })).toBeVisible();
-    await expect(aanbod.getByRole('link', { name: 'Restafvalkaart' })).toHaveAttribute('href', '/restafvalkaart');
-    // Uitleg en privacylink zitten in een inklapbaar blok.
     const privacy = main.getByRole('link', { name: 'privacyverklaring', exact: true });
     await expect(privacy).toBeHidden();
     await page.getByText('Zo werkt de toegang').click();
     await expect(privacy).toHaveAttribute('href', '/privacy');
-    await expect(privacy).toBeVisible();
 
-    // Op mobiel eerst het formulier, dan het voorbeeld, dan de prijs.
+    // Op mobiel eerst het nut (zoeken, gratis tools), dan het formulier, dan de prijs; met een sprong naar het formulier.
+    const formulier = main.locator('.inlog-kaart');
+    const y = async (l: typeof open) => (await l.boundingBox())!.y;
     if ((page.viewportSize()?.width ?? 0) <= 820) {
-      const y = async (l: typeof voorbeeld) => (await l.boundingBox())!.y;
-      const formulier = main.locator('.inlog-kaart');
-      expect(await y(formulier)).toBeLessThan(await y(voorbeeld));
-      expect(await y(voorbeeld)).toBeLessThan(await y(prijs));
+      expect(await y(open)).toBeLessThan(await y(gratis));
+      expect(await y(gratis)).toBeLessThan(await y(formulier));
+      expect(await y(formulier)).toBeLessThan(await y(prijs));
+      await page.getByRole('link', { name: 'Direct naar inloggen' }).click();
+      await expect(page.getByLabel('E-mailadres')).toBeFocused();
+    } else {
+      // Op desktop staan zoeken en formulier naast elkaar, allebei boven de vouw.
+      expect(await y(formulier)).toBeLessThan(400);
+      expect(await y(open)).toBeLessThan(400);
     }
     await geenHorizontaleScroll(page);
+  });
+
+  test('zoeken zonder account stuurt door naar het archief met de zoekterm', async ({ page }) => {
+    await page.goto('/inloggen');
+    const zoek = page.getByRole('search').getByLabel('Zoek op onderwerp of opdrachtgever');
+    await zoek.fill('afval');
+    await zoek.press('Enter');
+    await expect(page).toHaveURL(/\/aanbestedingsarchief\?zoek=afval$/);
+    await expect(page.getByRole('heading', { level: 2, name: 'Open voor inschrijving' })).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: /open aanbesteding/ })).toContainText('voor “afval”');
+  });
+
+  test('vanaf een vergrendelde pagina staat op mobiel het formulier bovenaan', async ({ page }) => {
+    await page.goto('/inloggen?terug=%2Ftools%2Fpmd-rekenmodel');
+    const main = page.locator('main');
+    const formulier = main.locator('.inlog-kaart');
+    const open = page.getByTestId('open-zoek');
+    await expect(open).toBeVisible();
+    if ((page.viewportSize()?.width ?? 0) <= 820) {
+      expect((await formulier.boundingBox())!.y).toBeLessThan((await open.boundingBox())!.y);
+      await expect(page.getByRole('link', { name: 'Direct naar inloggen' })).toHaveCount(0);
+    }
   });
 
   test('nieuw account op een onbekend domein: uitleg in het Nederlands', async ({ page }) => {
@@ -283,15 +318,25 @@ test.describe('ingelogd', () => {
     for (let i = 0; i < aantal; i++) {
       await expect(lijst.getByRole('listitem').nth(i).getByRole('link', { name: /Bekijk op TenderNed/ })).toHaveAttribute('href', /^https:\/\/www\.tenderned\.nl\//);
     }
-    await expect(page.getByRole('link', { name: 'Alle aanbestedingen in het archief' })).toHaveAttribute('href', '/aanbestedingsarchief');
+    await expect(page.getByRole('link', { name: /^Alle aanbestedingen in het archief \([\d.]+\)$/ })).toHaveAttribute('href', '/aanbestedingsarchief');
+    // Status per aanbesteding als tekst.
+    await expect(lijst.getByTestId('aanbesteding-status').first()).not.toBeEmpty();
     const openKnop = page.getByRole('button', { name: /Open, sluit het eerst/ });
     await openKnop.click();
     await expect(openKnop).toHaveAttribute('aria-pressed', 'true');
-    await expect(page.getByRole('link', { name: 'Alle open aanbestedingen in het archief' })).toHaveAttribute(
+    await expect(page.getByRole('link', { name: /^Alle open aanbestedingen in het archief/ })).toHaveAttribute(
       'href',
       '/aanbestedingsarchief?status=open&sortering=sluiting-op',
     );
     await expect(lijst.getByRole('listitem').first()).toContainText('Open voor inschrijving');
+    // Filter op afvalstroom; de link naar het archief neemt het filter mee.
+    await page.getByLabel('Afvalstroom').selectOption('Restafval');
+    await expect(page.getByRole('link', { name: /^Alle open aanbestedingen in het archief/ })).toHaveAttribute(
+      'href',
+      '/aanbestedingsarchief?stroom=Restafval&status=open&sortering=sluiting-op',
+    );
+    await expect(lijst.getByRole('listitem').first()).toContainText('Restafval');
+    await expect(page.locator('.recent').first()).toContainText(/laatst op \d{1,2} \w+ \d{4} om \d{2}:\d{2}/);
     await expect(page.getByRole('heading', { level: 2, name: 'Laatste nieuws' })).toBeVisible();
     await geenHorizontaleScroll(page);
 

@@ -12,8 +12,10 @@ import {
   veiligTerugpad,
 } from '../lib/authFouten';
 import { contact, platform } from '../data/site';
-import { alleOnderdelen, ledenOnderdelen } from '../lib/authAanbod';
-import { archiefVoorbeeld, vandaagInNederland, voorbeeldStand } from '../lib/authVoorbeeld';
+import { alleOnderdelen, ledenOnderdelen, openVoorIedereen } from '../lib/authAanbod';
+import { archiefZoekPad, haalOpenbareStand, type OpenbareStand } from '../lib/authOpen';
+import { nogTekst, sluitingTijd, tijdstempel, vandaagNl, zoekOpenAanbestedingen, type OpenAanbesteding } from '../lib/aanbestedingen';
+import { aanbestedingenBron } from '../data/aanbestedingen';
 import { btwPercentage, prijzenVastgesteld, staffels, voorwaarden } from '../data/lidmaatschap';
 import { datum, euro, getal } from '../lib/format';
 import '../components/betaalmuur/toegang.css';
@@ -166,51 +168,159 @@ function Extern({ href, children, className }: { href: string; children: ReactNo
   );
 }
 
-/** Echt voorbeeld uit het archief, met bron en peildatum (src/lib/authVoorbeeld.ts). */
-function VoorbeeldKaart() {
-  const { regels, telling, bron, peildatum } = archiefVoorbeeld;
-  const vandaag = vandaagInNederland();
+type Laad<T> = { stand: 'laden' } | { stand: 'fout' } | { stand: 'klaar'; data: T };
+
+/** Aantal regels onder "Sluit binnenkort". */
+const ACTUEEL = 3;
+
+/**
+ * Zonder account bruikbaar: zoeken in de open aanbestedingen, live aantallen en wat binnenkort sluit.
+ * Alles komt live uit de database via functies die ook bezoekers mogen aanroepen (src/lib/authOpen.ts).
+ */
+function OpenZoekKaart() {
+  const navigate = useNavigate();
+  const zoekId = useId();
+  const [zoek, setZoek] = useState('');
+  const [stand, setStand] = useState<Laad<OpenbareStand | null>>({ stand: 'laden' });
+  const [lijst, setLijst] = useState<Laad<OpenAanbesteding[]>>({ stand: 'laden' });
+  const vandaag = vandaagNl();
+
+  useEffect(() => {
+    let actief = true;
+    haalOpenbareStand().then(
+      (data) => actief && setStand({ stand: 'klaar', data }),
+      () => actief && setStand({ stand: 'fout' }),
+    );
+    zoekOpenAanbestedingen('').then(
+      (data) => actief && setLijst({ stand: 'klaar', data }),
+      () => actief && setLijst({ stand: 'fout' }),
+    );
+    return () => {
+      actief = false;
+    };
+  }, []);
+
+  function verstuur(e: FormEvent) {
+    e.preventDefault();
+    navigate(archiefZoekPad(zoek));
+  }
+
+  const s = stand.stand === 'klaar' ? stand.data : null;
+  // Aantal open: uit de telling; lukt die niet, dan uit de lijst (die geeft er maximaal 100).
+  const open = s?.open ?? (lijst.stand === 'klaar' && lijst.data.length < 100 ? lijst.data.length : null);
+  const regels = lijst.stand === 'klaar' ? lijst.data.slice(0, ACTUEEL) : [];
+  const allesGeladen = stand.stand !== 'laden' && lijst.stand !== 'laden';
+
   return (
-    <Kaart
-      titel="Voorbeeld uit het aanbestedingsarchief"
-      sub={
-        <>
-          Het archief bevat {getal(telling.totaal)} aanbestedingen over afval sinds {new Date(telling.sinds).getFullYear()}, waarvan{' '}
-          {getal(telling.open)} open voor inschrijving (stand {datum(peildatum)}). Open aanbestedingen kunt u ook zonder account doorzoeken. Drie daarvan:
-        </>
-      }
-      className="voorbeeld"
-    >
-      <ul className="voorbeeld-lijst" data-testid="voorbeeld-archief">
-        {regels.map((a) => {
-          const stand = voorbeeldStand(a.sluitingsdatum, vandaag);
-          const sluit = `${datum(a.sluitingsdatum.slice(0, 10))}, ${a.sluitingsdatum.slice(11, 16)} uur`;
-          return (
-            <li key={a.kenmerk}>
-              <span className="voorbeeld-titel">{a.titel}</span>
-              <span className="voorbeeld-wie">{a.opdrachtgever}</span>
-              <span className="voorbeeld-meta">
-                <span className="badge status-lopend">{stand === 'open' ? `Open tot ${sluit}` : `Inschrijving sloot ${sluit}`}</span>
-                {a.stromen.map((s) => (
-                  <span key={s} className="badge thema">
-                    {s}
-                  </span>
-                ))}
-              </span>
-              <span className="klein muted">
-                {a.procedure} · gepubliceerd {datum(a.publicatiedatum)}
-              </span>
-              <Extern href={a.tenderned_url} className="voorbeeld-link">
-                Aankondiging op TenderNed<span className="visueel-verborgen">: {a.titel}</span>
-              </Extern>
-            </li>
-          );
-        })}
-      </ul>
-      <p className="bronregel">
-        Bron: <Extern href={bron.url}>{bron.titel}</Extern>, peildatum {datum(peildatum)}. De afvalstroom is de indeling van dit platform. In het
-        archief filteren leden op afvalstroom, status, provincie en soort dienst en zien ze de tijdlijn van elke aanbesteding.
+    <section className="kaart open-zoek" aria-labelledby={`${zoekId}-kop`} data-testid="open-zoek">
+      <div className="kaart-kop">
+        <div>
+          <h2 id={`${zoekId}-kop`}>Open aanbestedingen zoeken</h2>
+          <div className="sub">Zonder account. Uit het aanbestedingsarchief van dit platform, bron TenderNed.</div>
+        </div>
+      </div>
+
+      <p className="open-kern" aria-live="polite" data-testid="open-aantal">
+        {open !== null ? (
+          <>
+            <strong>{getal(open)}</strong> {open === 1 ? 'aanbesteding' : 'aanbestedingen'} over afval open voor inschrijving
+          </>
+        ) : allesGeladen ? (
+          <span className="muted">Het aantal open aanbestedingen kon niet worden geladen.</span>
+        ) : (
+          <span className="muted">Aantal open aanbestedingen laden…</span>
+        )}
       </p>
+
+      <form className="open-zoekvorm" role="search" onSubmit={verstuur}>
+        <div className="veld">
+          <label htmlFor={zoekId}>Zoek op onderwerp of opdrachtgever</label>
+          <div className="invoer">
+            <input
+              id={zoekId}
+              type="search"
+              value={zoek}
+              maxLength={200}
+              placeholder="Bijv. textiel of Groningen"
+              onChange={(e) => setZoek(e.target.value)}
+            />
+          </div>
+        </div>
+        <button type="submit" className="primair">
+          Zoeken
+        </button>
+      </form>
+
+      <h3 className="open-subkop">Sluit binnenkort</h3>
+      <div className="open-actueel">
+        {lijst.stand === 'laden' && (
+          <p className="muted" role="status">
+            Open aanbestedingen laden…
+          </p>
+        )}
+        {lijst.stand === 'fout' && (
+          <p role="alert">
+            De open aanbestedingen konden niet worden geladen. Probeer het opnieuw in het{' '}
+            <Link to="/aanbestedingsarchief">aanbestedingsarchief</Link>.
+          </p>
+        )}
+        {lijst.stand === 'klaar' && regels.length === 0 && <p>Op dit moment staan er geen open aanbestedingen in het archief.</p>}
+        {regels.length > 0 && (
+          <ul className="open-actueel-lijst" data-testid="open-actueel">
+            {regels.map((a) => {
+              const nog = nogTekst(a.sluitingsdatum, vandaag);
+              return (
+                <li key={a.tenderned_url}>
+                  <Extern href={a.tenderned_url} className="open-titel">
+                    {a.titel}
+                    <span className="visueel-verborgen">, aankondiging op TenderNed</span>
+                  </Extern>
+                  <span className="open-wie">{a.opdrachtgever}</span>
+                  <span className="open-wanneer">
+                    Sluit <time dateTime={a.sluitingsdatum}>{datum(a.sluitingsdatum.slice(0, 10))}</time>
+                    {a.sluiting_tijd_bekend && `, ${sluitingTijd(a.sluitingsdatum)} uur`}
+                    {nog && <strong> · {nog}</strong>}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+      <p className="open-alles">
+        <Link to="/aanbestedingsarchief">
+          {open !== null ? `Alle ${getal(open)} open aanbestedingen bekijken` : 'Alle open aanbestedingen bekijken'}
+        </Link>
+      </p>
+
+      <p className="bronregel" data-testid="open-bron">
+        Bron: <Extern href={aanbestedingenBron.url}>TenderNed</Extern>, aankondigingen met een afval-CPV-code.
+        {s && (
+          <>
+            {' '}
+            Het archief bevat {getal(s.totaal)} aanbestedingen
+            {s.oudste ? ` sinds ${new Date(s.oudste).getFullYear()}` : ''}
+            {s.laatsteVerversing ? `, laatst bijgewerkt ${tijdstempel(s.laatsteVerversing)}` : ''}.
+          </>
+        )}{' '}
+        Leden zien ook gesloten en gegunde aanbestedingen, met filters op afvalstroom, status, provincie en soort dienst.
+      </p>
+    </section>
+  );
+}
+
+/** De tools en pagina's die iedereen zonder account kan gebruiken, als directe links. */
+function GratisKaart() {
+  return (
+    <Kaart titel="Zonder account te gebruiken" className="gratis">
+      <ul className="gratis-lijst">
+        {openVoorIedereen.map((o) => (
+          <li key={o.pad}>
+            <Link to={o.pad}>{o.titel}</Link>
+            <span className="klein muted">{o.toegang === 'gratis+pro' ? 'gratis deel' : 'gratis'}</span>
+          </li>
+        ))}
+      </ul>
     </Kaart>
   );
 }
@@ -255,6 +365,7 @@ function PrijsKaart() {
 
 /** Wat leden verder krijgen, en wat zonder account open is. */
 function AanbodKaart({ zonderArchief = false }: { zonderArchief?: boolean }) {
+  // Op de inlogpagina staan de open onderdelen al als directe links (GratisKaart); hier dan alleen wat leden krijgen.
   const lijst = zonderArchief ? ledenOnderdelen.filter((o) => o.pad !== '/aanbestedingsarchief') : ledenOnderdelen;
   const metPro = alleOnderdelen.filter((o) => o.toegang === 'gratis+pro');
   return (
@@ -267,6 +378,7 @@ function AanbodKaart({ zonderArchief = false }: { zonderArchief?: boolean }) {
           </li>
         ))}
       </ul>
+      {!zonderArchief && (
       <p className="klein">
         Zonder account open: de <Link to="/restafvalkaart">Restafvalkaart</Link>, <Link to="/kennisbank">kennisbank</Link>,{' '}
         <Link to="/nieuws">nieuws</Link>, de <Link to="/tools/aanbestedingstool">aanbestedingstool</Link> en het gratis deel van de{' '}
@@ -278,6 +390,7 @@ function AanbodKaart({ zonderArchief = false }: { zonderArchief?: boolean }) {
         ))}
         .
       </p>
+      )}
       <details className="inklap">
         <summary>Zo werkt de toegang</summary>
         <InlogUitleg />
@@ -447,6 +560,13 @@ export function Inloggen() {
   );
 
   const aanbod = <AanbodKaart zonderArchief />;
+  // Wie van een vergrendelde pagina komt of net uitlogde, wil inloggen: dan op mobiel het formulier bovenaan.
+  const formulierEerst = params.has('terug') || params.get('melding') === 'uitgelogd';
+  function naarFormulier(e: React.MouseEvent) {
+    e.preventDefault();
+    emailRef.current?.focus({ preventScroll: true });
+    emailRef.current?.closest('.inlog-kaart')?.scrollIntoView({ block: 'start' });
+  }
   // Bij de tussenstappen alleen hulp, zodat de pagina op mobiel kort blijft.
   const hulp = (
     <Kaart titel="Hulp bij inloggen" kopNiveau={2}>
@@ -622,15 +742,27 @@ export function Inloggen() {
   /* --- Inloggen --- */
   return (
     <>
-      <PaginaKop titel="Inloggen">Log in met uw werk-e-mailadres. Uw e-maildomein bepaalt bij welke organisatie u hoort.</PaginaKop>
+      <PaginaKop titel="Inloggen">
+        Zoek zonder account in de aanbestedingen over afval die nu open zijn, en gebruik de gratis tools. Leden loggen in met hun
+        werk-e-mailadres voor het volledige archief en de rekentools.{' '}
+        {!formulierEerst && (
+          <a className="naar-formulier" href={`#${id}-email`} onClick={naarFormulier}>
+            Direct naar inloggen
+          </a>
+        )}
+      </PaginaKop>
       {params.get('melding') === 'uitgelogd' && (
         <p className="notitie succes sectie" role="status">
           <span aria-hidden="true">✓ </span>U bent uitgelogd.
         </p>
       )}
-      <div className="toegang-raster inlog-raster sectie">
+      <div className={`toegang-raster inlog-raster sectie${formulierEerst ? ' formulier-eerst' : ''}`}>
         <div className="inlog-kolom">
-          <Kaart className="inlog-kaart">
+          <OpenZoekKaart />
+          <GratisKaart />
+        </div>
+        <div className="inlog-kolom">
+          <Kaart className="inlog-kaart" titel="Inloggen voor leden">
             <form className="toegang-formulier" onSubmit={inloggenMetWachtwoord} noValidate aria-describedby={`${id}-uitleg`}>
               <p id={`${id}-uitleg`} className="visueel-verborgen">
                 Inloggen met e-mailadres en wachtwoord, of met een inloglink per e-mail.
@@ -668,9 +800,6 @@ export function Inloggen() {
           </Kaart>
           <PrijsKaart />
           {aanbod}
-        </div>
-        <div className="inlog-kolom">
-          <VoorbeeldKaart />
         </div>
       </div>
     </>
