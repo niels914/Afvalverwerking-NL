@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import { aanbieder, documenten, externeVerbindingen, opslag } from '../src/pages/juridisch/gegevens';
-import { bekendeProblemen, status } from '../src/pages/juridisch/toegankelijkheid';
+import { bekendeProblemen, status } from '../src/pages/juridisch/toegankelijkheidMeting';
 
 // Juridische pagina's, bètamelding, voettekst, lettertype en browseropslag.
 // Draai tegen een eigen server: PW_BASE=http://localhost:5105 npx playwright test e2e/juridisch.spec.ts

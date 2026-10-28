@@ -3,10 +3,10 @@ import { datum, getal } from '../../lib/format';
 import { Link } from 'react-router-dom';
 import { aanbieder, bronnen } from './gegevens';
 import { BronRegel, ContactBlok, JuridischDocument, Toetspunt, type Sectie } from './JuridischDocument';
-import { bekendeProblemen, meting, status, statusSchaal } from './toegankelijkheid';
+import { bekendeProblemen, meting, status, statusSchaal } from './toegankelijkheidMeting';
 
 // Toegankelijkheidsverklaring volgens de opbouw van het model van de Rijksoverheid: status, onderzoek,
-// bekende problemen, maatregelen en contact. De meetgegevens staan in toegankelijkheid.ts.
+// bekende problemen, maatregelen en contact. De meetgegevens staan in toegankelijkheidMeting.ts.
 
 const secties: Sectie[] = [
   {

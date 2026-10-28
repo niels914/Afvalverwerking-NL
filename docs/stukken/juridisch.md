@@ -14,7 +14,7 @@ ingeklapte kaders "Toetspunt voor de jurist".
 | `/algemene-voorwaarden` | `src/pages/juridisch/AlgemeneVoorwaarden.tsx` | 16 artikelen: begrippen, toepassing (aanvullend de gedeponeerde AV van KplusV, A/05/26/4), aanmelding (3.1: formulier, offerte via formulier of e-mail; 3.6: kosteloos afzien binnen 14 dagen als de definitieve prijs afwijkt, alleen zolang prijzen concept zijn), proeftoegang, looptijd/verlenging/opzegging, prijs en betaling op factuur (staffeltabel uit `src/data/lidmaatschap.ts`), toegang via e-maildomein, gebruik van inhoud en open data, rekentools (indicatief), beschikbaarheid, aansprakelijkheid (max. jaarbedrag), persoonsgegevens (12.2: invoer staat in het webadres), onafhankelijkheid, einde, wijziging, recht en geschillen. |
 | `/privacy` | `Privacy.tsx` | Verwerkingsverantwoordelijke, zes verwerkingen met gegevens/doel/grondslag/bewaartermijn (termijnen buiten de fiscale plicht als voornemen), wat wij niet doen (invoer in webadres eerlijk beschreven), database gesplitst in "eigen account en organisatie" en "gedeelde open gegevens voor alle leden" plus het achtergrondproces (pg_cron, pg_net, Edge Function, Vault), verwerkers Supabase en Netlify, doorgifte buiten de EU, beveiliging, datalek, rechten. |
 | `/cookies` | `Cookies.tsx` | Geen cookies; vier sleutels in browseropslag; ingelogd gemeten (alleen de Supabase-sessiesleutel); invoer in het webadres (geschiedenis, bladwijzer, serverlogboek); waarom geen toestemmingsbanner (Tw 11.7a lid 3, ACM); zelf verwijderen. |
-| `/toegankelijkheid` | `Toegankelijkheid.tsx` + `toegankelijkheid.ts` | Model Rijksoverheid: inzet, status D met schaal A–E, meting 27-10 (axe en Lighthouse), niet gemeten, één bekend probleem (invoerrand), opgeloste problemen, inhoud van anderen, maatregelen, probleem melden. |
+| `/toegankelijkheid` | `Toegankelijkheid.tsx` + `toegankelijkheidMeting.ts` | Model Rijksoverheid: inzet, status D met schaal A–E, meting 27-10 (axe en Lighthouse), niet gemeten, één bekend probleem (invoerrand), opgeloste problemen, inhoud van anderen, maatregelen, probleem melden. |
 | `/disclaimer` | `Disclaimer.tsx` | Verantwoordelijkheid, bèta: concepten en voorbeelddata (`#voorbeelddata`), rekentools, open data (CBS, PDOK, TenderNed CC-0 via data.overheid.nl), links, auteursrecht, fout melden, colofon (`#colofon`). |
 
 Verder:
@@ -57,7 +57,7 @@ zich aan), `bronnen`, `aanbieder`, `opslag`, `supabaseGebruik` (met `bereik`: ei
      wcag21aa, wcag22aa`), op 400 en 1280 px, 22 routes inclusief een onbekend adres.
   3. `CHROME_PATH=<chromium> lighthouse <url> --only-categories=accessibility,performance --chrome-flags="--headless=new --no-sandbox"`.
   4. Handmatig: rand en focus van invoervelden (contrast berekenen uit `getComputedStyle`), eerste Tab, sectieknoppen.
-  5. Werk `meting` en `bekendeProblemen` in `toegankelijkheid.ts` bij. Haal een probleem pas weg na een meting waarin het
+  5. Werk `meting` en `bekendeProblemen` in `toegankelijkheidMeting.ts` bij. Haal een probleem pas weg na een meting waarin het
      niet meer voorkomt; de tekst in "Bekende problemen" noemt wat sinds de vorige meting is opgelost.
 
 ## Meting 27 oktober 2026

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { criteria, criteriaVoorStroom, drempels, mviStatus, productgroepNaam, restafvalNlTon, standaardSelectie, stroomLijst, stromen } from '../../data/tools-b-aanbesteding';
-import { naarCsv } from '../../components/rekenen/export';
+import { naarCsv } from '../../components/rekenen/csv';
 import {
   aanbestedingNaarParams,
   aanbestedingUitParams,

@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import { deelUrl, downloadBestand, naarCsv, veiligeBestandsnaam, type CsvCel } from './export';
+import { deelUrl, downloadBestand, naarCsv, veiligeBestandsnaam, type CsvCel } from './csv';
 
 interface Props {
   /** Basis van de bestandsnaam, bijv. "Indexcalculator". */

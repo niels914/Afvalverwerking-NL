@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { csvGetal, deelUrl, naarCsv, veiligeBestandsnaam } from './export';
+import { csvGetal, deelUrl, naarCsv, veiligeBestandsnaam } from './csv';
 
 describe('export', () => {
   it('schrijft getallen met decimale komma en zonder duizendtallen', () => {

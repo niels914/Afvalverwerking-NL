@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { downloadBestand, veiligeBestandsnaam } from '../export';
+import { downloadBestand, veiligeBestandsnaam } from '../csv';
 import './tools-b.css';
 
 /** Printknop voor iedereen (de rapportknop in Uitkomst.tsx is alleen voor leden). */

@@ -1,7 +1,7 @@
 import { useId, useState, type ReactNode } from 'react';
 import { datum } from '../../../lib/format';
 import { BronStatusLabel, type BronRegel } from '../Bronnen';
-import { deelUrl, downloadBestand, naarCsv, veiligeBestandsnaam, type CsvCel } from '../export';
+import { deelUrl, downloadBestand, naarCsv, veiligeBestandsnaam, type CsvCel } from '../csv';
 import './tools-b.css';
 
 interface ExportProps {

@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Vergrendeld } from '../../components/betaalmuur/Vergrendeld';
 import { BandGrafiek } from '../../components/grafiek/Grafieken';
 import type { BronRegel } from '../../components/rekenen/Bronnen';
-import type { CsvCel } from '../../components/rekenen/export';
+import type { CsvCel } from '../../components/rekenen/csv';
 import { RapportKnop, RapportKop, RapportVoet } from '../../components/rekenen/Uitkomst';
 import { Ankers, Bandbreedte, Meldingen, UitkomstBronnen, Uitklap, useUitklapBijPrint, useVeldFouten } from '../../components/rekenen/b/Blokken';
 import { BronVeld } from '../../components/rekenen/b/BronVeld';

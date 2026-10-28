@@ -7,7 +7,7 @@ import { BronRegels, BronStatusLabel, type BronRegel } from '../../components/re
 import { ExportKnoppen } from '../../components/rekenen/Export';
 import { Inklapbaar, Kern, OngeldigeInvoer, useInklapBijPrintEnAnker, useOngeldigeInvoer } from '../../components/rekenen/Inklap';
 import { OpDezePagina } from '../../components/rekenen/OpDezePagina';
-import type { CsvCel } from '../../components/rekenen/export';
+import type { CsvCel } from '../../components/rekenen/csv';
 import { RapportKnop, RapportKop, RapportVoet, Uitkomst } from '../../components/rekenen/Uitkomst';
 import { Badge, GetalVeld, Kaart, KeuzeVeld, PaginaKop, Tegel } from '../../components/ui';
 import {

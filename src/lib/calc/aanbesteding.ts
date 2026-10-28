@@ -7,7 +7,7 @@
 //
 // De checklist is een hulpmiddel, geen juridisch advies.
 
-import type { CsvCel } from '../../components/rekenen/export';
+import type { CsvCel } from '../../components/rekenen/csv';
 
 /** Zet punten om naar percentages die samen 100 zijn. Alles op 0 betekent gelijke weging. Negatief telt als 0. */
 export function normaliseerWeging<K extends string>(punten: Record<K, number>): Record<K, number> {
