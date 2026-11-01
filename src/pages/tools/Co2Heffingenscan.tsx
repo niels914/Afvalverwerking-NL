@@ -322,7 +322,7 @@ export function Co2Heffingenscan() {
 
       <section aria-labelledby="gratis">
         <div className="ta-sectiekop">
-          <h2 className="sectie" id="gratis" style={{ margin: 0 }}>
+          <h2 className="sectie balk" id="gratis" style={{ margin: 0 }}>
             Heffing in één jaar
           </h2>
           <Badge soort="gratis">Gratis</Badge>
@@ -488,7 +488,7 @@ export function Co2Heffingenscan() {
 
       <section className="ta-pro" aria-labelledby="pro">
         <div className="ta-sectiekop">
-          <h2 className="sectie" id="pro" style={{ margin: 0 }}>
+          <h2 className="sectie balk" id="pro" style={{ margin: 0 }}>
             Verloop en scenario’s
           </h2>
           <Badge soort="pro">Pro voor leden</Badge>
@@ -516,7 +516,7 @@ export function Co2Heffingenscan() {
       </section>
 
       <section className="ta-achtergrond" aria-labelledby="ta-achtergrond-kop">
-        <h2 className="sectie" id="ta-achtergrond-kop">
+        <h2 className="sectie balk" id="ta-achtergrond-kop">
           Achtergrond
         </h2>
         <Inklapbaar id="tarieven" titel="Tarieven per jaar" sub={`geldend recht en wetsvoorstel, ${scanJaren.eerste}–${scanJaren.laatste}`}>

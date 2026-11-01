@@ -381,7 +381,7 @@ export function Indexcalculator() {
 
       <section aria-labelledby="gratis">
         <div className="ta-sectiekop">
-          <h2 className="sectie" id="gratis" style={{ margin: 0 }}>
+          <h2 className="sectie balk" id="gratis" style={{ margin: 0 }}>
             Indexeren met één reeks
           </h2>
           <Badge soort="gratis">Gratis</Badge>
@@ -498,6 +498,7 @@ export function Indexcalculator() {
                 <Tegel
                   label="Stijging"
                   waarde={toonUitkomst ? procent(stijgingPct) : '–'}
+                  trend={toonUitkomst ? stijgingPct : null}
                   toelichting={toonUitkomst ? `${euro(tarief - invoer.basistarief, 2)} per ton` : undefined}
                 />
               </div>
@@ -547,7 +548,7 @@ export function Indexcalculator() {
 
       <section className="ta-pro" aria-labelledby="pro">
         <div className="ta-sectiekop">
-          <h2 className="sectie" id="pro" style={{ margin: 0 }}>
+          <h2 className="sectie balk" id="pro" style={{ margin: 0 }}>
             Eigen weging en contractjaren
           </h2>
           <Badge soort="pro">Pro voor leden</Badge>
@@ -576,7 +577,7 @@ export function Indexcalculator() {
       </section>
 
       <section className="ta-achtergrond" aria-labelledby="ta-achtergrond-kop">
-        <h2 className="sectie" id="ta-achtergrond-kop">
+        <h2 className="sectie balk" id="ta-achtergrond-kop">
           Achtergrond
         </h2>
         <Inklapbaar id="reeksen" titel="Waarom deze reeksen" sub={`${indexreeksen.length} CBS-reeksen en een eigen reeks`}>
@@ -1007,7 +1008,7 @@ function IndexPro({ invoer, zet, deelParams, pro, reeksen, ok }: ProProps) {
                 <Tegel label={`Tarief contractjaar ${a.jaar}`} waarde={toon(euro(a.tarief, 2))} toelichting={`per ton · indexcijfer ${periodeLabel(a.peilperiode)}`} />
               )}
               {verschil && a && b && a.jaar !== b.jaar && (
-                <Tegel label={`Verschil ${a.jaar} → ${b.jaar}`} waarde={toon(procent(verschil.verschilPct))} toelichting={toon(`${euro(verschil.verschil, 2)} per ton`)} />
+                <Tegel label={`Verschil ${a.jaar} → ${b.jaar}`} waarde={toon(procent(verschil.verschilPct))} trend={ok ? verschil.verschilPct : null} toelichting={toon(`${euro(verschil.verschil, 2)} per ton`)} />
               )}
             </div>
             {b && ok && <p className="klein" style={{ margin: 0 }}>{contractjaarUitleg(b, invoer, basis, fd)}</p>}

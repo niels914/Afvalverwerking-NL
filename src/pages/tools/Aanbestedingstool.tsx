@@ -290,7 +290,7 @@ export function Aanbestedingstool() {
   });
 
   const kop = (tekst: string) => (
-    <h2 ref={kopRef} tabIndex={-1} className="kaart-kop" style={{ borderLeft: '4px solid var(--paars)', paddingLeft: 12 }}>
+    <h2 ref={kopRef} tabIndex={-1} className="balk ab-stapkop">
       {tekst}
     </h2>
   );
@@ -707,7 +707,7 @@ function DrempelKaart({
               margin: 0,
               fontSize: 20,
               fontWeight: 600,
-              color: 'var(--donkerviolet)',
+              color: 'var(--inkt)',
             }}
           >
             {euro(band.laag)} tot {euro(band.hoog)}
@@ -721,7 +721,7 @@ function DrempelKaart({
               margin: 0,
               fontSize: 22,
               fontWeight: 600,
-              color: 'var(--donkerviolet)',
+              color: 'var(--inkt)',
             }}
           >
             {waarde === null ? 'Vul een geraamd tarief in' : euro(waarde)}

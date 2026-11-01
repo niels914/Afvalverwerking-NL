@@ -147,7 +147,7 @@ function OpenAanbestedingen() {
 
   return (
     <section className="kaart open-lijst" aria-labelledby="open-kop">
-      <h2 id="open-kop">Open voor inschrijving</h2>
+      <h2 id="open-kop" className="balk">Open voor inschrijving</h2>
       <form className="archief-zoek" role="search" onSubmit={verstuur}>
         <div className="veld">
           <label htmlFor={zoekId}>Zoeken in titel en opdrachtgever</label>
@@ -355,8 +355,8 @@ function Archief() {
         </ul>
       </nav>
 
-      <section className="kaart archief-filterkaart" aria-labelledby="archief-filter-kop">
-        <h2 id="archief-filter-kop">Zoeken en filteren</h2>
+      <section className="kaart vlak archief-filterkaart" aria-labelledby="archief-filter-kop">
+        <h2 id="archief-filter-kop" className="balk">Zoeken en filteren</h2>
         <form className="archief-zoek" role="search" onSubmit={zoek}>
           <div className="veld">
             <label htmlFor={zoekId}>Zoeken in titel, opdrachtgever, omschrijving en CPV-code</label>
@@ -447,7 +447,7 @@ function Archief() {
 
       <section className="kaart archief-resultaten" aria-labelledby="archief-resultaten-kop">
         <div className="archief-resultaten-kop">
-          <h2 id="archief-resultaten-kop" ref={resultatenKop} tabIndex={-1}>
+          <h2 id="archief-resultaten-kop" className="balk" ref={resultatenKop} tabIndex={-1}>
             Resultaten
           </h2>
           <Acties filters={filters} totaal={totaal} />
@@ -841,7 +841,7 @@ function Bronvermelding({ kern }: { kern: Kerncijfers | null }) {
 
 function Toelichting({ oudste }: { oudste: string | null }) {
   return (
-    <details className="kaart archief-toelichting">
+    <details className="kaart vlak archief-toelichting">
       <summary>
         <h2>Zo komt dit overzicht tot stand</h2>
       </summary>
@@ -886,8 +886,8 @@ function Voorbeeldweergave() {
   const rijen = Array.from({ length: 6 }, (_, i) => i);
   return (
     <div className="archief archief-voorbeeld">
-      <div className="kaart">
-        <h2>Zoeken en filteren</h2>
+      <div className="kaart vlak archief-filterkaart">
+        <h2 className="balk">Zoeken en filteren</h2>
         <div className="filterbalk">
           {['Afvalstroom', 'Status', 'Provincie', 'Soort dienst'].map((l) => (
             <div className="veld" key={l}>
@@ -898,7 +898,7 @@ function Voorbeeldweergave() {
         </div>
       </div>
       <div className="kaart">
-        <h2>Gesloten en gegunde aanbestedingen</h2>
+        <h2 className="balk">Gesloten en gegunde aanbestedingen</h2>
         <table>
           <thead>
             <tr>

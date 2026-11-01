@@ -137,6 +137,8 @@ test.describe('Restafvalkaart', () => {
     await page.goto('/restafvalkaart');
     await expect(page.locator('.svgkaart path[data-c]')).toHaveCount(afval.gemeenten.length);
     const svg = page.locator('.svgkaart svg');
+    // De kop is in huisstijl 2.2 hoger: zorg dat de kaart in beeld staat voordat we op coördinaten bewegen.
+    await svg.scrollIntoViewIfNeeded();
     const box = (await svg.boundingBox())!;
     // Midden van Nederland valt in een gemeente; welke precies maakt niet uit.
     await page.mouse.move(box.x + box.width * 0.55, box.y + box.height * 0.55);

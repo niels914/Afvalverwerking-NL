@@ -833,7 +833,7 @@ export function Bodemassencalculator() {
         </Uitklap>
       </div>
 
-      <h2 className="sectie tb-pro-scheiding" id="pro">
+      <h2 className="sectie balk tb-pro-scheiding" id="pro">
         Voor leden: meerdere installaties en gevoeligheid
       </h2>
       <p className="klein muted" style={{ marginTop: 0 }}>

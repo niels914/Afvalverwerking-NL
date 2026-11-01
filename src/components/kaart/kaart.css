@@ -34,7 +34,7 @@
   padding: 3px 10px;
   font-size: 11px;
   line-height: 16px;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
   text-align: right;
 }
 .svgkaart.mini .kaart-attributie {
@@ -44,9 +44,7 @@
   position: absolute;
   transform: translate(-50%, calc(-100% - 12px));
   background: var(--wit);
-  border: 1px solid var(--rand);
-  border-radius: var(--radius-klein);
-  box-shadow: 0 4px 14px rgb(17 24 39 / 0.14);
+  border: 1px solid var(--inkt);
   padding: 6px 10px;
   font-size: 12.5px;
   display: grid;
@@ -67,19 +65,17 @@
   min-width: 36px;
   min-height: 36px;
   padding: 0 10px;
-  border: 1px solid var(--rand);
-  border-radius: var(--radius-klein);
+  border: 1.5px solid var(--inkt);
   background: var(--wit);
-  color: var(--tekst);
+  color: var(--inkt);
   font-size: 18px;
   line-height: 1;
-  box-shadow: 0 1px 3px rgb(17 24 39 / 0.08);
 }
 .kaart-zoom button.tekst {
   font-size: 12.5px;
 }
 .kaart-zoom button:disabled {
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
   opacity: 0.6;
   cursor: default;
 }
@@ -101,8 +97,11 @@
 .kaart-melding {
   position: static;
   height: 100%;
-  background: var(--waarschuwing-bg);
-  color: var(--waarschuwing-tekst);
+  background: var(--violet);
+  color: var(--tekst);
+}
+.kaart-melding a {
+  color: var(--tekst);
 }
 /* Regel onder de kaart: gekozen gemeente en hoe je de kaart zonder muis gebruikt. */
 .kaart-onderschrift {
@@ -142,13 +141,12 @@
 .legenda .vlak {
   width: 22px;
   height: 14px;
-  border-radius: 3px;
 }
 .legenda .vlak.geen {
-  border: 1px dashed var(--grijs-vergelijking);
+  border: 1px dashed var(--grijs);
 }
 .legenda .aantal {
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
   font-variant-numeric: tabular-nums;
 }
 
@@ -186,8 +184,7 @@
   list-style: none;
   margin: 6px 0 0;
   padding: 4px;
-  border: 1px solid var(--rand);
-  border-radius: var(--radius-klein);
+  border: 1px solid var(--rand-invoer);
   background: var(--wit);
   display: grid;
   gap: 2px;
@@ -198,7 +195,6 @@
   border: 0;
   background: transparent;
   padding: 8px 10px;
-  border-radius: 6px;
   font-size: 14px;
   color: var(--tekst);
   display: flex;
@@ -207,7 +203,7 @@
 }
 .suggesties button:hover,
 .suggesties button:focus-visible {
-  background: var(--kaartvlak);
+  background: var(--mist);
 }
 .suggesties .muted {
   font-size: 12.5px;
@@ -232,17 +228,14 @@
 .balkje {
   display: block;
   height: 6px;
-  border-radius: 3px;
-  background: var(--lichtviolet);
+  background: var(--inkt);
   margin-top: 3px;
 }
 .aanbesteding-link {
   display: grid;
   gap: 6px;
-  border: 1px solid var(--rand);
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  background: var(--kaartvlak);
+  padding: 14px 18px;
+  background: var(--mist);
 }
 .aanbesteding-link p {
   margin: 0;
@@ -284,7 +277,12 @@
 }
 .kaarttabel tr[aria-current='true'] td,
 .kaarttabel tr[aria-current='true'] th {
-  background: var(--kaartvlak-2);
+  background: var(--mist);
+  font-weight: 600;
+}
+.kaarttabel thead th button:focus-visible {
+  outline-color: var(--wit);
+  outline-offset: 1px;
 }
 .kaarttabel tbody th button {
   color: var(--link);
@@ -296,7 +294,7 @@
   display: none;
   font-size: 12px;
   font-weight: 400;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
 }
 /* Smal scherm: provincie onder de naam, inwoners weg; de drie cijfers blijven in beeld. */
 @media (max-width: 640px) {
@@ -341,7 +339,7 @@
 }
 .bronregel {
   margin: 4px 0 0;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
 }
 .bronregel a {
   display: inline-block;
@@ -386,19 +384,18 @@ details.inklap[open] > summary {
   margin-bottom: 12px;
 }
 .inklap-titel {
-  font-weight: 600;
-  font-size: 16px;
-  color: var(--donkerviolet);
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--inkt);
 }
 details.inklap .sub {
   font-size: 12.5px;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
 }
 details.inklap > summary:focus-visible,
 details.inklap-tekst > summary:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
-  border-radius: 4px;
 }
 details.inklap-tekst {
   margin-top: 10px;

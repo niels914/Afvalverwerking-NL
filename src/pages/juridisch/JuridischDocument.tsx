@@ -120,7 +120,7 @@ export function JuridischDocument({ id, intro, kern, secties }: Props) {
   return (
     <article className="jd" aria-labelledby="jd-titel">
       <header className="jd-kop">
-        <h1 id="jd-titel">{doc.titel}</h1>
+        <h1 id="jd-titel" className="balk inkt">{doc.titel}</h1>
         {doc.concept && <Conceptmarkering versie={doc.versie} gewijzigd={doc.gewijzigd} />}
         <p className="jd-lead">{intro}</p>
         <p className="jd-meta">
@@ -129,7 +129,7 @@ export function JuridischDocument({ id, intro, kern, secties }: Props) {
       </header>
 
       <section className="jd-kern" id="in-het-kort" aria-labelledby="jd-kern-kop">
-        <h2 id="jd-kern-kop">In het kort</h2>
+        <h2 id="jd-kern-kop" className="balk">In het kort</h2>
         <ul>
           {kern.map((k, i) => (
             <li key={i}>{k}</li>
@@ -163,7 +163,7 @@ export function JuridischDocument({ id, intro, kern, secties }: Props) {
         const isOpen = open.has(s.id);
         return (
           <section key={s.id} id={s.id} className="jd-sectie" aria-labelledby={`${s.id}-kop`}>
-            <h2 id={`${s.id}-kop`}>
+            <h2 id={`${s.id}-kop`} className="balk">
               <button
                 type="button"
                 className="jd-sectie-knop"

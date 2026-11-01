@@ -1,5 +1,5 @@
 /* Printweergave voor "Rapport maken": invoer, formule en uitkomst in huisstijl.
-   Navigatie, banner, invoervelden en knoppen verdwijnen; de verantwoording blijft staan. */
+   Kop met menu en bètapil, invoervelden en knoppen verdwijnen; de verantwoording blijft staan. */
 @media print {
   @page {
     size: A4;
@@ -32,41 +32,35 @@
   main {
     padding: 0;
   }
+  /* Rapportkop in huisstijl 2.2: wit, logo linksboven (minimaal 25 mm), titel als Inkt-balk. */
   .rapportkop {
-    border-radius: 0;
-    background: var(--donkerviolet);
-    color: #fff;
-    padding: 14px 16px 0;
-    margin-bottom: 14px;
+    display: grid !important;
+    gap: 8px;
+    margin-bottom: 16px;
   }
   .rapportkop .rij {
     display: flex;
-    align-items: center;
-    gap: 12px;
+    align-items: flex-start;
+    gap: 16px;
   }
   .rapportkop img {
-    width: 36px;
-    height: 36px;
-    border-radius: 6px;
+    width: 25mm;
+    height: 25mm;
   }
   .rapportkop h1 {
-    color: #fff;
     font-size: 18pt;
+    margin-top: 6mm;
   }
   .rapportkop p {
-    color: var(--lichtviolet);
+    color: var(--inkt);
     font-size: 10pt;
-    padding-bottom: 10px;
-  }
-  .rapportkop .kpv-streep {
-    margin: 0 -16px;
   }
   .rapportvoet {
     margin-top: 16px;
-    border-top: 1px solid var(--rand);
+    border-top: 1px solid var(--lijn);
     padding-top: 8px;
     font-size: 9pt;
-    color: var(--tekst-secundair);
+    color: var(--inkt);
     display: flex !important;
     justify-content: space-between;
   }
@@ -79,8 +73,7 @@
   .grafiek-houder {
     break-inside: avoid;
   }
-  .kaart {
-    box-shadow: none;
+  .kaart.vlak {
     padding: 14px;
   }
   .raster-tool,

@@ -52,9 +52,10 @@ export const indicatoren: Record<IndicatorId, Indicator> = {
   },
 };
 
-/** Sequentiële reeks van één tint (violet), licht naar donker. Gecontroleerd met de dataviz-validator:
- *  oplopende lichtheid, zichtbare stappen, lichtste stap ≥ 2:1 tegen wit. */
-export const KLEUREN = ['#b3abe0', '#9087cb', '#6e63b4', '#4f4497', '#322873'] as const;
+/** Sequentiële reeks in huisstijl 2.2, licht naar donker: Violet (#B8AED6), tussenstap, Inkt (#5760A6) en twee donkerder
+ *  stappen van Inkt. Geïnterpoleerd in OKLab met gelijke lichtheidsstappen (L 0,77 · 0,64 · 0,51 · 0,41 · 0,31);
+ *  lichtste stap 2,1:1 tegen wit, zodat ook de lichtste gemeenten zichtbaar blijven. */
+export const KLEUREN = ['#b8aed6', '#8687be', '#5760a6', '#3d4386', '#252768'] as const;
 export const KLEUR_GEEN = '#ffffff';
 
 export function waardeVan(g: GemeenteAfval, id: IndicatorId): number | null {

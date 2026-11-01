@@ -220,7 +220,7 @@ function StatusKaart({ beschrijving }: { beschrijving: StatusBeschrijving }) {
         )}
         {!isLid && (
           <div className="knoppen">
-            <Link className="knop primair" to="/lidmaatschap/aanmelden">
+            <Link className="knop cta" to="/lidmaatschap/aanmelden">
               {lidmaatschap ? 'Lidmaatschap verlengen of opnieuw aanmelden' : 'Lid worden'}
             </Link>
             <Link className="knop" to="/lidmaatschap">
@@ -287,7 +287,7 @@ function SnelNaar({ stand }: { stand: OpenbareStand | null }) {
   const tegels = [archief, kortste, ...rest.filter((o) => o !== kortste)];
   return (
     <section className="sectie" aria-labelledby="snel-naar">
-      <h2 id="snel-naar">Snel naar</h2>
+      <h2 id="snel-naar" className="balk">Snel naar</h2>
       <ul className="snelkoppelingen">
         {tegels.map((o, i) => (
           // De eerste tegel (het archief) is breed: zo vullen vijf tegels op desktop twee rijen van drie kolommen.
@@ -545,7 +545,7 @@ export function Account() {
       </div>
 
       <section className="sectie" aria-labelledby="instellingen">
-        <h2 id="instellingen">Gegevens en instellingen</h2>
+        <h2 id="instellingen" className="balk">Gegevens en instellingen</h2>
         <div className="kaart instellingen">
           <details className="inklap">
             <summary>Lidmaatschap in detail</summary>
@@ -559,7 +559,7 @@ export function Account() {
                       <dt>Soort organisatie</dt>
                       <dd>
                         {organisatietypeLabel(lidmaatschap.organisatietype)}
-                        {typeUitleg && <span className="klein muted blok">{typeUitleg}</span>}
+                        {typeUitleg && <span className="klein muted los-blok">{typeUitleg}</span>}
                       </dd>
                     </>
                   )}

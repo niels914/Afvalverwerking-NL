@@ -85,7 +85,7 @@ export function Staffelkaarten() {
                 <Badge soort="voorbeeld">Aanname</Badge> {s.aanname}
               </p>
             )}
-            <Link className="knop primair" to={`/lidmaatschap/aanmelden?staffel=${s.id}`} aria-label={`Aanmelden: ${s.naam}`}>
+            <Link className="knop cta" to={`/lidmaatschap/aanmelden?staffel=${s.id}`} aria-label={`Aanmelden: ${s.naam}`}>
               Aanmelden
             </Link>
           </section>
@@ -137,7 +137,7 @@ export function PrijzenTabel() {
 
 export function Inbegrepen() {
   return (
-    <ul className="vinklijst">
+    <ul className="vinklijst blok">
       {inbegrepen.map((i) => (
         <li key={i}>{i}</li>
       ))}

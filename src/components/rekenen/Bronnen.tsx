@@ -50,7 +50,7 @@ export function BronRegels({ regels }: { regels: BronRegel[] }) {
   return (
     <ul className="bronregels" style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 12 }}>
       {regels.map((r) => (
-        <li key={r.onderwerp} style={{ display: 'grid', gap: 3, borderTop: '1px solid var(--rij)', paddingTop: 10, minWidth: 0 }}>
+        <li key={r.onderwerp} style={{ display: 'grid', gap: 3, borderTop: '1px solid var(--lijn)', paddingTop: 10, minWidth: 0 }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px 10px', alignItems: 'baseline' }}>
             <strong style={{ fontWeight: 600 }}>{r.onderwerp}</strong>
             <BronStatusLabel status={r.status} />

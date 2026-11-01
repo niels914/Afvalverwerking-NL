@@ -1,45 +1,48 @@
-/* KplusV-huisstijl: tokens. Dit is de enige plek waar kleuren, lettertype en maten staan.
-   Bron: skill kplusv-huisstijl (references/huisstijl.css). Alleen een licht thema. */
+/* KplusV-huisstijl versie 2.2 (oktober 2026): tokens. Dit is de enige plek waar kleuren, lettertype en maten staan.
+   Bron: skill kplusv-huisstijl, 'Referentie-CSS (versie 2)'. Alleen een licht thema.
+   Versie 1 (donkerviolette navbar, kleurstreep, witte kaarten op lavendelgrijs, gele waarschuwingen) is vervallen;
+   de oude tokens (--donkerviolet, --paars, --lichtviolet, --blauw, --achtergrond, --kaartvlak, --rand, --rij,
+   --waarschuwing-*, --succes-*, --radius-*) bestaan niet meer.
+
+   Contrast (berekend, WCAG):
+   - wit op Inkt 5,8:1, op Purper 4,6:1, op Diepblauw 4,6:1: alle tekst;
+   - wit op Magenta 3,5:1: alleen vet en minimaal 19 px (axe telt 'groot' pas vanaf 14 pt = 18,67 px);
+   - op Violet alleen zwarte tekst (8,5:1); grijs, Inkt en links halen daar geen 4,5:1;
+   - Diepblauw en Purper op Mist halen 4,1 en 4,2:1: daarom zijn tekstlinks --link (5,4:1 op Mist). */
 :root {
   color-scheme: light;
 
-  /* Merkkleuren */
-  --donkerviolet: #5760a6; /* navbar, koppen, primaire grafiekreeks */
-  --donkerviolet-2: #4a539a; /* donkere variant voor verloop en hover */
-  --paars: #9462a6; /* accent, actieve tab, knoppen, belangrijkste KPI-tegel */
-  --lichtviolet: #b8aed6; /* lijnen en subtiele accenten */
-  --blauw: #007db5; /* tweede grafiekreeks, accenten */
-  --link: #006a9a; /* donkerder blauw voor tekstlinks: haalt 4,5:1 ook op de lichte vlakken */
+  /* Primair palet */
+  --inkt: #5760a6; /* grote vlakken, paginatitel, tabelkop, hero-tegel, eerste reeks, intro, gewone knoppen */
+  --purper: #9462a6; /* accent: chevrons, kop 'Meer weten?', actieve menu-onderstreping, focusrand */
+  --violet: #b8aed6; /* vlak met zwarte tekst: let op, statuspil, fotoblok, element */
+  --diepblauw: #007db5; /* standaard tekstbalk (h2), tweede reeks, tagline */
 
-  /* Vlakken en tekst */
-  --achtergrond: #f8f7fc;
+  /* Secundair palet (met mate) */
+  --mist: #f1f4f3; /* inhoudsblokken, KPI-tegels, Meer-weten-blok */
+  --magenta: #fb3099; /* alleen CTA-knoppen (Lid worden, Aanmelden) */
+
+  /* Tekst en lijnen */
   --wit: #ffffff;
-  --kaartvlak: #f3f1fa;
-  --kaartvlak-2: #ede8f5;
-  --rand: #e2dff0;
-  --rand-invoer: #878c9e; /* rand van invoervelden: minimaal 3:1 op wit (WCAG 1.4.11) */
-  --rij: #f3f4f6;
   --tekst: #111827;
-  --tekst-2: #374151;
-  --tekst-secundair: #5f6673; /* iets donkerder dan grijs-500, zodat kleine tekst 4,5:1 haalt op achtergrond en kaartvlak */
-  --grijs-vergelijking: #9ca3af;
-
-  /* Signaalkleuren (altijd met tekst of icoon erbij) */
-  --waarschuwing-bg: #fffbeb;
-  --waarschuwing-rand: #fcd34d;
-  --waarschuwing-tekst: #92400e;
-  --succes-bg: #ecfdf5;
-  --succes-rand: #6ee7b7;
-  --succes-tekst: #065f46;
+  --tekst-2: #4b5563; /* secundair grijs: 7,6:1 op wit, 6,8:1 op Mist; niet op Violet */
+  --link: #006a9a; /* Diepblauw iets donkerder, zodat tekstlinks ook op Mist 4,5:1 halen */
+  --lijn: #e5e7eb; /* tabelregels en scheidingen */
+  --rand-invoer: #878c9e; /* rand van invoervelden: minimaal 3:1 op wit en Mist (WCAG 1.4.11) */
+  --grijs: #6b7280; /* vergelijkingslijn in grafieken, kaartvlak zonder cijfer */
+  --fout: #b91c1c; /* alleen foutmeldingen bij formulieren (functioneel, geen huisstijlvlak) */
 
   /* Typografie */
   --font: 'Poppins', system-ui, -apple-system, sans-serif;
 
-  /* Maten */
-  --radius-kaart: 16px;
-  --radius: 12px;
-  --radius-klein: 8px;
+  /* Maten. Geen afronding: blokken, knoppen, tegels en velden zijn haaks. */
   --max-breedte: 1120px;
-  --gutter: 16px;
-  --focus: #9462a6;
+  --gutter: 24px;
+  --sectie: 44px; /* afstand tussen secties */
+  --focus: var(--purper);
+}
+@media (max-width: 640px) {
+  :root {
+    --gutter: 16px;
+  }
 }

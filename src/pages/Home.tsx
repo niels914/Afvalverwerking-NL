@@ -29,7 +29,7 @@ export function Home() {
     <>
       <section className="hero-blok">
         <div className="stapel">
-          <h1>Cijfers, kennis en rekentools voor afvalverwerking</h1>
+          <h1 className="balk inkt">Cijfers, kennis en rekentools voor afvalverwerking</h1>
           <p className="lead">
             Voor contractmanagers en beleidsmedewerkers van gemeenten, samenwerkingsverbanden en afvalverwerkers. De Restafvalkaart toont per
             gemeente hoeveel restafval er wordt ingezameld, met officiële CBS-cijfers. Leden krijgen daarnaast rekentools voor indexering,

@@ -2,12 +2,11 @@
 
 /* Op deze pagina */
 .lm-inhoud {
-  border-left: 4px solid var(--paars);
-  padding: 4px 0 4px 14px;
   margin: 0 0 8px;
 }
 .lm-inhoud h2 {
   font-size: 15px;
+  color: var(--inkt);
   margin-bottom: 6px;
 }
 .lm-inhoud ul {
@@ -24,20 +23,21 @@
 }
 
 .lm-sectie {
-  margin-top: 32px;
+  margin-top: var(--sectie);
   scroll-margin-top: 16px;
 }
 .lm-sectie > h2 {
-  border-left: 4px solid var(--paars);
-  padding-left: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 18px;
 }
 .lm-sectie > p,
 .lm-sectie > ul {
   max-width: 75ch;
 }
 .lm-sectie > * + * {
-  margin-top: 12px;
+  margin-top: 14px;
+}
+.lm-sectie > h2 + * {
+  margin-top: 0;
 }
 
 /* Alleen op brede schermen (op smal staan dezelfde bedragen al in de staffelkaarten) */
@@ -49,22 +49,20 @@
 
 /* Inklapbaar blok */
 .lm-uitklap {
-  border: 1px solid var(--rand);
-  border-radius: var(--radius);
-  background: var(--wit);
+  background: var(--mist);
 }
 .lm-uitklap > summary {
   cursor: pointer;
-  padding: 12px 16px;
+  padding: 14px 20px;
   font-weight: 600;
-  color: var(--donkerviolet);
+  color: var(--inkt);
 }
 .lm-uitklap > summary:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
 .lm-uitklap-inhoud {
-  padding: 0 16px 16px;
+  padding: 0 20px 20px;
   display: grid;
   gap: 10px;
 }
@@ -92,18 +90,20 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  background: var(--mist);
+  padding: 22px 24px;
 }
 .lm-staffel > * + * {
   margin-top: 0;
 }
 .lm-staffel h3 {
-  border-left: 4px solid var(--paars);
-  padding-left: 12px;
+  color: var(--inkt);
+  font-size: 17px;
 }
 .lm-staffel .bedrag {
   font-size: 26px;
   font-weight: 700;
-  color: var(--donkerviolet);
+  color: var(--inkt);
   font-variant-numeric: tabular-nums;
   line-height: 1.15;
 }
@@ -133,9 +133,7 @@
     align-items: start;
   }
   .lm-staffel h3 {
-    font-size: 15px;
-    border-left-width: 3px;
-    padding-left: 8px;
+    font-size: 15.5px;
   }
   .lm-staffel .voor-wie {
     font-size: 13px;
@@ -166,7 +164,7 @@
   font-size: 14px;
 }
 .lm-gegevens dt {
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
   font-weight: 500;
 }
 .lm-gegevens dd {
@@ -178,7 +176,7 @@
 }
 .lm-subkop {
   font-size: 13.5px;
-  color: var(--donkerviolet);
+  color: var(--inkt);
   margin: 0 0 6px;
 }
 .lm-gegevens + .lm-subkop {
@@ -218,11 +216,11 @@
 }
 .lm-ja::before {
   content: '✓ ';
-  color: var(--paars);
+  color: var(--inkt);
   font-weight: 700;
 }
 .lm-nee {
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
 }
 .lm-nee::before {
   content: '– ';
@@ -249,7 +247,7 @@
   }
   .lm-tabel-stapel tr {
     padding: 12px 14px;
-    border-bottom: 1px solid var(--rij);
+    border-bottom: 1px solid var(--lijn);
   }
   .lm-tabel-stapel th[scope='row'] {
     min-width: 0;
@@ -268,11 +266,11 @@
   }
   .lm-tabel-stapel td::before {
     content: attr(data-label);
-    color: var(--tekst-secundair);
+    color: var(--tekst-2);
     font-weight: 500;
   }
   .lm-tabel-stapel caption {
-    border-bottom: 1px solid var(--rij);
+    border-bottom: 1px solid var(--lijn);
   }
 }
 
@@ -298,24 +296,22 @@
 }
 .lm-stappenplan li {
   counter-increment: lmstap;
-  background: var(--wit);
-  border: 1px solid var(--rand);
-  border-radius: var(--radius);
-  padding: 14px 16px;
+  background: var(--mist);
+  padding: 16px 18px;
   display: grid;
   gap: 4px;
   align-content: start;
 }
 .lm-stappenplan li::before {
   content: 'Stap ' counter(lmstap);
-  font-size: 11.5px;
+  font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--paars);
+  letter-spacing: 0.06em;
+  color: var(--inkt);
   font-weight: 700;
 }
 .lm-stappenplan b {
-  color: var(--donkerviolet);
+  color: var(--inkt);
 }
 
 /* Veelgestelde vragen */
@@ -324,15 +320,13 @@
   gap: 8px;
 }
 .lm-vragen details {
-  background: var(--wit);
-  border: 1px solid var(--rand);
-  border-radius: var(--radius);
+  background: var(--mist);
 }
 .lm-vragen summary {
   cursor: pointer;
-  padding: 12px 16px;
+  padding: 14px 18px;
   font-weight: 600;
-  color: var(--donkerviolet);
+  color: var(--inkt);
   list-style: none;
   display: flex;
   gap: 10px;
@@ -347,7 +341,7 @@
   width: 20px;
   text-align: center;
   font-weight: 700;
-  color: var(--paars);
+  color: var(--inkt);
 }
 .lm-vragen details[open] summary::before {
   content: '−';
@@ -357,7 +351,7 @@
   outline-offset: 2px;
 }
 .lm-vragen .antwoord {
-  padding: 0 16px 14px 46px;
+  padding: 0 18px 16px 48px;
   display: grid;
   gap: 8px;
   color: var(--tekst-2);
@@ -367,7 +361,7 @@
 /* Bronnen */
 .lm-bron {
   font-size: 12.5px;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
 }
 .lm-bronnen {
   margin: 0;
@@ -398,10 +392,8 @@
   grid-row: 1;
   position: sticky;
   top: 16px;
-  background: var(--wit);
-  border: 1px solid var(--rand);
-  border-radius: var(--radius-kaart);
-  padding: 18px 20px;
+  background: var(--mist);
+  padding: 22px 24px;
   display: grid;
   gap: 8px;
 }
@@ -418,7 +410,7 @@
 .lm-prijsblok-bedrag {
   font-size: 26px;
   font-weight: 700;
-  color: var(--donkerviolet);
+  color: var(--inkt);
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
   margin: 0;
@@ -426,7 +418,7 @@
 .lm-prijsblok-bedrag span {
   font-size: 13px;
   font-weight: 400;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
 }
 .lm-prijsblok p {
   margin: 0;
@@ -440,7 +432,7 @@
   font-size: 14px;
 }
 .lm-prijsblok-bereik strong {
-  color: var(--donkerviolet);
+  color: var(--inkt);
   font-variant-numeric: tabular-nums;
 }
 .lm-prijsblok .lm-gegevens {
@@ -458,23 +450,21 @@
 
 /* Aanvullende, optionele gegevens: ingeklapt */
 .lm-aanvullend {
-  border: 1px solid var(--rand);
-  border-radius: var(--radius);
-  background: var(--kaartvlak);
+  background: var(--mist);
   margin-top: 18px;
 }
 .lm-aanvullend > summary {
   cursor: pointer;
   padding: 12px 16px;
   font-weight: 600;
-  color: var(--donkerviolet);
+  color: var(--inkt);
   display: grid;
   gap: 2px;
 }
 .lm-aanvullend > summary span {
   font-weight: 400;
   font-size: 13px;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
 }
 .lm-aanvullend > summary:focus-visible {
   outline: 3px solid var(--focus);
@@ -490,14 +480,14 @@
   gap: 14px;
 }
 .lm-formdeel + .lm-formdeel {
-  border-top: 1px solid var(--rand);
+  border-top: 1px solid var(--lijn);
   padding-top: 18px;
   margin-top: 6px;
 }
 .lm-formdeel > legend {
   font-size: 16px;
   font-weight: 700;
-  color: var(--donkerviolet);
+  color: var(--inkt);
   margin-bottom: 4px;
   float: left;
   width: 100%;
@@ -507,7 +497,7 @@
 }
 .lm-optioneel {
   font-weight: 400;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
 }
 .lm-akkoord {
   display: flex;
@@ -520,17 +510,16 @@
   height: 20px;
   margin: 1px 0 0;
   flex: none;
-  accent-color: var(--paars);
+  accent-color: var(--inkt);
 }
 .lm-foutsamenvatting {
-  border: 2px solid var(--fout, #b91c1c);
-  border-radius: var(--radius);
+  border: 2px solid var(--fout);
   padding: 12px 16px;
   background: var(--wit);
 }
 .lm-foutsamenvatting h2 {
   font-size: 15px;
-  color: var(--fout, #b91c1c);
+  color: var(--fout);
   margin-bottom: 6px;
 }
 .lm-foutsamenvatting ul {
@@ -539,17 +528,17 @@
   font-size: 14px;
 }
 .lm-foutsamenvatting a {
-  color: var(--fout, #b91c1c);
+  color: var(--fout);
 }
 .lm-totaal {
-  border-top: 2px solid var(--donkerviolet);
+  border-top: 2px solid var(--inkt);
   padding-top: 8px;
   font-weight: 700;
 }
 .lm-ordernummer {
   font-size: 20px;
   font-weight: 700;
-  color: var(--donkerviolet);
+  color: var(--inkt);
   font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
@@ -560,7 +549,7 @@
   gap: 10px;
 }
 .lm-vervolg li::marker {
-  color: var(--paars);
+  color: var(--inkt);
   font-weight: 700;
 }
 
@@ -579,12 +568,12 @@
   flex-wrap: wrap;
   gap: 2px 0;
   font-size: 14px;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
 }
 .lm-kruimelpad li + li::before {
   content: '›';
   margin: 0 8px;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
 }
 .lm-kruimelpad [aria-current='page'] {
   color: var(--tekst-2);
@@ -601,11 +590,11 @@
 .lm-keuze-toelichting {
   display: block;
   font-size: 13px;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
   margin-top: 1px;
 }
 .lm-keuze-toelichting strong {
-  color: var(--donkerviolet);
+  color: var(--inkt);
   font-variant-numeric: tabular-nums;
 }
 
@@ -619,7 +608,7 @@
 
 /* Verplichte velden: zichtbaar sterretje, legenda boven het formulier */
 .lm-verplicht {
-  color: var(--fout, #b91c1c);
+  color: var(--fout);
   font-weight: 700;
 }
 .lm-legenda {
@@ -659,11 +648,8 @@
   .lm-prijs-bij-keuze {
     display: grid;
     gap: 2px;
-    border: 1px solid var(--rand);
-    border-left: 4px solid var(--paars);
-    border-radius: var(--radius);
-    background: var(--kaartvlak);
-    padding: 10px 14px;
+    background: var(--mist);
+    padding: 12px 16px;
   }
   .lm-prijs-bij-keuze p {
     margin: 0;
@@ -676,31 +662,31 @@
 }
 .lm-prijs-concept {
   font-weight: 400;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
 }
 .lm-prijs-bij-keuze-bedrag {
   font-size: 21px;
   font-weight: 700;
-  color: var(--donkerviolet);
+  color: var(--inkt);
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
 .lm-prijs-bij-keuze-bedrag span {
   font-size: 13px;
   font-weight: 400;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
 }
 
 /* Andere startdatum: ingesprongen onder de keuzelijst */
 .lm-andere-datum {
-  border-left: 3px solid var(--rand);
+  border-left: 3px solid var(--violet);
   padding-left: 12px;
   margin: 4px 0 2px;
 }
 
 /* Houd bij de hand (prijsblok, breed) */
 .lm-bij-de-hand {
-  border-top: 1px solid var(--rand);
+  border-top: 1px solid var(--lijn);
   padding-top: 10px;
   margin-top: 4px;
 }
@@ -717,10 +703,8 @@
 
 /* Voorwaarden in het kort, direct bij de knop */
 .lm-voorwaarden-kort {
-  border: 1px solid var(--rand);
-  border-radius: var(--radius);
-  background: var(--kaartvlak);
-  padding: 12px 16px;
+  background: var(--mist);
+  padding: 18px 22px;
   margin-top: 18px;
 }
 .lm-akkoord-blok .lm-voorwaarden-kort {
@@ -729,14 +713,29 @@
 .lm-voorwaarden-kort h2 {
   font-size: 15px;
   margin: 0 0 6px;
-  color: var(--donkerviolet);
+  color: var(--inkt);
 }
 .lm-voorwaarden-kort ul {
+  list-style: none;
   margin: 0;
-  padding-left: 18px;
+  padding: 0;
   display: grid;
-  gap: 4px;
+  gap: 6px;
   font-size: 14px;
+}
+.lm-voorwaarden-kort li {
+  position: relative;
+  padding-left: 28px;
+}
+.lm-voorwaarden-kort li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 15px;
+  height: 13px;
+  background: var(--purper);
+  clip-path: polygon(0 0, 50% 0, 100% 50%, 50% 100%, 0 100%, 50% 50%);
 }
 .lm-voorwaarden-kort p {
   margin: 8px 0 0;

@@ -28,7 +28,6 @@ export const contact = {
   functie: 'Partner en senior adviseur circulaire economie, KplusV',
   email: 'n.ahsmann@kplusv.nl',
   telefoon: '06 2708 5537',
-  foto: '/foto-niels.jpg',
 };
 
 /** Links in de voettekst (juridische pagina's). */

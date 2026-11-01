@@ -20,19 +20,17 @@
 
 /* ---------- Kern bovenaan ---------- */
 .ta-kern {
-  background: var(--kaartvlak-2);
-  border-left: 5px solid var(--paars);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  margin: 0 0 20px;
+  background: var(--mist);
+  padding: 22px 28px;
+  margin: 0 0 28px;
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 .ta-kern h2 {
-  font-size: 13px;
+  font-size: 12.5px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--donkerviolet);
+  color: var(--inkt);
   margin: 0;
 }
 .ta-kern .ta-kern-zin {
@@ -45,12 +43,30 @@
   font-weight: 700;
 }
 .ta-kern ul {
+  list-style: none;
   margin: 0;
-  padding-left: 18px;
+  padding: 0;
   display: grid;
-  gap: 3px;
+  gap: 6px;
   font-size: 14.5px;
-  color: var(--tekst-2);
+  color: var(--tekst);
+}
+.ta-kern li {
+  position: relative;
+  padding-left: 28px;
+}
+.ta-kern li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 15px;
+  height: 13px;
+  background: var(--purper);
+  clip-path: polygon(0 0, 50% 0, 100% 50%, 50% 100%, 0 100%, 50% 50%);
+}
+.ta-kern li.ta-versie::before {
+  content: none;
 }
 .ta-kern p {
   margin: 0;
@@ -61,36 +77,24 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 6px 10px;
-  margin: 0 0 12px;
+  gap: 8px 0;
+  margin: 0 0 20px;
 }
 .ta-sectiekop h2 {
   margin: 0;
 }
 .ta-pro {
-  margin-top: 32px;
-  padding: 18px 16px 20px;
-  background: var(--kaartvlak);
-  border: 1px solid var(--rand);
-  border-top: 5px solid var(--donkerviolet);
-  border-radius: var(--radius-kaart);
+  margin-top: var(--sectie);
 }
 .ta-pro > p.ta-pro-uitleg {
   margin: -4px 0 14px;
   font-size: 14.5px;
   color: var(--tekst-2);
 }
-@media (max-width: 480px) {
-  .ta-pro {
-    margin-left: -8px;
-    margin-right: -8px;
-    padding: 14px 8px 16px;
-  }
-}
 
 /* ---------- Inklapbare blokken ---------- */
 .ta-achtergrond {
-  margin-top: 32px;
+  margin-top: var(--sectie);
   display: grid;
   gap: 10px;
 }
@@ -98,9 +102,7 @@
   margin: 0 0 4px;
 }
 .ta-inklap {
-  background: var(--wit);
-  border: 1px solid var(--rand);
-  border-radius: var(--radius);
+  background: var(--mist);
   min-width: 0;
 }
 .ta-inklap > summary,
@@ -112,7 +114,6 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: 2px 10px;
-  border-radius: var(--radius);
 }
 .ta-inklap > summary::-webkit-details-marker,
 .ta-verantwoording > summary::-webkit-details-marker,
@@ -130,8 +131,8 @@
   content: '';
   width: 8px;
   height: 8px;
-  border-right: 2px solid var(--donkerviolet);
-  border-bottom: 2px solid var(--donkerviolet);
+  border-right: 2.5px solid var(--inkt);
+  border-bottom: 2.5px solid var(--inkt);
   transform: rotate(-45deg);
   transition: transform 0.15s;
   flex: none;
@@ -157,13 +158,13 @@ h3.ta-inklap-titel {
 }
 .ta-inklap-sub {
   font-size: 14px;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
 }
 .ta-inklap > summary:hover .ta-inklap-titel {
-  color: var(--donkerviolet);
+  color: var(--inkt);
 }
 .ta-inklap-inhoud {
-  padding: 0 16px 16px;
+  padding: 0 20px 20px;
   display: grid;
   gap: 14px;
   min-width: 0;
@@ -186,7 +187,7 @@ h3.ta-inklap-titel {
 }
 .ta-verantwoording h4 {
   font-size: 13.5px;
-  color: var(--donkerviolet);
+  color: var(--inkt);
   margin: 0;
 }
 .ta-verantwoording[open] {
@@ -223,7 +224,7 @@ h3.ta-inklap-titel {
 .ta-onder {
   display: block;
   font-size: 12.5px;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
   font-weight: 400;
 }
 /* Breed: volledige bedragen; smal (≤ 520 px): in duizenden, zodat de tabel niet hoeft te scrollen. */
@@ -244,9 +245,9 @@ h3.ta-inklap-titel {
 
 /* ---------- Afronding en kleine keuzes ---------- */
 .ta-afronding {
-  border: 1px dashed var(--lichtviolet);
-  border-radius: var(--radius);
-  padding: 0 12px;
+  border-top: 1px solid var(--lijn);
+  border-bottom: 1px solid var(--lijn);
+  padding: 0;
 }
 .ta-afronding[open] {
   padding-bottom: 12px;
@@ -318,13 +319,10 @@ h3.ta-inklap-titel {
 
 /* Rekenvoorbeeld om zelf na te rekenen */
 .ta-narekenen {
-  border: 1px solid var(--rand);
-  border-left: 4px solid var(--lichtviolet);
-  border-radius: var(--radius);
-  padding: 10px 12px;
+  padding: 14px 18px;
   display: grid;
   gap: 4px;
-  background: var(--wit);
+  background: var(--mist);
 }
 .ta-narekenen p {
   margin: 0;
@@ -334,7 +332,7 @@ h3.ta-inklap-titel {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--donkerviolet);
+  color: var(--inkt);
 }
 .ta-som {
   font-variant-numeric: tabular-nums;
@@ -344,14 +342,16 @@ h3.ta-inklap-titel {
 
 /* Onzekerheid en bandbreedte direct bij de uitkomst (CO2) */
 .ta-onzeker {
-  border: 1px solid var(--rand);
-  border-left: 4px solid var(--donkerviolet);
-  border-radius: var(--radius);
-  padding: 10px 12px;
+  padding: 14px 18px;
   display: grid;
   gap: 4px;
-  background: var(--wit);
+  background: var(--violet);
+  color: var(--tekst);
   font-size: 14.5px;
+}
+.ta-onzeker a,
+.ta-onzeker .muted {
+  color: var(--tekst);
 }
 .ta-onzeker p {
   margin: 0;
@@ -368,23 +368,22 @@ h3.ta-inklap-titel {
   list-style: none;
   margin-left: -18px;
   font-size: 13.5px;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
 }
 
 /* Gekozen contractjaar in de tabel: tekstlabel plus rand, niet alleen kleur */
 .ta-tag {
   display: inline-block;
   margin-left: 6px;
-  padding: 0 6px;
-  border: 1px solid var(--donkerviolet);
-  border-radius: 999px;
+  padding: 0 7px;
+  background: var(--inkt);
   font-size: 11.5px;
   font-weight: 600;
-  color: var(--donkerviolet);
+  color: var(--wit);
   vertical-align: 1px;
 }
 .ta-kaarttabel tr.ta-gekozen > * {
-  background: var(--kaartvlak-2);
+  background: var(--mist);
 }
 
 /* Tabel als compacte kaarten op smalle schermen: één kaart per rij, kolomnaam boven elk getal. */
@@ -415,14 +414,13 @@ h3.ta-inklap-titel {
     display: grid;
     grid-template-columns: repeat(var(--ta-kolommen, 3), minmax(0, 1fr));
     gap: 2px 10px;
-    border: 1px solid var(--rand);
-    border-radius: var(--radius);
-    padding: 8px 10px;
+    padding: 10px 12px;
     margin: 0 0 8px;
-    background: var(--wit);
+    background: var(--mist);
   }
   .ta-kaarttabel tr.ta-gekozen {
-    border: 2px solid var(--donkerviolet);
+    outline: 2px solid var(--inkt);
+    outline-offset: -2px;
   }
   .ta-kaarttabel tr > * {
     border: 0;
@@ -441,7 +439,7 @@ h3.ta-inklap-titel {
     font-size: 15px;
     padding-bottom: 4px;
     margin-bottom: 2px;
-    border-bottom: 1px solid var(--rand);
+    border-bottom: 1px solid var(--lijn);
   }
   .ta-kaarttabel th[scope='row'] .ta-onder {
     display: inline;
@@ -456,7 +454,7 @@ h3.ta-inklap-titel {
     content: attr(data-label);
     display: block;
     font-size: 11.5px;
-    color: var(--tekst-secundair);
+    color: var(--tekst-2);
     font-weight: 600;
   }
   .ta-kaarttabel td[colspan] {

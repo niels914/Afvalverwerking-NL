@@ -12,7 +12,7 @@ function PersoonIcoon() {
   );
 }
 
-/** Knop rechts in de navbar: "Inloggen" voor bezoekers, "Mijn account" (met status) voor ingelogde gebruikers. */
+/** Knop rechts in de kop (naast het hoofdmenu): "Inloggen" voor bezoekers, "Mijn account" (met status) voor ingelogde gebruikers. */
 export function AccountKnop() {
   const { status, isLid, lidStatus, email, herstelSessie } = useAuth();
   const { pathname, search } = useLocation();

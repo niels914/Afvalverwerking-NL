@@ -97,13 +97,12 @@ export function RapportKop({ titel, ondertitel = 'Dummyberekening, indicatief en
   return (
     <div className="print-alleen rapportkop">
       <div className="rij">
-        <img src="/logo-kplusv.jpg" alt="" width={36} height={36} />
-        <h1>Rapport {titel}</h1>
+        <img src="/logo-kplusv-512.png" alt="" width={96} height={96} />
+        <h1 className="balk inkt">Rapport {titel}</h1>
       </div>
       <p>
         KplusV · {platform.korteNaam} · {vandaag} · {ondertitel}
       </p>
-      <div className="kpv-streep" />
     </div>
   );
 }

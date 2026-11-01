@@ -4,7 +4,11 @@ import { aanbieder } from '../../pages/juridisch/gegevens';
 import { BETA } from './Banner';
 import '../../pages/juridisch/juridisch.css';
 
-/** Voettekst: aanbieder met KVK-nummer, contact voor het platform, juridische pagina's en colofon. */
+/**
+ * Rustige witte voet met kleine tekst (bewuste afwijking van 'geen voettekst per pagina'): aanbieder met KVK-nummer,
+ * contact voor het platform en de juridische pagina's moeten op elke pagina bereikbaar zijn.
+ * De tagline 'Verschil zien, verschil maken' staat hier één keer, in Diepblauw.
+ */
 export function Voettekst() {
   const c = aanbieder.contact;
   return (
@@ -46,7 +50,9 @@ export function Voettekst() {
           </ul>
         </nav>
         <div className="voet-onder">
-          <span>KplusV · Verschil zien, verschil maken</span>
+          <span className="tagline">
+            Verschil zien, verschil maken
+          </span>
           <span>
             {BETA ? 'Bèta · ' : ''}
             {platform.versie}

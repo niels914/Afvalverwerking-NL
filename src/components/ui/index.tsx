@@ -3,35 +3,38 @@ import { leesGetal, toonInInvoer } from '../../lib/format';
 import type { Toegang } from '../../data/types';
 import { toegangLabel } from '../../data/tools';
 
-/* ---------- Paginakop ---------- */
+/* ---------- Paginakop: titel als Inkt-tekstbalk, intro in Inkt ---------- */
 export function PaginaKop({ titel, children, badges }: { titel: string; children?: ReactNode; badges?: ReactNode }) {
   return (
     <section className="intro">
-      <h1>{titel}</h1>
+      <h1 className="balk inkt">{titel}</h1>
       {badges && <div className="badges">{badges}</div>}
       {children && <p>{children}</p>}
     </section>
   );
 }
 
-/* ---------- Kaart met paarse balk naast de kop ---------- */
+/* ---------- Kaart: sectie met een Diepblauwe tekstbalk als kop ----------
+   Standaard staat de inhoud direct op wit (grafiek, tabel, tegels). Met vlak wordt het een Mist-blok. */
 interface KaartProps {
   titel?: string;
   sub?: ReactNode;
   actie?: ReactNode;
   kopNiveau?: 2 | 3;
+  /** Inhoud in een Mist-blok (formulieren, losse blokken naast elkaar). Niet voor tegels, grafieken en tabellen. */
+  vlak?: boolean;
   className?: string;
   id?: string;
   children?: ReactNode;
 }
-export function Kaart({ titel, sub, actie, kopNiveau = 2, className = '', id, children }: KaartProps) {
+export function Kaart({ titel, sub, actie, kopNiveau = 2, vlak, className = '', id, children }: KaartProps) {
   const Kop = kopNiveau === 2 ? 'h2' : 'h3';
   return (
-    <section className={`kaart ${className}`} id={id}>
+    <section className={`kaart${vlak ? ' vlak' : ''} ${className}`} id={id}>
       {(titel || actie) && (
         <div className="kaart-kop">
           <div>
-            {titel && <Kop>{titel}</Kop>}
+            {titel && <Kop className={kopNiveau === 2 ? 'balk' : undefined}>{titel}</Kop>}
             {sub && <div className="sub">{sub}</div>}
           </div>
           {actie}
@@ -42,14 +45,40 @@ export function Kaart({ titel, sub, actie, kopNiveau = 2, className = '', id, ch
   );
 }
 
-/* ---------- KPI-tegel ---------- */
-export function Tegel({ label, waarde, toelichting, hero }: { label: string; waarde: ReactNode; toelichting?: ReactNode; hero?: boolean }) {
+/* ---------- KPI-tegel: Mist; hero in Inkt met afgesneden hoek ---------- */
+export function Tegel({
+  label,
+  waarde,
+  toelichting,
+  hero,
+  trend,
+}: {
+  label: string;
+  waarde: ReactNode;
+  toelichting?: ReactNode;
+  hero?: boolean;
+  /** Verandering in procenten: toont een tekstlabel met pijl (stijging of daling), geen gekleurd pilletje. */
+  trend?: number | null;
+}) {
   return (
     <div className={`tegel${hero ? ' hero' : ''}`}>
       <span className="tegel-label">{label}</span>
       <span className="tegel-waarde">{waarde}</span>
+      {trend !== undefined && trend !== null && Number.isFinite(trend) && <Trend pct={trend} />}
       {toelichting && <small>{toelichting}</small>}
     </div>
+  );
+}
+
+/** Stijging of daling als tekst met pijl, in Inkt (huisstijl 2.2: geen rood of groen pilletje). */
+export function Trend({ pct }: { pct: number }) {
+  const richting = pct > 0.005 ? 'stijging' : pct < -0.005 ? 'daling' : 'gelijk';
+  const pijl = richting === 'stijging' ? '↑' : richting === 'daling' ? '↓' : '→';
+  return (
+    <span className="trend">
+      <span aria-hidden="true">{pijl}</span>
+      {richting}
+    </span>
   );
 }
 

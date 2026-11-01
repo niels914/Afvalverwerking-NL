@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import { FeedbackFormulier } from '../components/FeedbackFormulier';
+import { MeerWeten } from '../components/contact/MeerWeten';
 import { GratisBetaald } from '../components/GratisBetaald';
 import { Badge, PaginaKop } from '../components/ui';
 import { Link } from 'react-router-dom';
 import { btwPercentage, prijzenVastgesteld, staffels } from '../data/lidmaatschap';
-import { contact } from '../data/site';
 import { euro } from '../lib/format';
 
 // Pagina voor collega's en relaties die het idee voor het eerst zien.
@@ -18,7 +18,7 @@ function Sectie({ nr, titel, id, children, badge }: { nr: number; titel: string;
   return (
     <section className="kaart genummerd sectie" id={id} aria-labelledby={`over-${nr}`}>
       <div className="kaart-kop">
-        <h2 id={`over-${nr}`}>
+        <h2 id={`over-${nr}`} className="balk">
           <span className="nr">{nr}.</span> {titel}
         </h2>
         {badge}
@@ -134,20 +134,9 @@ export function Over() {
         <FeedbackFormulier />
       </Sectie>
 
-      <section className="cta" aria-labelledby="over-10">
-        <img src={contact.foto} alt={contact.naam} width={96} height={96} />
-        <div className="cta-tekst">
-          <h2 id="over-10">10. Contact</h2>
-          <p>Vragen over het idee, of liever in gesprek dan een formulier invullen? Neem gerust contact op.</p>
-          <div className="cta-persoon">
-            <b>{contact.naam}</b> · {contact.functie}
-          </div>
-          <div className="cta-links">
-            <a href={`mailto:${contact.email}`}>{contact.email}</a>
-            <span>{contact.telefoon}</span>
-          </div>
-        </div>
-      </section>
+      <MeerWeten id="over-10" kop="10. Contact">
+        <p>Vragen over het idee, of liever in gesprek dan een formulier invullen? Neem gerust contact op.</p>
+      </MeerWeten>
     </>
   );
 }

@@ -16,13 +16,14 @@ function useBreedte<T extends HTMLElement>(standaard: number) {
   return [ref, breedte] as const;
 }
 
-// Eenvoudige SVG-grafieken zonder externe bibliotheek, in huisstijlkleuren.
-// Eerste reeks donkerviolet, tweede KplusV-blauw, vergelijking als gestreepte grijze lijn.
-// Donkerviolet en blauw liggen voor kleurenblinden dicht bij elkaar; daarom heeft elke reeks
-// ook een eigen lijnpatroon en markervorm, een legenda en een label aan het eind van de lijn.
+// Eenvoudige SVG-grafieken zonder externe bibliotheek, in huisstijl 2.2. Ze staan direct op wit, zonder kaart eromheen.
+// Eerste reeks Inkt, tweede Diepblauw, derde Purper; vergelijking als gestreepte grijze lijn. Geen afgeronde staven.
+// Inkt en Diepblauw liggen voor kleurenblinden dicht bij elkaar; daarom heeft elke reeks
+// ook een eigen lijnpatroon en markervorm en een legenda. Kleur is nooit de enige drager van betekenis.
 
 export const reeksKleuren = ['#5760A6', '#007DB5', '#9462A6'];
-export const vergelijkingKleur = '#9CA3AF';
+/** Grijs voor de vergelijkingslijn: 4,8:1 op wit, zodat de gestreepte lijn goed zichtbaar blijft. */
+export const vergelijkingKleur = '#6B7280';
 
 const patronen = ['', '7 4', '2 3'];
 
@@ -188,16 +189,12 @@ export function StaafGrafiek({ titel, staven, formatY, kop }: { titel: string; s
           const cx = m.l + vak * i + vak / 2;
           const boven = Math.min(y(s.waarde), y(0));
           const hoogte = Math.max(1, Math.abs(y(s.waarde) - y(0)));
-          const r = Math.min(4, hoogte / 2);
           const positief = s.waarde >= 0;
-          // Afgeronde hoeken alleen aan de datazijde, vast aan de nullijn.
-          const d = positief
-            ? `M${cx - breedte / 2},${boven + hoogte} V${boven + r} Q${cx - breedte / 2},${boven} ${cx - breedte / 2 + r},${boven} H${cx + breedte / 2 - r} Q${cx + breedte / 2},${boven} ${cx + breedte / 2},${boven + r} V${boven + hoogte} Z`
-            : `M${cx - breedte / 2},${boven} V${boven + hoogte - r} Q${cx - breedte / 2},${boven + hoogte} ${cx - breedte / 2 + r},${boven + hoogte} H${cx + breedte / 2 - r} Q${cx + breedte / 2},${boven + hoogte} ${cx + breedte / 2},${boven + hoogte - r} V${boven} Z`;
           return (
             <g key={s.label} onMouseEnter={() => setActief(i)} onMouseLeave={() => setActief(null)}>
               <rect x={cx - vak / 2} y={m.t} width={vak} height={H - m.t - m.b} fill="transparent" />
-              <path d={d} fill={s.kleur ?? reeksKleuren[i % 3]} opacity={actief === null || actief === i ? 1 : 0.6} />
+              {/* Haakse staaf, waarde erboven. */}
+              <rect x={cx - breedte / 2} y={boven} width={breedte} height={hoogte} fill={s.kleur ?? reeksKleuren[i % 3]} opacity={actief === null || actief === i ? 1 : 0.6} />
               <text className="waardelabel" x={cx} y={positief ? boven - 6 : boven + hoogte + 14} textAnchor="middle">
                 {formatY(s.waarde)}
               </text>
@@ -245,7 +242,7 @@ export function BandGrafiek({ titel, basis, banden, formatX }: { titel: string; 
                 {b.label}
                 {smal && ` · ${formatX(links)} – ${formatX(rechts)}`}
               </text>
-              <rect x={x(links)} y={yy} width={Math.max(2, x(rechts) - x(links))} height={smal ? 18 : rij - 14} rx={4} fill="#5760A6" opacity={0.85} />
+              <rect x={x(links)} y={yy} width={Math.max(2, x(rechts) - x(links))} height={smal ? 18 : rij - 14} fill={reeksKleuren[0]} />
               {!smal && (
                 <text className="waardelabel" x={x(rechts) + 6} y={yy + 15}>
                   {formatX(links)} – {formatX(rechts)}
@@ -271,12 +268,12 @@ export function PercentageBalken({ items }: { items: { label: string; pct: numbe
         <li key={it.label} style={{ display: 'grid', gap: 4 }}>
           <span className="schuif-kop">
             <span style={{ fontWeight: 600 }}>{it.label}</span>
-            <span className="num" style={{ color: 'var(--donkerviolet)', fontWeight: 600 }}>
+            <span className="num" style={{ color: 'var(--inkt)', fontWeight: 600 }}>
               {Math.round(it.pct)} %
             </span>
           </span>
-          <span style={{ display: 'block', height: 10, background: 'var(--kaartvlak)', borderRadius: 4, overflow: 'hidden' }} aria-hidden="true">
-            <span style={{ display: 'block', height: '100%', width: `${it.pct}%`, background: 'var(--paars)', borderRadius: 4 }} />
+          <span style={{ display: 'block', height: 10, background: 'var(--mist)', overflow: 'hidden' }} aria-hidden="true">
+            <span style={{ display: 'block', height: '100%', width: `${it.pct}%`, background: 'var(--inkt)' }} />
           </span>
         </li>
       ))}

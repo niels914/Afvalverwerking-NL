@@ -215,7 +215,7 @@ function OpenZoekKaart() {
     <section className="kaart open-zoek" aria-labelledby={`${zoekId}-kop`} data-testid="open-zoek">
       <div className="kaart-kop">
         <div>
-          <h2 id={`${zoekId}-kop`}>Open aanbestedingen zoeken</h2>
+          <h2 id={`${zoekId}-kop`} className="balk">Open aanbestedingen zoeken</h2>
           <div className="sub">Zonder account. Uit het aanbestedingsarchief van dit platform, bron TenderNed.</div>
         </div>
       </div>
@@ -352,7 +352,7 @@ function PrijsKaart() {
         {!prijzenVastgesteld && <p className="klein muted">Concept: KplusV stelt de prijzen nog vast. Bedragen exclusief {btwPercentage} % btw.</p>}
       </details>
       <div className="knoppen">
-        <Link className="knop primair" to="/lidmaatschap/aanmelden">
+        <Link className="knop cta" to="/lidmaatschap/aanmelden">
           Meld uw organisatie aan
         </Link>
         <Link className="knop" to="/lidmaatschap">
@@ -671,7 +671,7 @@ export function Inloggen() {
         <PaginaKop titel="Inloggen" />
         <div className="toegang-raster sectie">
           <Kaart>
-            <h2 tabIndex={-1} ref={kopRef}>
+            <h2 className="balk" tabIndex={-1} ref={kopRef}>
               Kijk in uw mailbox
             </h2>
             <div className="notitie succes" role="status">
@@ -717,7 +717,7 @@ export function Inloggen() {
         <div className="toegang-raster sectie">
           <Kaart>
             <form className="toegang-formulier" onSubmit={stuurHerstellink} noValidate>
-              <h2 tabIndex={-1} ref={kopRef}>
+              <h2 className="balk" tabIndex={-1} ref={kopRef}>
                 Herstellink aanvragen
               </h2>
               <p>Vul het e-mailadres van uw account in. U krijgt een link waarmee u een nieuw wachtwoord kiest.</p>
@@ -762,7 +762,7 @@ export function Inloggen() {
           <GratisKaart />
         </div>
         <div className="inlog-kolom">
-          <Kaart className="inlog-kaart" titel="Inloggen voor leden">
+          <Kaart className="inlog-kaart" titel="Inloggen voor leden" vlak>
             <form className="toegang-formulier" onSubmit={inloggenMetWachtwoord} noValidate aria-describedby={`${id}-uitleg`}>
               <p id={`${id}-uitleg`} className="visueel-verborgen">
                 Inloggen met e-mailadres en wachtwoord, of met een inloglink per e-mail.

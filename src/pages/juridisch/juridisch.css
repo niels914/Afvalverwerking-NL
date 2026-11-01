@@ -3,71 +3,48 @@
 
 /* ---------- Document ---------- */
 .jd {
-  max-width: 800px;
-  padding-top: 24px;
-}
-.jd {
-  /* Linkkleur: --blauw haalt op de paginaachtergrond net geen 4,5:1 (gemeten 4,28:1). Iets donkerder: ruim 6:1. */
-  --jd-link: color-mix(in srgb, var(--blauw) 80%, #000);
-}
-.jd a {
-  color: var(--jd-link);
-}
-.jd a:hover {
-  color: var(--donkerviolet);
+  max-width: 820px;
+  padding-top: 20px;
 }
 .jd-kop {
   display: grid;
-  gap: 12px;
+  gap: 14px;
 }
 .jd-kop .jd-lead {
   font-size: 16px;
-  color: var(--tekst-2);
+  color: var(--inkt);
   max-width: 68ch;
 }
 .jd-meta {
   font-size: 13px;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
 }
 
-/* Conceptmarkering: tekst plus icoon plus rand, nooit alleen kleur. */
+/* Conceptmarkering: let-op-blok in Violet met zwarte tekst (nooit geel). Tekst draagt de betekenis. */
 .jd-concept {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 4px 12px;
-  align-items: start;
-  background: var(--waarschuwing-bg);
-  border: 2px solid var(--waarschuwing-rand);
-  border-left-width: 8px;
-  border-radius: var(--radius);
-  padding: 12px 14px;
-  color: var(--waarschuwing-tekst);
+  background: var(--violet);
+  color: var(--tekst);
+  padding: 14px 20px;
 }
 .jd-concept-icoon {
-  font-size: 20px;
-  line-height: 1.2;
+  display: none;
 }
 .jd-concept strong {
   display: block;
   font-size: 15.5px;
   font-weight: 700;
-  letter-spacing: 0.01em;
 }
 .jd-concept p {
-  font-size: 13.5px;
+  font-size: 14px;
 }
 
 /* Inhoudsopgave */
 .jd-inhoud {
-  margin-top: 22px;
-  background: var(--wit);
-  border: 1px solid var(--rand);
-  border-radius: var(--radius-kaart);
-  padding: 14px 18px 16px;
+  margin-top: 28px;
 }
 .jd-inhoud h2 {
-  font-size: 15.5px;
-  color: var(--donkerviolet);
+  font-size: 15px;
+  color: var(--inkt);
   margin-bottom: 6px;
 }
 .jd-inhoud ul {
@@ -80,60 +57,55 @@
 .jd-inhoud li {
   break-inside: avoid;
   position: relative;
-  padding: 4px 0 4px 18px;
+  padding: 4px 0 4px 20px;
 }
-/* Pijltje als vormteken; geen tekst, dus schermlezers lezen het niet voor. */
+/* Chevron als vormteken; geen tekst, dus schermlezers lezen het niet voor. */
 .jd-inhoud li::before {
   content: '';
   position: absolute;
-  left: 2px;
-  top: 0.85em;
-  width: 6px;
-  height: 6px;
-  border-right: 2px solid var(--paars);
-  border-top: 2px solid var(--paars);
-  transform: rotate(45deg);
+  left: 0;
+  top: 0.7em;
+  width: 11px;
+  height: 9px;
+  background: var(--purper);
+  clip-path: polygon(0 0, 50% 0, 100% 50%, 50% 100%, 0 100%, 50% 50%);
 }
 
-/* Secties */
+/* Secties: de kop is een Diepblauwe tekstbalk met daarin een knop die de sectie in- en uitklapt. */
 .jd-sectie {
-  margin-top: 30px;
+  margin-top: 28px;
   scroll-margin-top: 16px;
 }
 .jd-sectie > h2 {
-  font-size: 20px;
-  color: var(--donkerviolet);
-  border-left: 4px solid var(--paars);
-  margin-bottom: 10px;
+  margin-bottom: 14px;
+  padding: 0 calc(var(--snede) - 0.4em) 0 0; /* de knop vult de balk tot de snede */
 }
-/* De kop is een knop die de sectie in- en uitklapt. Ziet eruit als een kop, met een pijl als vormteken. */
 .jd-sectie-knop {
   all: unset;
   box-sizing: border-box;
   display: flex;
-  width: 100%;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 6px 4px 6px 12px;
+  gap: 14px;
+  padding: 0.5em 0.6em 0.5em 1.1em;
   min-height: 44px;
   font: inherit;
-  color: inherit;
+  color: var(--wit);
   cursor: pointer;
-  border-radius: 0 var(--radius-klein) var(--radius-klein) 0;
 }
-.jd-sectie-knop:hover {
-  background: var(--kaartvlak);
-}
+/* Focus: de knop vult de hele balk; met de offset valt de Purper rand op wit, om de balk heen. */
 .jd-sectie-knop:focus-visible {
   outline: 3px solid var(--focus);
-  outline-offset: 2px;
+  outline-offset: 3px;
+}
+.jd-sectie-knop:hover span:first-child {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .jd-pijl {
   flex: none;
-  width: 10px;
-  height: 10px;
-  margin-right: 8px;
+  width: 9px;
+  height: 9px;
   border-right: 2.5px solid currentColor;
   border-bottom: 2.5px solid currentColor;
   transform: rotate(45deg) translateY(-3px);
@@ -148,30 +120,43 @@
   }
 }
 .jd-sectie-inhoud {
-  padding-left: 16px;
+  padding-left: 0;
 }
 
-/* In het kort: altijd open, boven de inhoudsopgave. */
+/* In het kort: altijd open, boven de inhoudsopgave. Kop als balk, kernpunten in een Mist-blok met chevrons. */
 .jd-kern {
-  margin-top: 20px;
-  background: var(--wit);
-  border: 1px solid var(--rand);
-  border-left: 6px solid var(--paars);
-  border-radius: var(--radius);
-  padding: 14px 18px 16px;
+  margin-top: 28px;
 }
 .jd-kern h2 {
-  font-size: 17px;
-  color: var(--donkerviolet);
-  margin-bottom: 6px;
+  margin-bottom: 0;
 }
 .jd-kern ul {
+  list-style: none;
   margin: 0;
-  padding-left: 20px;
+  background: var(--mist);
+  padding: 22px 28px;
+  display: grid;
+  gap: 8px;
+}
+.jd-kern li {
+  position: relative;
+  padding-left: 32px;
   max-width: 70ch;
 }
-.jd-kern li + li {
-  margin-top: 4px;
+.jd-kern li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.42em;
+  width: 18px;
+  height: 15px;
+  background: var(--purper);
+  clip-path: polygon(0 0, 50% 0, 100% 50%, 50% 100%, 0 100%, 50% 50%);
+}
+@media (max-width: 640px) {
+  .jd-kern ul {
+    padding: 18px 16px;
+  }
 }
 
 /* Alles in-/uitklappen en afdrukken */
@@ -221,7 +206,7 @@
 .jd-artikel > li::before {
   content: attr(data-nr);
   font-weight: 600;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
   font-variant-numeric: tabular-nums;
 }
 
@@ -232,16 +217,14 @@
   margin-top: 12px;
 }
 .jd-blok {
-  background: var(--wit);
-  border: 1px solid var(--rand);
-  border-radius: var(--radius);
-  padding: 12px 16px;
+  background: var(--mist);
+  padding: 16px 20px;
 }
 .jd-blok h3 {
   margin: 0 0 6px;
   overflow-wrap: anywhere;
 }
-.jd-blok code {
+.jd code {
   font-size: 13px;
   overflow-wrap: anywhere;
 }
@@ -277,10 +260,8 @@
 
 /* Kaders */
 .jd-kader {
-  background: var(--kaartvlak);
-  border-radius: var(--radius);
-  padding: 12px 16px;
-  border-left: 4px solid var(--lichtviolet);
+  background: var(--mist);
+  padding: 16px 20px;
 }
 .jd-kader > * + * {
   margin-top: 8px;
@@ -289,21 +270,22 @@
 .jd-toetspunt {
   margin-top: 10px;
   max-width: 70ch;
-  background: var(--waarschuwing-bg);
-  border: 1px solid var(--waarschuwing-rand);
-  border-left-width: 4px;
-  border-radius: var(--radius-klein);
+  background: var(--violet);
+  color: var(--tekst);
   font-size: 14px;
 }
 .jd-toetspunt summary {
   cursor: pointer;
-  padding: 8px 12px;
+  padding: 8px 16px;
   min-height: 24px;
   font-weight: 600;
-  color: var(--waarschuwing-tekst);
+  color: var(--tekst);
 }
 .jd-toetspunt p {
-  padding: 0 12px 10px;
+  padding: 0 16px 12px;
+}
+.jd-toetspunt a {
+  color: var(--tekst);
 }
 .jd-bron {
   font-size: 12.5px;
@@ -316,8 +298,7 @@
   gap: 8px;
   font-weight: 700;
   font-size: 15.5px;
-  border: 2px solid var(--tekst-2);
-  border-radius: var(--radius-klein);
+  border: 2px solid var(--inkt);
   padding: 4px 12px;
   background: var(--wit);
 }
@@ -326,8 +307,7 @@
   place-items: center;
   width: 28px;
   height: 28px;
-  border-radius: 50%;
-  background: var(--tekst-2);
+  background: var(--inkt);
   color: var(--wit);
 }
 /* Statusschaal A–E: letter in tekst, huidige status vet en met rand, niet alleen kleur. */
@@ -345,26 +325,26 @@
   gap: 10px;
   align-items: center;
   padding: 4px 8px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-klein);
+  border: 2px solid transparent;
   margin-top: 0 !important;
 }
 .jd-schaal li[aria-current] {
-  border: 2px solid var(--tekst-2);
+  border-color: var(--inkt);
   background: var(--wit);
+  font-weight: 600;
 }
 .jd-schaal-letter {
   display: inline-grid;
   place-items: center;
   width: 24px;
   height: 24px;
-  border-radius: 50%;
-  border: 1px solid var(--tekst-2);
+  border: 1px solid var(--inkt);
+  color: var(--inkt);
   font-weight: 700;
   font-size: 13px;
 }
 .jd-schaal li[aria-current] .jd-schaal-letter {
-  background: var(--tekst-2);
+  background: var(--inkt);
   color: var(--wit);
 }
 .jd-naarboven {
@@ -375,40 +355,52 @@
   margin-top: 30px;
 }
 
-/* ---------- Bètamelding (Banner.tsx) ---------- */
-.banner .banner-beta {
+/* ---------- Bètamelding (Banner.tsx): statuspil rechts onder het element ---------- */
+.banner-beta {
   display: flex;
-  flex-wrap: wrap;
-  gap: 2px 8px;
-  align-items: baseline;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  max-width: 300px;
+  text-align: right;
 }
-.banner .banner-label {
-  display: inline-block;
-  border: 1px solid currentColor;
-  border-radius: 999px;
-  padding: 0 8px;
-  font-weight: 700;
-  font-size: 12px;
-  line-height: 1.6;
+.banner-tekst {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--tekst-2);
 }
-.banner a {
-  color: inherit;
+.banner-tekst a {
+  color: var(--link);
   font-weight: 600;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .banner-beta {
+    max-width: 210px;
+    gap: 4px;
+  }
+  .banner-tekst {
+    font-size: 12px;
+  }
 }
 
-/* ---------- Voettekst (Voettekst.tsx) ---------- */
+/* ---------- Voettekst (Voettekst.tsx): wit, kleine tekst, tagline één keer in Diepblauw ---------- */
+.voet {
+  margin-top: 24px;
+}
 footer.voet .wrap.voet-raster {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr);
   gap: 22px 32px;
-  padding-block: 26px 30px;
+  padding-block: 32px 36px;
   font-size: 13px;
   color: var(--tekst-2);
+  border-top: 1px solid var(--lijn);
 }
 .voet-raster h2 {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--donkerviolet);
+  color: var(--tekst);
   margin-bottom: 6px;
 }
 .voet-raster address {
@@ -427,18 +419,23 @@ footer.voet .wrap.voet-raster {
   padding: 3px 0;
 }
 .voet-raster a:hover {
-  color: var(--donkerviolet);
+  color: var(--inkt);
 }
 .voet-onder {
   grid-column: 1 / -1;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
+  align-items: baseline;
   gap: 6px 16px;
-  border-top: 1px solid var(--rand);
-  padding-top: 12px;
-  color: var(--tekst-secundair);
+  padding-top: 8px;
+  color: var(--tekst-2);
   font-size: 12.5px;
+}
+.voet-onder .tagline {
+  color: var(--diepblauw);
+  font-weight: 600;
+  font-size: 14px;
 }
 @media (max-width: 760px) {
   footer.voet .wrap.voet-raster {
@@ -452,14 +449,10 @@ footer.voet .wrap.voet-raster {
     display: none;
   }
   .jd-sectie {
-    margin-top: 10px;
+    margin-top: 14px;
   }
   .jd-sectie > h2 {
-    font-size: 17.5px;
-    margin-bottom: 4px;
-  }
-  .jd-sectie-inhoud {
-    padding-left: 4px;
+    margin-bottom: 8px;
   }
 }
 
@@ -474,7 +467,7 @@ footer.voet .wrap.voet-raster {
   /* print.css verbergt alle knoppen; de sectiekop is hier een knop en moet blijven staan. */
   .jd-sectie > h2 > .jd-sectie-knop {
     display: inline !important;
-    padding: 0 0 0 10px;
+    padding: 0;
   }
   .jd-sectie-inhoud[hidden] {
     display: block !important;

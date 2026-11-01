@@ -14,16 +14,19 @@
   white-space: normal;
 }
 .bronveld-leeg {
+  display: inline-block;
   font-size: 12.5px;
   font-weight: 600;
-  color: var(--waarschuwing-tekst);
+  color: var(--tekst);
+  background: var(--violet);
+  padding: 0 8px;
 }
 .bronveld-leeg::before {
   content: '! ';
 }
 .bronveld[data-leeg='true'] .invoer {
   border-style: dashed;
-  border-color: var(--waarschuwing-rand);
+  border-color: var(--inkt);
 }
 button.bronveld-terug {
   justify-self: start;
@@ -43,7 +46,7 @@ button.bronveld-terug {
 
 /* ---------- Tegel zonder waarde ---------- */
 .tegel-leeg .tegel-waarde {
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
   font-size: 15px;
 }
 
@@ -54,11 +57,12 @@ button.bronveld-terug {
   gap: 8px;
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--donkerviolet);
-  background: var(--kaartvlak);
-  border: 1px solid var(--rand);
-  border-radius: 999px;
+  color: var(--tekst);
+  background: var(--mist);
   padding: 4px 12px;
+}
+.ab-stapkop {
+  margin-bottom: 18px;
 }
 .ab-stromen {
   display: grid;
@@ -73,25 +77,25 @@ button.bronveld-terug {
   grid-template-columns: auto minmax(0, 1fr);
   gap: 4px 10px;
   align-items: start;
-  border: 1px solid var(--rand);
-  border-radius: var(--radius);
   background: var(--wit);
+  outline: 1px solid var(--lijn);
+  outline-offset: -1px;
   padding: 12px 14px;
   cursor: pointer;
   align-content: start;
 }
 .ab-stroom:hover {
-  background: var(--achtergrond);
+  outline-color: var(--inkt);
 }
 .ab-stroom:has(input:checked) {
-  border-color: var(--paars);
-  box-shadow: inset 4px 0 0 var(--paars);
+  outline: 2px solid var(--inkt);
+  outline-offset: -2px;
 }
 .ab-stroom input {
   width: 18px;
   height: 18px;
   margin: 3px 0 0;
-  accent-color: var(--paars);
+  accent-color: var(--inkt);
 }
 .ab-stroom strong {
   font-weight: 600;
@@ -114,17 +118,15 @@ button.bronveld-terug {
   gap: 10px;
 }
 .ab-criterium {
-  border: 1px solid var(--rand);
-  border-radius: var(--radius);
-  background: var(--wit);
-  padding: 12px 14px;
+  background: var(--mist);
+  padding: 14px 16px;
   display: grid;
   gap: 6px;
   min-width: 0;
 }
 .ab-criterium[data-gekozen='true'] {
-  border-color: var(--paars);
-  box-shadow: inset 4px 0 0 var(--paars);
+  outline: 2px solid var(--inkt);
+  outline-offset: -2px;
 }
 .ab-criterium-kop {
   display: grid;
@@ -136,7 +138,7 @@ button.bronveld-terug {
   width: 20px;
   height: 20px;
   margin: 2px 0 0;
-  accent-color: var(--paars);
+  accent-color: var(--inkt);
 }
 .ab-criterium-kop label {
   font-weight: 600;
@@ -191,7 +193,7 @@ button.bronveld-terug {
   text-align: right;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: var(--donkerviolet);
+  color: var(--inkt);
 }
 @media (max-width: 480px) {
   .ab-weging-rij {
@@ -235,7 +237,7 @@ button.bronveld-terug {
   font-size: 13.5px;
 }
 .ab-opdracht dt {
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
   font-weight: 500;
 }
 .ab-opdracht dd {
@@ -275,13 +277,12 @@ button.bronveld-terug {
   font: inherit;
   color: inherit;
   cursor: pointer;
-  border-radius: 999px;
 }
 .ab-stapknop:hover {
   text-decoration: underline;
 }
 .stappen li:has(.ab-stapknop:focus-visible) {
-  outline: 3px solid var(--focus, var(--paars));
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
 .ab-stapknop:focus-visible {
@@ -293,9 +294,7 @@ button.bronveld-terug {
 
 /* ---------- Ronde 2: uitkomst bovenaan, details inklapbaar ---------- */
 .tb-uitklap {
-  background: var(--wit);
-  border: 1px solid var(--rand);
-  border-radius: var(--radius);
+  background: var(--mist);
   min-width: 0;
 }
 .tb-uitklap > summary {
@@ -308,7 +307,6 @@ button.bronveld-terug {
   padding: 14px 16px 14px 40px;
   position: relative;
   min-height: 48px;
-  border-radius: var(--radius);
 }
 .tb-uitklap > summary::-webkit-details-marker {
   display: none;
@@ -320,8 +318,8 @@ button.bronveld-terug {
   top: 21px;
   width: 8px;
   height: 8px;
-  border-right: 2px solid var(--donkerviolet);
-  border-bottom: 2px solid var(--donkerviolet);
+  border-right: 2.5px solid var(--inkt);
+  border-bottom: 2.5px solid var(--inkt);
   transform: rotate(-45deg);
   transition: transform 0.15s;
 }
@@ -338,21 +336,21 @@ h3.tb-uitklap-titel {
   font-size: 16px;
 }
 .tb-uitklap > summary:hover .tb-uitklap-titel {
-  color: var(--donkerviolet);
+  color: var(--inkt);
   text-decoration: underline;
 }
 .tb-uitklap-sub {
   font-size: 14px;
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
 }
 .tb-uitklap-inhoud {
-  padding: 0 16px 16px;
+  padding: 0 20px 20px;
   display: grid;
   gap: 14px;
   min-width: 0;
 }
 .tb-uitklap .tb-uitklap {
-  background: var(--achtergrond);
+  background: var(--wit);
 }
 @media print {
   .tb-uitklap > summary::before {
@@ -412,10 +410,10 @@ h3.tb-uitklap-titel {
 }
 .tb-band-label {
   font-weight: 600;
-  color: var(--donkerviolet);
+  color: var(--inkt);
 }
 .tb-band-toel {
-  color: var(--tekst-secundair);
+  color: var(--tekst-2);
 }
 .tb-fout {
   border-width: 2px;
@@ -425,10 +423,7 @@ h3.tb-uitklap-titel {
   margin: 4px 0 0;
   padding-left: 20px;
 }
-.tb-fout::before {
-  content: '⚠ ';
-  font-weight: 700;
-}
+
 .tb-keuze {
   display: flex;
   flex-wrap: wrap;
@@ -455,15 +450,13 @@ h3.tb-uitklap-titel {
 .tb-keuze input {
   width: 18px;
   height: 18px;
-  accent-color: var(--paars);
+  accent-color: var(--inkt);
 }
 .tb-verouderd {
   opacity: 0.55;
 }
 .tb-pro-scheiding {
-  margin: 36px 0 12px;
-  padding-top: 20px;
-  border-top: 2px solid var(--rand);
+  margin: var(--sectie) 0 18px;
 }
 
 /* Aanbestedingstool: compacte keuzekaarten op mobiel, uitkomst vast in beeld. */
@@ -484,11 +477,8 @@ h3.tb-uitklap-titel {
 }
 /* Samenvatting van de keuzes boven de stap (vanaf stap 2). Staat in de tekststroom, dus nooit over formulierinhoud. */
 .ab-vast {
-  background: var(--wit);
-  border: 1px solid var(--rand);
-  border-left: 4px solid var(--paars);
-  border-radius: var(--radius);
-  padding: 8px 14px;
+  background: var(--mist);
+  padding: 10px 16px;
   display: flex;
   flex-wrap: wrap;
   gap: 2px 16px;
@@ -500,7 +490,7 @@ h3.tb-uitklap-titel {
   display: block;
 }
 .ab-vast strong {
-  color: var(--donkerviolet);
+  color: var(--inkt);
   font-variant-numeric: tabular-nums;
 }
 @media print {
@@ -530,7 +520,7 @@ h3.tb-uitklap-titel {
 .tb-bronlijst > li {
   display: grid;
   gap: 3px;
-  border-top: 1px solid var(--rij);
+  border-top: 1px solid var(--lijn);
   padding-top: 10px;
   min-width: 0;
 }
@@ -611,7 +601,7 @@ details.ab-meer[open] > summary {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 2px 12px;
     padding: 8px 14px;
-    border-bottom: 1px solid var(--rand);
+    border-bottom: 1px solid var(--lijn);
   }
   .tb-stapeltabel th[scope='row'] {
     grid-column: 1 / -1;
@@ -630,7 +620,7 @@ details.ab-meer[open] > summary {
     content: attr(data-label);
     display: block;
     font-size: 12px;
-    color: var(--tekst-secundair);
+    color: var(--tekst-2);
     font-weight: 400;
   }
 }

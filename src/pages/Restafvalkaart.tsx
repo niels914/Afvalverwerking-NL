@@ -3,7 +3,7 @@ import { useEffect, useId, useMemo, useRef, useState, type RefObject } from 'rea
 import { Link, useSearchParams } from 'react-router-dom';
 import { RestafvalKaart } from '../components/kaart/RestafvalKaart';
 import { Legenda } from '../components/kaart/Legenda';
-import { Badge, Chips, Kaart, KeuzeVeld, PaginaKop, Tegel } from '../components/ui';
+import { Badge, Chips, Kaart, KeuzeVeld, PaginaKop, Tegel, Trend } from '../components/ui';
 import { afvalBron, gemeenten, grenzenBron, type GemeenteAfval } from '../data/gemeenten';
 import {
   gewogenGemiddelde,
@@ -249,7 +249,7 @@ function GemeentePaneel({
       <section className="kaart">
         <div className="kaart-kop">
           <div>
-            <h2 id="paneel-titel" ref={kopRef} tabIndex={-1}>
+            <h2 id="paneel-titel" className="balk" ref={kopRef} tabIndex={-1}>
               {g.naam}
             </h2>
             <div className="sub">
@@ -279,7 +279,7 @@ function GemeentePaneel({
           )}
           {tovVorig && (
             <li>
-              Restafval: {tovVorig} in {afvalBron.peiljaar - 1} ({getal(g.restafvalVorigJaar ?? NaN, 1)} kg).
+              <Trend pct={g.restafval - (g.restafvalVorigJaar ?? g.restafval)} /> Restafval: {tovVorig} in {afvalBron.peiljaar - 1} ({getal(g.restafvalVorigJaar ?? NaN, 1)} kg).
             </li>
           )}
           {scheidingTov && (

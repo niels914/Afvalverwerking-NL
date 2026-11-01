@@ -249,7 +249,7 @@ function Vraag({ nr, label, id, fout, verplicht, children }: { nr?: number; labe
 function BedragInvoer({ id, naam, waarde, fout, onChange }: { id: string; naam: string; waarde: string; fout?: string; onChange: (v: string) => void }) {
   return (
     <div className="invoer" data-fout={fout ? 'true' : 'false'}>
-      <span className="eenheid" style={{ borderLeft: 0, borderRight: '1px solid var(--rand)' }} aria-hidden="true">
+      <span className="eenheid" style={{ borderLeft: 0, borderRight: '1px solid var(--lijn)' }} aria-hidden="true">
         €
       </span>
       <input

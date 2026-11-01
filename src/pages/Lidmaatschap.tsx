@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { PaginaKop } from '../components/ui';
+import { MeerWeten } from '../components/contact/MeerWeten';
 import {
   Bron,
   Bronnenlijst,
@@ -59,7 +60,7 @@ export function Lidmaatschap() {
       </nav>
 
       <section className="lm-sectie" id="prijzen" aria-labelledby="prijzen-kop">
-        <h2 id="prijzen-kop">Prijzen per organisatie per jaar</h2>
+        <h2 id="prijzen-kop" className="balk">Prijzen per organisatie per jaar</h2>
         {!prijzenVastgesteld && (
           <p className="notitie" role="note">
             <strong>Concept.</strong> KplusV heeft de prijzen en voorwaarden nog niet vastgesteld. U kunt zich al aanmelden: u
@@ -77,10 +78,10 @@ export function Lidmaatschap() {
       </section>
 
       <section className="lm-sectie" id="aanmelden" aria-labelledby="aanmelden-kop">
-        <h2 id="aanmelden-kop">Zo meldt u aan</h2>
+        <h2 id="aanmelden-kop" className="balk">Zo meldt u aan</h2>
         <Stappenplan />
         <div className="knoppen">
-          <Link className="knop primair" to="/lidmaatschap/aanmelden">
+          <Link className="knop cta" to="/lidmaatschap/aanmelden">
             Naar het aanmeldformulier
           </Link>
           <Link className="knop" to="/lidmaatschap/aanmelden?soort=offerte">
@@ -96,13 +97,13 @@ export function Lidmaatschap() {
       </section>
 
       <section className="lm-sectie" id="inbegrepen" aria-labelledby="inbegrepen-kop">
-        <h2 id="inbegrepen-kop">Wat is inbegrepen</h2>
+        <h2 id="inbegrepen-kop" className="balk">Wat is inbegrepen</h2>
         <p>Elk lidmaatschap geeft hetzelfde, ongeacht de staffel:</p>
         <Inbegrepen />
       </section>
 
       <section className="lm-sectie" id="voorwaarden" aria-labelledby="voorwaarden-kop">
-        <h2 id="voorwaarden-kop">Looptijd, verlenging en opzeggen</h2>
+        <h2 id="voorwaarden-kop" className="balk">Looptijd, verlenging en opzeggen</h2>
         <VoorwaardenKort />
         <Bron sleutel="betaaltermijn" />
         <p className="klein">
@@ -111,7 +112,7 @@ export function Lidmaatschap() {
       </section>
 
       <section className="lm-sectie" id="vergelijking" aria-labelledby="vergelijking-kop">
-        <h2 id="vergelijking-kop">Gratis of lid: wat is het verschil</h2>
+        <h2 id="vergelijking-kop" className="balk">Gratis of lid: wat is het verschil</h2>
         <p>
           Gratis voor iedereen: de Restafvalkaart, het nieuws, de kennisbank, zoeken in open aanbestedingen uit TenderNed
           {helemaalGratis.length > 0 && `, de ${opsomming(helemaalGratis)}`}
@@ -125,7 +126,7 @@ export function Lidmaatschap() {
       </section>
 
       <section className="lm-sectie" id="vragen" aria-labelledby="vragen-kop">
-        <h2 id="vragen-kop">Veelgestelde vragen</h2>
+        <h2 id="vragen-kop" className="balk">Veelgestelde vragen</h2>
         <VeelgesteldeVragen />
         <p className="klein muted">
           Staat uw vraag er niet bij? Mail <a href={`mailto:${contact.email}`}>{contact.email}</a> of bel {contact.telefoon}.
@@ -133,12 +134,19 @@ export function Lidmaatschap() {
       </section>
 
       <section className="lm-sectie" id="bronnen" aria-labelledby="bronnen-kop">
-        <h2 id="bronnen-kop">Bronnen</h2>
+        <h2 id="bronnen-kop" className="balk">Bronnen</h2>
         <Uitklap samenvatting={`${Object.keys(bronnen).length} bronnen met de datum van controle`}>
           <p className="klein muted">Gegevens op deze pagina die niet van KplusV zelf komen.</p>
           <Bronnenlijst />
         </Uitklap>
       </section>
+
+      <MeerWeten id="lm-contact-kop" kop="Vragen over het lidmaatschap?">
+        <p>
+          Twijfelt u welke staffel bij uw organisatie past, of wilt u een voorstel op maat? Bel of mail gerust; dan kijken we er
+          samen naar.
+        </p>
+      </MeerWeten>
 
       <p className="lm-naar-boven">
         <a href="#lm-inhoud">

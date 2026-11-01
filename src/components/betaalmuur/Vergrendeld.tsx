@@ -63,7 +63,7 @@ export function Vergrendeld({ titel, ledenKrijgen, children }: Props) {
           U bent ingelogd als <strong>{email}</strong>, maar heeft geen toegang tot ledenonderdelen. {beschrijving.uitleg}
         </p>
         <div className="knoppen">
-          <Link className="knop primair" to="/lidmaatschap/aanmelden">
+          <Link className="knop cta" to="/lidmaatschap/aanmelden">
             Lid worden
           </Link>
           <button type="button" onClick={anderAdres} disabled={bezig}>
@@ -89,7 +89,7 @@ export function Vergrendeld({ titel, ledenKrijgen, children }: Props) {
           <Link className="knop primair" to={inlogPad}>
             Inloggen
           </Link>
-          <Link className="knop" to="/lidmaatschap/aanmelden">
+          <Link className="knop cta" to="/lidmaatschap/aanmelden">
             Lid worden
           </Link>
         </div>
@@ -113,7 +113,7 @@ export function Vergrendeld({ titel, ledenKrijgen, children }: Props) {
       {!isLid && (
         <div className="vergrendeld-slot">
           <section className="slotkaart" aria-label={`${titel} (alleen voor leden)`}>
-            <h2>
+            <h2 className="balk inkt">
               <span aria-hidden="true">🔒</span> {titel}
             </h2>
             {inhoud}

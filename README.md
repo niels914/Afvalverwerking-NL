@@ -2,7 +2,7 @@
 
 Ledenplatform van KplusV voor contractmanagers en beleidsmedewerkers van gemeenten, samenwerkingsverbanden en afvalverwerkers: de Restafvalkaart, nieuws en kennisbank, rekentools en een aanbestedingsarchief.
 
-**Stand.** De cijfers komen uit openbare bronnen (CBS, PDOK, Rijkswaterstaat, Nederlandse Emissieautoriteit, wet- en regelgeving, TenderNed), met bron en peildatum in de UI en in `src/data/`. Leden loggen in via Supabase Auth; lidmaatschap is per organisatie (bevestigd e-maildomein). Prijzen en algemene voorwaarden zijn nog **concept**; de juridische teksten zijn **concept ter juridische toetsing**. Daarom staat er een bètamelding bovenaan elke pagina.
+**Stand.** De cijfers komen uit openbare bronnen (CBS, PDOK, Rijkswaterstaat, Nederlandse Emissieautoriteit, wet- en regelgeving, TenderNed), met bron en peildatum in de UI en in `src/data/`. Leden loggen in via Supabase Auth; lidmaatschap is per organisatie (bevestigd e-maildomein). Prijzen en algemene voorwaarden zijn nog **concept**; de juridische teksten zijn **concept ter juridische toetsing**. Daarom staat er een bètapil in de kop van elke pagina.
 
 ## Starten
 
@@ -40,12 +40,12 @@ Het formulier werkt met een verborgen statische kopie in `index.html`, omdat Net
 index.html                   verborgen kopie van het feedbackformulier (Netlify Forms)
 netlify.toml                 build-instellingen Netlify
 public/_redirects            SPA-routing op Netlify
-public/logo-kplusv.jpg       logo (uit de huisstijl-skill); logo-kplusv.svg is de placeholder
+public/logo-kplusv-512.png   logo (huisstijl 2.2; -256 is daarvan verkleind voor 2x); foto-niels-transparant.png hoort hier (zie MeerWeten.tsx)
 src/data/                    content en data met bron en peildatum
 src/lib/calc/                ALLE rekenformules (pure functies) + tests
 src/lib/kaartdata.ts         gemeenten → kerncijfers per samenwerkingsverband
 src/lib/format.ts            Nederlandse notatie (€ 1.234,56 en 12,5 %)
-src/styles/tokens.css        huisstijl: kleuren, lettertype, maten (één bron)
+src/styles/tokens.css        huisstijl 2.2: kleuren, lettertype, maten (één bron)
 src/styles/components.css    kaarten, tegels, knoppen, tabellen, formulieren
 src/styles/print.css         printweergave voor "Rapport maken"
 src/components/              layout, betaalmuur, rekencomponenten, grafieken, kaart, formulieren

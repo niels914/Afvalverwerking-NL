@@ -303,7 +303,7 @@ export function Aanmelden() {
         </ol>
       </nav>
       <section className="intro">
-        <h1 ref={kopRef} tabIndex={-1} style={{ outline: 'none' }}>
+        <h1 ref={kopRef} tabIndex={-1} className="balk inkt" style={{ outline: 'none' }}>
           {titel}
         </h1>
         {stap === 'gegevens' && !offerte && (
@@ -420,7 +420,7 @@ export function Aanmelden() {
             <button type="button" onClick={() => setStap('gegevens')}>
               Terug naar gegevens
             </button>
-            <button type="submit" className="primair" disabled={bezig}>
+            <button type="submit" className="cta" disabled={bezig}>
               {bezig ? 'Bezig met verzenden…' : offerte ? 'Offerteaanvraag verzenden' : 'Aanmelding verzenden'}
             </button>
           </div>
