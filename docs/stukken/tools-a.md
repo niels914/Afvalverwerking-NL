@@ -1,8 +1,22 @@
-# Tools A: Indexcalculator en CO2-heffingenscan
+# Tools A: Indexcalculator en CO2-heffing per installatie
 
-Stand: 27 oktober 2026 (ronde 3, versie 3.0 van beide tools). Beide tools rekenen met officiële cijfers. Elk cijfer heeft een bron en een peildatum
+Stand: 13 november 2026 (indexcalculator versie 3.0; CO2-heffing per installatie versie 3.1, tot 13 november "CO2-heffingenscan"; de route `/tools/co2-heffingenscan` is gebleven). Beide tools rekenen met officiële cijfers. Elk cijfer heeft een bron en een peildatum
 in de UI, in de CSV en in een databestand. Wat de tool niet uit een officiële bron kan halen, staat zichtbaar als
 aanname of kental.
+
+## Wat er op 13 november 2026 is veranderd (versie 3.1 van de CO2-tool)
+
+De tool heette "CO2-heffingenscan" en is te verwarren met de nieuwe Heffingenscan voor gemeenten (`/heffingenscan`). De twee zijn naast elkaar gelegd.
+
+| Punt | Installatietool (`/tools/co2-heffingenscan`) | Heffingenscan (gemeenten) | Besluit |
+|---|---|---|---|
+| Naam | CO2-heffing per installatie | Heffingenscan voor gemeenten | Hernoemd in pagina, toolsoverzicht, CSV-naam, aanbestedingstool en feedbackformulier. Bovenaan de installatietool staat "Voor wie is deze tool?" met een link naar de Heffingenscan. De Heffingenscan staat bovenaan het toolsoverzicht (gratis). |
+| Tarieven, correctiefactor, NRF, procesemissiefactor | `co2-tarieven.ts` | importeert uit `co2-tarieven.ts` | Gelijk; de test in `heffingen.test.ts` bewaakt dat. Geen tegenspraak. |
+| Emissiefactor | RVO-kental 0,380 (alle afval in AVI's, lijst energiedragers jan. 2026) | NEa-berekeningsfactoren huishoudelijk afval: 2026 0,989 × (1 − 0,646) = 0,350; 2027 en later 0,972 × (1 − 0,655) = 0,335 | Twee echte bronnen voor twee soorten afval, geen fout. Keuzelijst "Bron van de emissiefactor" met het kental, NEa 2026 en NEa 2027 (`src/data/co2-emissiefactor.ts`, importeert uit `heffingen-tarieven.ts`, afgerond op 3 decimalen). Standaard blijft het kental: de tool rekent per installatie en AVI's verbranden ook ander afval dan huishoudelijk restafval. De NEa-bron is op 13-11 gecontroleerd: categorie 1 (gemengd stedelijk afval), 2 (huishoudelijk) en 4 (bedrijfsafval) hebben in de NEa-publicatie dezelfde factoren. |
+| Prijspeil | bedragen met inflatieaanname (standaard 2,6 %) | prijspeil 2026, tabel 12 MvT | Bewust verschil, uitgelegd in de verwijsregel bovenaan. |
+| Status Belastingplan 2027 | stond op meerdere plekken als "ligt bij de Tweede Kamer" / "nog niet aangenomen" | `wetsstatus` in `heffingen-tarieven.ts` | De pagina leest `wetsstatus.kort` (kern, bandbreedte-kader, ontwikkelingen, CSV). `co2-tarieven.ts` bevat de stand niet meer (en importeert `heffingen-tarieven.ts` niet, vanwege de kringverwijzing). |
+
+Bronnen opnieuw gecontroleerd op 13 november 2026: NEa-pagina's (tarieven, AVI's, dispensatierechten, wat is de CO2-heffing), Eerste Kamer dossier 37.022 (aangenomen door de Tweede Kamer op 12 november, 76–74; procedure op 17 november), NEa Berekeningsfactoren afvalstoffen 2014–2027 (28 september 2026) en de BWB-repository (Wbm laatste versie 4 juni 2026; Wm laatste versie 22 oktober 2026, art. 16b.17 ongewijzigd, link bijgewerkt). wetten.overheid.nl zelf gaf een protocolfout; de wetteksten zijn via de repository gelezen.
 
 ## Wat er in ronde 3 is veranderd
 
@@ -107,9 +121,9 @@ CBS publiceert de CPI rond de tiende van de maand, cao-lonen en PPI aan het eind
 genoeg. Bij een herbasering (nieuwe tabel-id of basisjaar): `tabelId`, `onderwerp`, dimensiesleutels en `basisjaar` in
 `REEKSEN` bovenin het script aanpassen; de test op CPI 2025 = 100 en cao-lonen 2020 = 100 moet dan mee.
 
-## CO2-heffingenscan
+## CO2-heffing per installatie (voorheen CO2-heffingenscan)
 
-### Wat de scan rekent
+### Wat de tool rekent
 
 ```
 uitstoot          = restafval × fossiele emissiefactor
@@ -156,7 +170,7 @@ wetten.overheid.nl.
 1. Controleer na Prinsjesdag, na de stemming over het Belastingplan (Tweede Kamer meestal half november, Eerste Kamer
    half december) en op 1 januari: de NEa-tarievenpagina, de wetteksten (wetten.overheid.nl of de BWB-repository) en de
    status van het Belastingplan 2027. Elk jaar in het voorjaar: de nieuwe lijst van energiedragers op rvo.nl.
-2. Pas `src/data/co2-tarieven.ts` aan: `vastgesteldeTarieven`, `tariefpaden.*.vast`, `verhogingen`, `correctiefactor`,
+2. Zet de stand van het Belastingplan alleen in `wetsstatus` (`heffingen-tarieven.ts`); de pagina leest die. Pas `src/data/co2-tarieven.ts` aan: `vastgesteldeTarieven`, `tariefpaden.*.vast`, `verhogingen`, `correctiefactor`,
    `kentalEmissiefactor`, `inflatiecorrectie2027` (wordt de correctie van het nieuwe jaar), `bronnen` en `PEILDATUM`.
 3. Wordt het Belastingplan aangenomen, dan wordt het pad "voorstel" geldend recht: `status: 'officieel'`, naam en bron
    aanpassen, het oude pad verwijderen of hernoemen, `ontwikkelingen` bijwerken.

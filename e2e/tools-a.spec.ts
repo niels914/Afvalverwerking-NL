@@ -1,7 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { readFileSync } from 'node:fs';
 
-// Indexcalculator en CO2-heffingenscan: gratis deel, bronnen, CSV-export, deellink en betaalmuur.
+// Indexcalculator en CO2-heffing per installatie (voorheen CO2-heffingenscan): gratis deel, bronnen, CSV-export, deellink en betaalmuur.
 // Het Pro-deel testen we alleen als E2E_EMAIL en E2E_WACHTWOORD zijn gezet (account van een lid).
 
 const cbs = JSON.parse(readFileSync(new URL('../src/data/indexreeksen.json', import.meta.url), 'utf8'));
@@ -233,10 +233,10 @@ test.describe('Indexcalculator: ronde 3', () => {
   });
 });
 
-test.describe('CO2-heffingenscan', () => {
+test.describe('CO2-heffing per installatie', () => {
   test('rekent met het wettelijke tarief en de correctiefactor', async ({ page }) => {
     await page.goto('/tools/co2-heffingenscan');
-    await expect(page.getByRole('heading', { level: 1, name: 'CO2-heffingenscan' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'CO2-heffing per installatie' })).toBeVisible();
     await geenHorizontaleScroll(page);
 
     // Standaard: 2,6 % inflatie, dus geldend recht 2027 = (103,66 + 49,66) × 1,026.
@@ -257,7 +257,8 @@ test.describe('CO2-heffingenscan', () => {
     // Wetsvoorstel: 2027 € 129,15 en een zichtbaar label.
     await page.getByRole('radio', { name: /Voorstel BP 2027/ }).check();
     await expect(page.locator('.tegel').nth(2)).toContainText('€ 129,15');
-    await expect(page.getByText(/nog niet aangenomen/).first()).toBeVisible();
+    await expect(page.getByText(/Aangenomen door de Tweede Kamer op 12 november 2026; de Eerste Kamer moet nog stemmen/).first()).toBeVisible();
+    await expect(page.getByText(/nog geen wet/).first()).toBeVisible();
 
     // Eigen vrijgesteld deel.
     await page.getByLabel('Eigen percentage van uw verwerker').check();
@@ -327,7 +328,8 @@ test.describe('CO2-heffingenscan', () => {
     await page.goto('/tools/co2-heffingenscan');
     const onzeker = page.getByRole('note', { name: 'Onzekerheid' });
     await expect(onzeker).toContainText('Onder- en bovengrens 2027');
-    await expect(onzeker).toContainText('nog niet aangenomen');
+    await expect(onzeker).toContainText('Nog geen wet');
+    await expect(onzeker).toContainText('Aangenomen door de Tweede Kamer op 12 november 2026; de Eerste Kamer moet nog stemmen');
     await expect(page.getByRole('region', { name: 'In het kort' })).toContainText('coalitieakkoord noemt afschaffing');
     await expect(page.getByRole('region', { name: 'In het kort' })).not.toContainText('kabinet wil');
     await page.getByLabel('Heffingsjaar').selectOption('2026');
@@ -354,10 +356,39 @@ test.describe('CO2-heffingenscan', () => {
     await expect(page.locator('.tegel.hero .tegel-waarde').first()).toHaveText('–');
   });
 
+  test('verwijst gemeenten naar de Heffingenscan en legt het verschil uit', async ({ page }) => {
+    await page.goto('/tools/co2-heffingenscan');
+    const notitie = page.locator('.notitie.info').filter({ hasText: 'Voor wie is deze tool?' });
+    await expect(notitie).toContainText('inflatieaanname');
+    await expect(notitie).toContainText('prijspeil 2026');
+    await expect(notitie.getByRole('link', { name: 'Heffingenscan voor gemeenten' })).toHaveAttribute('href', '/heffingenscan');
+    await notitie.getByRole('link', { name: 'Heffingenscan voor gemeenten' }).click();
+    await expect(page).toHaveURL(/\/heffingenscan$/);
+  });
+
+  test('biedt de NEa-factor voor huishoudelijk restafval aan naast het RVO-kental', async ({ page }) => {
+    await page.goto('/tools/co2-heffingenscan');
+    const keuze = page.getByLabel('Bron van de emissiefactor');
+    await expect(keuze).toHaveValue('kental');
+    await expect(page.getByLabel('Fossiele emissiefactor')).toHaveValue('0,38');
+    await keuze.selectOption('nea2027');
+    await expect(page.getByLabel('Fossiele emissiefactor')).toHaveValue('0,335');
+    await expect(page.getByRole('region', { name: 'In het kort' })).toContainText('0,335 ton CO2 per ton (NEa-factor huishoudelijk restafval)');
+    await expect(page).toHaveURL(/ef=0\.335|ef=0,335/);
+    // Zelf een waarde typen schakelt de keuze naar eigen waarde.
+    await page.getByLabel('Fossiele emissiefactor').fill('0,4');
+    await expect(keuze).toHaveValue('eigen');
+    await expect(page.getByRole('region', { name: 'In het kort' })).toContainText('(eigen waarde)');
+    // Terugtypen van het kental herkent de keuze weer.
+    await page.getByLabel('Fossiele emissiefactor').fill('0,38');
+    await expect(keuze).toHaveValue('kental');
+    await geenHorizontaleScroll(page);
+  });
+
   test('Pro-deel zit achter de betaalmuur', async ({ page }) => {
     test.skip(!!EMAIL, 'met inlog getest in de Pro-test');
     await page.goto('/tools/co2-heffingenscan');
-    await expect(page.locator('.slotkaart').getByRole('heading', { name: /CO2-heffingenscan Pro/ })).toBeVisible();
+    await expect(page.locator('.slotkaart').getByRole('heading', { name: /CO2-heffing per installatie Pro/ })).toBeVisible();
     await expect(page.locator('.vergrendeld-preview')).toHaveAttribute('inert', '');
   });
 });
@@ -365,7 +396,7 @@ test.describe('CO2-heffingenscan', () => {
 test.describe('Navigatie en printweergave', () => {
   for (const [pad, titel, anker] of [
     ['/tools/indexcalculator', 'Indexcalculator', 'Bronnen en peildatum'],
-    ['/tools/co2-heffingenscan', 'CO2-heffingenscan', 'Tarieven per jaar'],
+    ['/tools/co2-heffingenscan', 'CO2-heffing per installatie', 'Tarieven per jaar'],
   ] as const) {
     test(`${titel}: inhoudsopgave en rapportkop bij printen`, async ({ page }) => {
       await page.goto(pad);
@@ -421,7 +452,7 @@ test.describe('Pro voor leden', () => {
     await expect(page).toHaveURL(/vast=15/);
   });
 
-  test('CO2-heffingenscan Pro: scenario’s en vergelijking', async ({ page }) => {
+  test('CO2-heffing per installatie Pro: scenario’s en vergelijking', async ({ page }) => {
     await logIn(page, '/tools/co2-heffingenscan');
     const tabel = page.getByRole('region', { name: 'Tabel heffing per jaar per scenario' });
     // Op 400 px staan de bedragen per jaar ingeklapt; breed staan ze open.

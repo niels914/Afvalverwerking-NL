@@ -1,9 +1,10 @@
 import '../components/kaart/inhoud.css';
 import { useId, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Badge, KeuzeVeld, Kaart, PaginaKop } from '../components/ui';
 import { kennisbankThemas, linksGecontroleerd, publicaties, publicatieTypes, type Publicatie } from '../data/kennisbank';
 import { datum } from '../lib/format';
+import { isStroomId, stromen, type StroomId } from '../data/stromen';
 
 const EERSTE = 8;
 const maandJaar = new Intl.DateTimeFormat('nl-NL', { month: 'long', year: 'numeric' });
@@ -21,6 +22,9 @@ export function Kennisbank() {
   const [zoek, setZoek] = useState('');
   const [thema, setThema] = useState<string>('alle');
   const [type, setType] = useState<string>('alle');
+  // Filter op afvalstroom; /kennisbank?stroom=gft opent het filter vooraf (de pagina /stromen/<id> linkt hierheen).
+  const [params] = useSearchParams();
+  const [stroom, setStroom] = useState<string>(() => (isStroomId(params.get('stroom')) ? (params.get('stroom') as string) : 'alle'));
   const [alles, setAlles] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(breed);
 
@@ -29,13 +33,14 @@ export function Kennisbank() {
     return publicaties
       .filter((p) => thema === 'alle' || (p.themas as string[]).includes(thema))
       .filter((p) => type === 'alle' || p.type === type)
+      .filter((p) => stroom === 'alle' || p.stromen === 'alle' || p.stromen.includes(stroom as StroomId))
       .filter((p) => !term || `${p.titel} ${p.samenvatting} ${p.uitgever} ${p.inOpdrachtVan ?? ''} ${p.type}`.toLowerCase().includes(term))
       .sort((a, b) => (b.datum ?? `${b.jaar ?? 0}`).localeCompare(a.datum ?? `${a.jaar ?? 0}`) || a.titel.localeCompare(b.titel));
-  }, [zoek, thema, type]);
-  const gefilterd = !!zoek.trim() || thema !== 'alle' || type !== 'alle';
+  }, [zoek, thema, type, stroom]);
+  const gefilterd = !!zoek.trim() || thema !== 'alle' || type !== 'alle' || stroom !== 'alle';
   const ingekort = !alles && !gefilterd && lijst.length > EERSTE;
   const zichtbaar = ingekort ? lijst.slice(0, EERSTE) : lijst;
-  const aantalFilters = [thema, type].filter((w) => w !== 'alle').length;
+  const aantalFilters = [thema, type, stroom].filter((w) => w !== 'alle').length;
 
   return (
     <>
@@ -43,6 +48,12 @@ export function Kennisbank() {
         Rapporten, beleidsstukken en cijfers over afvalbeleid en afvalverwerking van Rijkswaterstaat, CBS, PBL, de Rijksoverheid en onafhankelijke
         onderzoeksbureaus. Per publicatie een korte samenvatting van de redactie en een link naar het origineel.
       </PaginaKop>
+      <p className="klein sectie">
+        <Link className="link-pijl" to="/stromen">
+          Bekijk per stroom
+        </Link>{' '}
+        <span className="muted">voor cijfers, regels en publicaties per afvalstroom.</span>
+      </p>
 
       <form className="nieuws-filters" role="search" aria-label="Kennisbank doorzoeken" onSubmit={(e) => e.preventDefault()}>
         <div className="veld">
@@ -59,6 +70,12 @@ export function Kennisbank() {
               waarde={thema}
               onChange={setThema}
               opties={[{ waarde: 'alle', label: 'Alle thema’s' }, ...kennisbankThemas.map((t) => ({ waarde: t, label: t }))]}
+            />
+            <KeuzeVeld
+              label="Afvalstroom"
+              waarde={stroom}
+              onChange={setStroom}
+              opties={[{ waarde: 'alle', label: 'Alle afvalstromen' }, ...stromen.map((x) => ({ waarde: x.id, label: x.naam }))]}
             />
             <KeuzeVeld
               label="Soort"
@@ -82,6 +99,7 @@ export function Kennisbank() {
               setZoek('');
               setThema('alle');
               setType('alle');
+              setStroom('alle');
             }}
           >
             Wis filters

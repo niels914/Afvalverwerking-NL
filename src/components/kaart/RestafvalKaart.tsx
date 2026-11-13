@@ -58,6 +58,13 @@ interface Props {
   mini?: boolean;
   /** Tekstalternatief voor de kaart als geheel. */
   titel: string;
+  /**
+   * Eigen kleuring, voor kaarten van andere afvalstromen (/stromen). Krijgt de gemeentecode en geeft een kleur;
+   * zonder deze functie kleurt de kaart op `indicator`. Houd de functie stabiel (useMemo), anders tekent de kaart elke keer opnieuw.
+   */
+  kleurPerCode?: (code: string) => string;
+  /** Eigen tekst voor de tooltip bij zweven met de muis; hoort bij `kleurPerCode`. */
+  tipPerCode?: (code: string) => { naam: string; tekst: string } | null;
 }
 
 /**
@@ -66,7 +73,17 @@ interface Props {
  * gemeenten kies je met het zoekveld of de tabel (die tonen dezelfde cijfers). Zo is de kaart
  * geen reeks van honderden tabstops.
  */
-export function RestafvalKaart({ gemeenten = alleGemeenten, indicator, geselecteerd = null, onSelecteer, zoomVerzoek = 0, mini = false, titel }: Props) {
+export function RestafvalKaart({
+  gemeenten = alleGemeenten,
+  indicator,
+  geselecteerd = null,
+  onSelecteer,
+  zoomVerzoek = 0,
+  mini = false,
+  titel,
+  kleurPerCode,
+  tipPerCode,
+}: Props) {
   const id = useId();
   const [data, setData] = useState<KaartData | null>(null);
   const [fout, setFout] = useState(false);
@@ -193,6 +210,7 @@ export function RestafvalKaart({ gemeenten = alleGemeenten, indicator, geselecte
   const zweefVlak = zweef ? vlakPerCode.get(zweef.code) : undefined;
   const zweefGemeente = zweef ? perCode.get(zweef.code) : undefined;
   const zweefWaarde = zweefGemeente ? waardeVan(zweefGemeente, indicator) : null;
+  const eigenTip = zweef && tipPerCode ? tipPerCode(zweef.code) : null;
 
   return (
     <div className={`svgkaart${mini ? ' mini' : ''}${beeld && beeld.zoom > 1 ? ' ingezoomd' : ''}`} ref={vakRef}>
@@ -211,7 +229,7 @@ export function RestafvalKaart({ gemeenten = alleGemeenten, indicator, geselecte
             dezelfde cijfers.
           </desc>
         )}
-        {data && <Vlakken data={data} perCode={perCode} indicator={indicator} />}
+        {data && <Vlakken data={data} perCode={perCode} indicator={indicator} kleurPerCode={kleurPerCode} />}
         {zweefVlak && zweefVlak !== gekozenVlak && (
           <path d={zweefVlak.d} className="zweef" fill="none" stroke="#111827" strokeWidth={1.5} vectorEffect="non-scaling-stroke" pointerEvents="none" />
         )}
@@ -229,7 +247,13 @@ export function RestafvalKaart({ gemeenten = alleGemeenten, indicator, geselecte
         </div>
       )}
 
-      {zweef && zweefGemeente && (
+      {zweef && eigenTip && (
+        <div className="kaart-tip" style={{ left: zweef.x, top: zweef.y }} aria-hidden="true">
+          <strong>{eigenTip.naam}</strong>
+          <span>{eigenTip.tekst}</span>
+        </div>
+      )}
+      {zweef && !tipPerCode && zweefGemeente && (
         <div className="kaart-tip" style={{ left: zweef.x, top: zweef.y }} aria-hidden="true">
           <strong>{zweefGemeente.naam}</strong>
           <span>
@@ -266,15 +290,17 @@ const Vlakken = memo(function Vlakken({
   data,
   perCode,
   indicator,
+  kleurPerCode,
 }: {
   data: KaartData;
   perCode: Map<string, GemeenteAfval>;
   indicator: IndicatorId;
+  kleurPerCode?: (code: string) => string;
 }) {
   return (
     <g className="vlakken" stroke="#ffffff" strokeWidth={0.6} strokeLinejoin="round">
       {data.gemeenten.map((v) => {
-        const kleur = kleurVan(perCode.get(v.c), indicator);
+        const kleur = kleurPerCode ? kleurPerCode(v.c) : kleurVan(perCode.get(v.c), indicator);
         const geen = kleur === KLEUR_GEEN;
         return (
           <path

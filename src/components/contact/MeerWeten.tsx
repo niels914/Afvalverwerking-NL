@@ -5,8 +5,8 @@ import { contact } from '../../data/site';
  * Transparante portretfoto voor het fotoblok. Zet het bestand hier neer:
  *   public/foto-niels-transparant.png  (uitgesneden, zonder achtergrond; vierkant, circa 800 × 800 px)
  * vite.config.ts kijkt bij het bouwen of dat bestand bestaat en vult dan __FOTO_NIELS__ met '/foto-niels-transparant.png'.
- * Zolang het er niet is, toont het fotoblok de initialen. Gebruik nooit de oude ronde foto (public/foto-niels.jpg,
- * rond uitgesneden op lavendel): die is afgekeurd door marketing (16 oktober 2026).
+ * Zolang het er niet is, toont het fotoblok de initialen. Gebruik nooit de oude ronde foto (rond uitgesneden op
+ * lavendel): die is afgekeurd door marketing (16 oktober 2026) en op 13 november 2026 uit public/ verwijderd.
  */
 const FOTO: string = __FOTO_NIELS__;
 

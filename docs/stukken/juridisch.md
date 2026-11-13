@@ -1,6 +1,6 @@
 # Juridisch: voorwaarden, privacy, cookies, toegankelijkheid, disclaimer
 
-Onderdeel "juridisch", ronde 2. Stand 27 oktober 2026. Alle vijf teksten: versie 0.3, 27 oktober 2026.
+Onderdeel "juridisch", ronde 2. Stand 13 november 2026. Algemene voorwaarden en toegankelijkheid: versie 0.3 (27 oktober 2026); privacy, cookies en disclaimer: versie 0.4 (13 november 2026, Heffingenscan en rapportaanvraag).
 
 ## Wat er staat
 
@@ -26,6 +26,13 @@ Verder:
   Ahsmann, nu ook het algemene adres info@kplusv.nl, links naar de vijf pagina's en het colofon.
 - **Lettertype zelf gehost**: `public/fonts/` (Poppins 400–700, latin en latin-ext, OFL), `src/styles/fonts.css`,
   geïmporteerd in `src/main.tsx`. Geen verbinding met Google (e2e controleert dat).
+
+## Heffingenscan en rapportaanvraag (13 november 2026)
+
+- **Privacy** (0.4): verwerking "Rapportaanvraag bij de Heffingenscan" (gegevens, doel, grondslag, bewaartermijn nog vast te stellen, waar: Netlify Forms `rapportaanvraag` en tabel `rapportaanvragen`, alleen KplusV leest; mailknop als versturen mislukt), kern, bezoek, "wat wij niet doen", Netlify en Supabase in `externeDiensten`.
+- **Cookies** (0.4): sleutel `afvalplatform-heffingenscan-bron` (sessionStorage, alleen na `?bron=`), uitzondering Tw 11.7a lid 3 onder b (effectiviteit, geringe gevolgen; gecontroleerd in de BWB-repository, versie 15 augustus 2026) met toetspunt voor de jurist. Opslag gemeten op 13 november.
+- **Disclaimer** (0.4): sectie `#heffingenscan` (indicatief, prijspeil 2026, CBS en wetsvoorstel, bovengrens bij nascheiding, geen grondslag voor een begroting).
+- **Algemene voorwaarden** niet gewijzigd: het rapport (€ 500 excl. btw, `heffingen-aanbod.ts`) valt onder artikel 9.4 (aparte opdracht, algemene voorwaarden KplusV) en spreekt de tekst niet tegen. Aandachtspunten voor de jurist: de definitie "Uitkomst" noemt een "rapport" van een rekentool (niet het betaalde rapport), en 12.2 ("Wat een gebruiker invult in de rekentools, slaat KplusV niet op") noemt de rapportaanvraag niet; de privacyverklaring doet dat wel.
 
 ## Inklappen, ankers en afdrukken (`JuridischDocument.tsx`)
 

@@ -93,5 +93,5 @@ Alle fijn restafval wordt verbrand (bovengrens bij nascheiding); grondslag ASB 7
 ## Open punten
 
 - Inwoners en huishoudens per 1 januari 2025 (zoals het gepubliceerde voorbeeld); CBS heeft cijfers per 1 januari 2026. De scan en `afval-gemeenten.json` (gemiddelde bevolking 2024) geven daardoor verschillende inwonertallen voor dezelfde gemeente.
-- De tekst van de privacyverklaring moet worden aangepast (zie het verslag van de bouwer): nieuwe tabel, formulier, `sessionStorage`-sleutel, nieuwe verwerkingsdoel.
+- Privacyverklaring, cookieverklaring en disclaimer zijn op 13 november 2026 bijgewerkt (versie 0.4, zie `docs/stukken/juridisch.md`). De bewaartermijn van rapportaanvragen is nog niet vastgesteld.
 - Leden en niet-leden: de scan en het formulier hebben geen betaalmuur en geen account.

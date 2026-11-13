@@ -669,7 +669,7 @@ export function Aanbestedingstool() {
             .
           </li>
           <li>
-            Rekenhulp bij criteria: <Link to="/tools/indexcalculator">Indexcalculator</Link>, <Link to="/tools/co2-heffingenscan">CO2-heffingenscan</Link>,{' '}
+            Rekenhulp bij criteria: <Link to="/tools/indexcalculator">Indexcalculator</Link>, <Link to="/tools/co2-heffingenscan">CO2-heffing per installatie</Link>,{' '}
             <Link to="/tools/bodemassencalculator">Bodemassencalculator</Link> en <Link to="/tools/pmd-rekenmodel">Rekenmodel PMD</Link>.
           </li>
         </ul>

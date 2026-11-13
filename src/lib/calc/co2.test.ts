@@ -17,6 +17,9 @@ import {
   type Co2PaginaInvoer,
   type Co2Regels,
 } from './co2';
+import { emissiefactorKeuzes, keuzeBijWaarde } from '../../data/co2-emissiefactor';
+import { fossielFijn } from './heffingen';
+import { wetsstatus } from '../../data/heffingen-tarieven';
 import { co2StandaardInvoer, kentalEmissiefactor, procesemissiefactor, reductiefactor, tariefpaden, tariefpadPrijspeil2026 } from '../../data/co2-tarieven';
 
 const regels = (id: 'geldend' | 'voorstel'): Co2Regels => ({ ...tariefpaden[id], reductiefactor, procesemissiefactor });
@@ -249,5 +252,38 @@ describe('CO2-heffingenscan: ronde 3', () => {
     const vast = bandbreedte([regels('geldend'), regels('voorstel')], inv, 2026);
     expect(vast.hoog.kosten).toBeCloseTo(vast.laag.kosten, 6);
     expect(bandbreedte([regels('geldend')], { ...inv, inflatiePct: 0.5 }, 2028).inflatie[0]).toBe(0);
+  });
+});
+
+describe('CO2-heffing per installatie: één waarheid met de Heffingenscan voor gemeenten', () => {
+  it('biedt het RVO-kental en de NEa-factor voor huishoudelijk restafval aan, met de waarden uit de Heffingenscan', () => {
+    const [kental, nea2026, nea2027] = emissiefactorKeuzes;
+    expect(kental.waarde).toBe(kentalEmissiefactor.waarde);
+    // Afgerond op drie decimalen: 0,989 × (1 − 0,646) en 0,972 × (1 − 0,655).
+    expect(nea2026.waarde).toBe(0.35);
+    expect(nea2027.waarde).toBe(0.335);
+    expect(nea2026.waarde).toBeCloseTo(fossielFijn(2026), 3);
+    expect(nea2027.waarde).toBeCloseTo(fossielFijn(2027), 3);
+    expect(nea2027.waarde).toBeCloseTo(fossielFijn(2035), 3);
+    for (const k of emissiefactorKeuzes) expect(k.bron.url, k.id).toMatch(/^https:\/\//);
+  });
+
+  it('herkent een keuze aan de waarde; elke andere waarde is eigen invoer', () => {
+    expect(keuzeBijWaarde(co2StandaardInvoer.emissiefactor)?.id).toBe('kental');
+    expect(keuzeBijWaarde(0.335)?.id).toBe('nea2027');
+    expect(keuzeBijWaarde(0.4)).toBeUndefined();
+  });
+
+  it('rekent met de NEa-factor lager dan met het kental, bij gelijke overige invoer', () => {
+    const standaard = { ...co2StandaardInvoer, tonnage: 10000 };
+    const kental = scanJaar(regels('voorstel'), { ...standaard, emissiefactor: emissiefactorKeuzes[0].waarde }, 2030);
+    const nea = scanJaar(regels('voorstel'), { ...standaard, emissiefactor: emissiefactorKeuzes[2].waarde }, 2030);
+    expect(nea.uitstoot).toBeCloseTo(10000 * 0.335, 6);
+    expect(nea.kosten).toBeLessThan(kental.kosten);
+  });
+
+  it('de status van het wetsvoorstel staat op één plek en geeft een leesbare stand', () => {
+    expect(wetsstatus.fase).toBe('aangenomen-tweede-kamer');
+    expect(wetsstatus.kort).toContain('Eerste Kamer');
   });
 });

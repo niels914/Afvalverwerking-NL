@@ -78,6 +78,12 @@ export default function Restafvalkaart() {
         , peiljaar {afvalBron.peiljaar} ({afvalBron.status.label}), opgehaald {datum(afvalBron.opgehaald)}.{' '}
         <a href="#bron">Rekenwijze en bronnen</a>
       </p>
+      <p className="klein">
+        <Link className="link-pijl" to="/stromen">
+          Bekijk per stroom
+        </Link>{' '}
+        <span className="muted">voor gft, papier, PMD, textiel, glas en andere stromen, ook met kaart en tabel per gemeente.</span>
+      </p>
 
       {gevraagd && !gevonden && (
         <div className="notitie sectie" role="status">

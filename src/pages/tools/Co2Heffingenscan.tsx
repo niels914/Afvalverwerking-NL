@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useRol } from '../../components/betaalmuur/RolContext';
 import { Vergrendeld } from '../../components/betaalmuur/Vergrendeld';
 import { LijnGrafiek } from '../../components/grafiek/Grafieken';
@@ -41,7 +41,10 @@ import {
   VERHOUDING_INVOER_MAX_PCT,
   VERHOUDING_INVOER_MIN_PCT,
 } from '../../lib/calc/co2';
+import { emissiefactorKeuzes, keuzeBijWaarde } from '../../data/co2-emissiefactor';
+import { heffingBronnen, wetsstatus } from '../../data/heffingen-tarieven';
 import { datum, euro, getal, metEenheid, procent } from '../../lib/format';
+import { HEFFINGENSCAN_PAD } from '../../lib/heffingenVoorbeeld';
 
 const PAD = '/tools/co2-heffingenscan';
 const FORMULE = [
@@ -103,11 +106,13 @@ export function Co2Heffingenscan() {
       : `${procent(u.vrijgesteldDeel * 100)} (${getal(u.procesemissiefactor, 2)} × ${getal(u.reductiefactor, 3)} × ${getal(u.correctiefactor, 2)}${
           invoer.uitstootVerhoudingPct !== 100 ? ` ÷ ${getal(invoer.uitstootVerhoudingPct / 100, 2)}` : ''
         })`;
-  const eigenEf = invoer.emissiefactor !== kentalEmissiefactor.waarde;
+  const efKeuze = keuzeBijWaarde(invoer.emissiefactor);
+  const efHerkomst = efKeuze ? (efKeuze.id === 'kental' ? 'kental' : 'NEa-factor huishoudelijk restafval') : 'eigen waarde';
+  const [efKeuzeId, setEfKeuzeId] = useState<string>(() => keuzeBijWaarde(invoer.emissiefactor)?.id ?? 'eigen');
 
   const invoerRegels = [
     { label: 'Restafval (aanname)', waarde: metEenheid(invoer.tonnage, 'ton per jaar') },
-    { label: 'Fossiele emissiefactor', waarde: `${getal(invoer.emissiefactor, 3)} ton CO2 per ton${eigenEf ? ' (eigen waarde)' : ' (kental)'}` },
+    { label: 'Fossiele emissiefactor', waarde: `${getal(invoer.emissiefactor, 3)} ton CO2 per ton (${efHerkomst})` },
     { label: 'Heffingsjaar', waarde: String(invoer.jaar) },
     { label: 'Tariefpad', waarde: pad.kort },
     { label: 'Inflatiecorrectie (aanname)', waarde: inflatieTekst(invoer.inflatiePct) },
@@ -119,7 +124,7 @@ export function Co2Heffingenscan() {
   ];
 
   const csvGratis = (): CsvCel[][] => [
-    ['CO2-heffingenscan', 'KplusV'],
+    ['CO2-heffing per installatie', 'KplusV'],
     ['Versie tool', `${co2ToolVersie.versie} (${co2ToolVersie.datum})`],
     ['Peildatum tarieven en regels', PEILDATUM],
     ['Tariefpad', pad.naam],
@@ -127,7 +132,7 @@ export function Co2Heffingenscan() {
     [],
     ['Invoer', 'Waarde', 'Herkomst'],
     ['Restafval (ton per jaar)', invoer.tonnage, 'aanname gebruiker'],
-    ['Fossiele emissiefactor (ton CO2 per ton)', invoer.emissiefactor, eigenEf ? 'eigen waarde' : `kental, ${kentalEmissiefactor.bron.url}`],
+    ['Fossiele emissiefactor (ton CO2 per ton)', invoer.emissiefactor, efKeuze ? `${efHerkomst}, ${efKeuze.bron.url}` : 'eigen waarde'],
     ['Heffingsjaar', invoer.jaar, ''],
     ['Inflatiecorrectie per jaar (%)', invoer.inflatiePct, `aanname gebruiker; correctie per 1-1-2027 is ${getal(inflatiecorrectie2027.pct, 1)} % (MvT BP 2027)`],
     ['Vrijstelling', invoer.vrijstelling === 'eigen' ? 'eigen percentage' : 'wettelijk berekend', ''],
@@ -160,7 +165,7 @@ export function Co2Heffingenscan() {
     [`Ter vergelijking: heffing bij ${tariefpaden[anderPad].kort} (euro)`, ander.kosten],
     [`Bandbreedte ondergrens (euro): beide tariefpaden, inflatie ${getal(band.inflatie[0], 1)}–${getal(band.inflatie[1], 1)} %`, band.laag.kosten],
     ['Bandbreedte bovengrens (euro)', band.hoog.kosten],
-    ['Let op', 'Het Belastingplan 2027 is nog geen wet en het coalitieakkoord noemt afschaffing van de heffing; dat valt buiten de bandbreedte.'],
+    ['Let op', `Belastingplan 2027, stand ${datum(wetsstatus.peildatum)}: ${wetsstatus.kort} Het is nog geen wet. Het coalitieakkoord noemt afschaffing van de heffing; dat valt buiten de bandbreedte.`],
     [],
     ['Formule', FORMULE],
     ['Tarief per jaar', FORMULE_TARIEF],
@@ -237,6 +242,16 @@ export function Co2Heffingenscan() {
       peildatum: PEILDATUM,
     },
     {
+      onderwerp: 'Fossiele emissiefactor, NEa huishoudelijk restafval',
+      status: 'officieel',
+      waarde: `${getal(emissiefactorKeuzes[1].waarde, 3)} ton CO2 per ton (2026), ${getal(emissiefactorKeuzes[2].waarde, 3)} (2027 en later)`,
+      toelichting:
+        'Voorlopige emissiefactor × (1 − biomassafractie) voor de categorie huishoudelijk afval, afgerond op drie decimalen. Dezelfde waarden als in de Heffingenscan voor gemeenten. De NEa publiceert tot en met 2027.',
+      bron: heffingBronnen.neaFactoren.titel,
+      url: heffingBronnen.neaFactoren.url,
+      peildatum: PEILDATUM,
+    },
+    {
       onderwerp: 'Inflatiecorrectie 2027',
       status: 'voorstel',
       waarde: `${procent(inflatiecorrectie2027.pct)} (tabelcorrectiefactor 1,026)`,
@@ -256,11 +271,16 @@ export function Co2Heffingenscan() {
 
   return (
     <div className="ta-tool" ref={toolRef}>
-      <RapportKop titel="CO2-heffingenscan" ondertitel={`Tarieven en regels volgens wet en NEa, peildatum ${datum(PEILDATUM)} · ${VERSIE_TEKST}`} />
-      <PaginaKop titel="CO2-heffingenscan" badges={<Badge soort="pro">Gratis deel + Pro voor leden</Badge>}>
+      <RapportKop titel="CO2-heffing per installatie" ondertitel={`Tarieven en regels volgens wet en NEa, peildatum ${datum(PEILDATUM)} · ${VERSIE_TEKST}`} />
+      <PaginaKop titel="CO2-heffing per installatie" badges={<Badge soort="pro">Gratis deel + Pro voor leden</Badge>}>
         Schat wat de CO2-heffing voor afvalverbrandingsinstallaties betekent voor uw tonnage restafval. Tarieven en vrijstelling
         komen uit de wet, van de Nederlandse Emissieautoriteit en uit het Belastingplan 2027.
       </PaginaKop>
+      <p className="notitie info">
+        <strong>Voor wie is deze tool?</strong> Voor installaties en contractmanagers, met uw inflatieaanname (standaard{' '}
+        {procent(inflatiecorrectie2027.pct)}). Gemeente? Kies de gratis{' '}
+        <Link to={HEFFINGENSCAN_PAD}>Heffingenscan voor gemeenten</Link> (prijspeil 2026, zonder inflatie).
+      </p>
 
       <Kern>
         {ok ? (
@@ -282,7 +302,7 @@ export function Co2Heffingenscan() {
                   {getal(band.inflatie[0], 1)}–{procent(band.inflatie[1])}).
                 </>
               )}{' '}
-              Belastingplan 2027 is nog geen wet; het coalitieakkoord noemt afschaffing: <a href="#ontwikkelingen">wat kan er veranderen</a>.
+              Belastingplan 2027 is nog geen wet. {wetsstatus.kort} Het coalitieakkoord noemt afschaffing: <a href="#ontwikkelingen">wat kan er veranderen</a>.
             </li>
           )}
           {ok && (
@@ -297,7 +317,7 @@ export function Co2Heffingenscan() {
           )}
           {ok && isLid && !laden && <KernPro invoer={invoer} padId={padId} />}
           <li>
-            Aannames: fossiele emissiefactor {getal(invoer.emissiefactor, 3)} ton CO2 per ton{eigenEf ? ' (eigen waarde)' : ' (kental)'}, inflatie{' '}
+            Aannames: fossiele emissiefactor {getal(invoer.emissiefactor, 3)} ton CO2 per ton ({efHerkomst}), inflatie{' '}
             {inflatieTekst(invoer.inflatiePct)},{' '}
             {invoer.vrijstelling === 'eigen'
               ? `eigen vrijgesteld deel ${procent(invoer.eigenVrijgesteldPct)}`
@@ -331,13 +351,26 @@ export function Co2Heffingenscan() {
           <Kaart titel="Invoer" className="invoerkaart">
             <div className="velden">
               <GetalVeld label="Restafval" eenheid="ton/jaar" max={1e9} waarde={invoer.tonnage} onChange={(n) => zet('tonnage', n)} hint="Aanname: de tonnage die u laat verbranden." />
+              <KeuzeVeld
+                label="Bron van de emissiefactor"
+                waarde={efKeuzeId}
+                opties={[...emissiefactorKeuzes.map((k) => ({ waarde: k.id as string, label: k.label })), { waarde: 'eigen', label: 'Eigen waarde van uw verwerker' }]}
+                onChange={(id) => {
+                  setEfKeuzeId(id);
+                  const k = emissiefactorKeuzes.find((e) => e.id === id);
+                  if (k) zet('emissiefactor', k.waarde);
+                }}
+                hint="Standaard het RVO-kental; voor alleen huishoudelijk restafval is de NEa-factor lager."
+              />
               <GetalVeld
                 label="Fossiele emissiefactor"
                 eenheid="t CO2/t"
                 max={5}
                 waarde={invoer.emissiefactor}
-                onChange={(n) => zet('emissiefactor', n)}
-                hint={`Kental ${getal(kentalEmissiefactor.waarde, 3)} uit de lijst van energiedragers 2026 (afval gemiddeld). Vraag de waarde van uw verwerker op.`}
+                onChange={(n) => {
+                  zet('emissiefactor', n);
+                  setEfKeuzeId(keuzeBijWaarde(n)?.id ?? 'eigen');
+                }}
               />
               <KeuzeVeld label="Heffingsjaar" waarde={invoer.jaar} opties={jaarlijst.map((j) => ({ waarde: j, label: String(j) }))} onChange={(j) => zet('jaar', j)} />
               <fieldset>
@@ -422,7 +455,7 @@ export function Co2Heffingenscan() {
             <div className="stapel">
               {pad.status === 'voorstel' && (
                 <p className="notitie info">
-                  <BronStatusLabel status="voorstel" /> U rekent met het Belastingplan 2027. Dat is nog niet aangenomen.
+                  <BronStatusLabel status="voorstel" /> U rekent met het Belastingplan 2027. Dat is nog geen wet. {wetsstatus.kort}
                 </p>
               )}
               <div className="tegels">
@@ -448,8 +481,7 @@ export function Co2Heffingenscan() {
                     </p>
                   )}
                   <p className="klein">
-                    <BronStatusLabel status="voorstel" /> Het Belastingplan 2027 is ingediend op 15 september 2026 en nog niet aangenomen. Het
-                    coalitieakkoord noemt afschaffing van de heffing; dan vervalt dit bedrag. Beide vallen buiten de bandbreedte.
+                    <BronStatusLabel status="voorstel" /> Nog geen wet. {wetsstatus.kort} Afschaffing valt buiten de grenzen.
                   </p>
                 </div>
               )}
@@ -471,7 +503,7 @@ export function Co2Heffingenscan() {
               )}
               {ok ? (
                 <ExportKnoppen
-                  naam="CO2-heffingenscan"
+                  naam="CO2-heffing per installatie"
                   csvRijen={csvGratis}
                   params={deelParams}
                   pad={PAD}
@@ -502,7 +534,7 @@ export function Co2Heffingenscan() {
           </p>
         ) : (
           <Vergrendeld
-            titel="CO2-heffingenscan Pro"
+            titel="CO2-heffing per installatie Pro"
             ledenKrijgen={[
               `Verloop ${scanJaren.eerste}–${scanJaren.laatste} naast elkaar voor geldend recht en het wetsvoorstel`,
               'Drie scenario’s voor het scheidingspercentage',
@@ -616,7 +648,13 @@ export function Co2Heffingenscan() {
           <ul className="opsomming">
             {ontwikkelingen.map((o) => (
               <li key={o.titel}>
-                <strong>{o.titel}.</strong> {o.tekst}{' '}
+                <strong>{o.titel}.</strong>{' '}
+                {o.metWetsstatus && (
+                  <>
+                    Stand {datum(wetsstatus.peildatum)}: {wetsstatus.kort}{' '}
+                  </>
+                )}
+                {o.tekst}{' '}
                 <a href={o.bron.url} target="_blank" rel="noopener noreferrer" className="klein">
                   Bron: {o.bron.titel}
                 </a>
@@ -624,7 +662,7 @@ export function Co2Heffingenscan() {
             ))}
           </ul>
         </Inklapbaar>
-        <Inklapbaar id="rekenregels" titel="Zo rekent de scan" sub="formules en uitgangspunten">
+        <Inklapbaar id="rekenregels" titel="Zo rekent de tool" sub="formules en uitgangspunten">
           <code className="formule">{`${FORMULE}\n${FORMULE_TARIEF}`}</code>
           <ul className="opsomming">
             <li>De heffing betaalt de exploitant van de AVI. De scan verdeelt die naar rato van uw tonnage. Hoeveel uw verwerker doorberekent, staat in uw contract.</li>
@@ -705,7 +743,7 @@ function Co2Pro({ invoer, zet, padId, deelParams, ok }: ProProps) {
   const laatste = scenarios[0].regels.length - 1;
 
   const csvPro = (): CsvCel[][] => [
-    ['CO2-heffingenscan Pro', 'KplusV'],
+    ['CO2-heffing per installatie Pro', 'KplusV'],
     ['Versie tool', `${co2ToolVersie.versie} (${co2ToolVersie.datum})`],
     ['Peildatum tarieven en regels', PEILDATUM],
     ['Tariefpad', tariefpaden[padId].naam],
@@ -837,7 +875,7 @@ function Co2Pro({ invoer, zet, padId, deelParams, ok }: ProProps) {
             </table>
           </div>
           </details>
-          {ok && <ExportKnoppen naam="CO2-heffingenscan Pro" csvRijen={csvPro} params={deelParams} pad={PAD} linkInklappen />}
+          {ok && <ExportKnoppen naam="CO2-heffing per installatie Pro" csvRijen={csvPro} params={deelParams} pad={PAD} linkInklappen />}
           <RapportKnop />
         </div>
       </Uitkomst>

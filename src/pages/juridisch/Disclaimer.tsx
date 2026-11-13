@@ -86,6 +86,37 @@ const secties: Sectie[] = [
     ),
   },
   {
+    id: 'heffingenscan',
+    titel: 'Heffingenscan',
+    inhoud: (
+      <>
+        <p>
+          De <Link to="/heffingenscan">Heffingenscan</Link> is een indicatieve berekening in prijspeil 2026, zonder indexatie.
+          Ze rekent met cijfers van het CBS over het restafval en de nascheiding van uw gemeente en met het wetsvoorstel
+          Belastingplan 2027. Dat voorstel is nog geen wet; de uitkomst verandert als het voorstel verandert of wordt verworpen.
+        </p>
+        <ul>
+          <li>
+            De bedragen zijn een bovengrens voor gemeenten met nascheiding: de scan rekent met al het fijne restafval dat het
+            CBS meldt, ook het deel dat niet wordt verbrand.
+          </li>
+          <li>
+            De scan rekent met landelijke factoren en kentallen, niet met de gegevens van de verbrandingsinstallatie waar uw
+            afval heen gaat. Wat een verwerker werkelijk doorberekent, staat in uw contract.
+          </li>
+          <li>
+            De uitkomst is geen grondslag voor een begroting, een raadsvoorstel of een besluit zonder uw eigen cijfers. Vul die
+            in bij &lsquo;Rekenen met eigen cijfers&rsquo; of vraag het rapport aan.
+          </li>
+        </ul>
+        <p>
+          De aannames staan op de pagina onder &lsquo;Methode en bronnen&rsquo;. Het rapport is een aparte opdracht aan KplusV; daarvoor gelden de
+          algemene voorwaarden van KplusV (zie <Link to="/algemene-voorwaarden#rekentools">artikel 9</Link>).
+        </p>
+      </>
+    ),
+  },
+  {
     id: 'open-data',
     titel: 'Open data en bronvermelding',
     inhoud: (
@@ -219,6 +250,7 @@ const kern = [
   'Cijfers op het platform hebben een bron en een peildatum. Aan de inhoud kunt u geen rechten ontlenen.',
   'Het platform is in bèta: prijzen en voorwaarden zijn concept, en sommige waarden zijn nog voorbeeld. Die hebben het label Voorbeeld.',
   'Rekentools geven een indicatie, geen advies. Controleer belangrijke uitkomsten voordat u er een besluit op baseert.',
+  'De Heffingenscan rekent in prijspeil 2026 met CBS-cijfers en een wetsvoorstel dat nog geen wet is. De bedragen zijn een bovengrens voor gemeenten met nascheiding en geen grondslag voor een begroting zonder eigen cijfers.',
   'Open data van CBS, PDOK en TenderNed blijft onder de licentie van de bron; wij vermelden de bron bij elk gegeven.',
 ];
 

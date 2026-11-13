@@ -364,6 +364,20 @@ test('Overzicht rekentools noemt per tool de bronnen', async ({ page }) => {
   await geenHorizontaleScroll(page);
 });
 
+test('Overzicht rekentools: de Heffingenscan voor gemeenten staat bovenaan, de installatietool heet anders', async ({ page }) => {
+  await page.goto('/tools');
+  const kaarten = page.locator('.toolkaart');
+  await expect(kaarten.first().getByRole('heading', { name: 'Heffingenscan voor gemeenten' })).toBeVisible();
+  await expect(kaarten.first().getByText('Gratis', { exact: true }).first()).toBeVisible();
+  await expect(kaarten.first().getByRole('link', { name: /Open tool/ })).toHaveAttribute('href', '/heffingenscan');
+  const installatie = kaarten.filter({ has: page.getByRole('heading', { name: 'CO2-heffing per installatie' }) });
+  await expect(installatie).toHaveCount(1);
+  await expect(installatie.getByRole('link', { name: /Open tool/ })).toHaveAttribute('href', '/tools/co2-heffingenscan');
+  await expect(installatie).toContainText('Voor gemeenten: gebruik de Heffingenscan');
+  await expect(page.getByRole('heading', { name: 'CO2-heffingenscan' })).toHaveCount(0);
+  await geenHorizontaleScroll(page);
+});
+
 // Ledendeel met een echte inlog. Draai met E2E_EMAIL en E2E_WACHTWOORD van een account bij een actieve lidorganisatie.
 const EMAIL = process.env.E2E_EMAIL;
 const WACHTWOORD = process.env.E2E_WACHTWOORD;

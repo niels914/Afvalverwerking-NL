@@ -22,10 +22,10 @@ export interface DocumentMeta {
 
 export const documenten: Record<DocumentId, DocumentMeta> = {
   'algemene-voorwaarden': { titel: 'Algemene voorwaarden', pad: '/algemene-voorwaarden', versie: '0.3', gewijzigd: '2026-10-27', concept: true },
-  privacy: { titel: 'Privacyverklaring', pad: '/privacy', versie: '0.3', gewijzigd: '2026-10-27', concept: true },
-  cookies: { titel: 'Cookieverklaring', pad: '/cookies', versie: '0.3', gewijzigd: '2026-10-27', concept: true },
+  privacy: { titel: 'Privacyverklaring', pad: '/privacy', versie: '0.4', gewijzigd: '2026-11-13', concept: true },
+  cookies: { titel: 'Cookieverklaring', pad: '/cookies', versie: '0.4', gewijzigd: '2026-11-13', concept: true },
   toegankelijkheid: { titel: 'Toegankelijkheidsverklaring', pad: '/toegankelijkheid', versie: '0.3', gewijzigd: '2026-10-27', concept: true },
-  disclaimer: { titel: 'Disclaimer en colofon', pad: '/disclaimer', versie: '0.3', gewijzigd: '2026-10-27', concept: true },
+  disclaimer: { titel: 'Disclaimer en colofon', pad: '/disclaimer', versie: '0.4', gewijzigd: '2026-11-13', concept: true },
 };
 
 /**
@@ -72,10 +72,10 @@ export const bronnen = {
     peildatum: '2026-10-19',
   },
   telecomwet: {
-    feit: 'Opslag in de browser zonder toestemming is toegestaan als die strikt noodzakelijk is voor de dienst waar de gebruiker om vraagt',
+    feit: 'Opslag in de browser zonder toestemming is toegestaan als die strikt noodzakelijk is voor de dienst waar de gebruiker om vraagt, of, mits dat geen of geringe gevolgen heeft voor de persoonlijke levenssfeer, om informatie te krijgen over de kwaliteit of effectiviteit van de dienst',
     titel: 'Telecommunicatiewet, artikel 11.7a lid 3 (wetten.overheid.nl)',
     url: 'https://wetten.overheid.nl/jci1.3:c:BWBR0009950&hoofdstuk=11&paragraaf=11.1&artikel=11.7a',
-    peildatum: '2026-10-19',
+    peildatum: '2026-11-13',
   },
   acmCookies: {
     feit: 'Functionele cookies mag een website zonder toestemming plaatsen, mits de website vertelt welke cookies zij plaatst',
@@ -283,7 +283,7 @@ export const opslag: OpslagItem[] = [
 ];
 
 /** Datum waarop de cookies en opslag zijn gemeten met een echte browser, zonder in te loggen (e2e/juridisch.spec.ts). */
-export const opslagGemetenOp = '2026-10-27';
+export const opslagGemetenOp = '2026-11-13';
 
 // ---------- Supabase (privacyverklaring) ----------
 
@@ -340,8 +340,8 @@ export const externeDiensten: ExterneDienst[] = [
     naam: 'Supabase',
     partij: 'Supabase, Inc. (Verenigde Staten)',
     rol: 'Verwerker voor KplusV',
-    waarvoor: 'Inloggen, accounts, de ledenadministratie (welke organisatie lid is en met welke e-maildomeinen) en het aanbestedingsarchief, inclusief het dagelijks ophalen bij TenderNed.',
-    gegevens: 'E-mailadres, versleuteld wachtwoord (als u dat instelt), tijdstippen van aanmaken en inloggen, technische logboeken met IP-adres en browsertype.',
+    waarvoor: 'Inloggen, accounts, de ledenadministratie (welke organisatie lid is en met welke e-maildomeinen), het aanbestedingsarchief, inclusief het dagelijks ophalen bij TenderNed, en de opslag van rapportaanvragen voor de Heffingenscan.',
+    gegevens: 'E-mailadres, versleuteld wachtwoord (als u dat instelt), tijdstippen van aanmaken en inloggen, technische logboeken met IP-adres en browsertype; bij een rapportaanvraag de gegevens uit het formulier.',
     waar: `Database in de Europese Unie: ${supabaseProject.regio}.`,
     doorgifte: 'Supabase is een Amerikaans bedrijf. Beheer, support en sommige subverwerkers kunnen gegevens vanuit de Verenigde Staten inzien. Supabase gebruikt daarvoor de standaardcontractbepalingen van de Europese Commissie.',
     bron: ['supabaseRegio', 'supabasePrivacy', 'supabaseSubverwerkers'],
@@ -350,7 +350,7 @@ export const externeDiensten: ExterneDienst[] = [
     naam: 'Netlify',
     partij: 'Netlify, Inc. (Verenigde Staten)',
     rol: 'Verwerker voor KplusV',
-    waarvoor: 'Hosting van de website en ontvangst van het aanmeldformulier en het feedbackformulier.',
+    waarvoor: 'Hosting van de website en ontvangst van het aanmeldformulier, het feedbackformulier en het formulier voor een rapportaanvraag (Netlify Forms, formulier “rapportaanvraag”).',
     gegevens: 'IP-adres, opgevraagde pagina, tijdstip en browsertype in serverlogboeken; de inhoud van verzonden formulieren.',
     waar: 'Netlify levert pagina’s via servers wereldwijd; formulierinzendingen bewaart Netlify in de Verenigde Staten.',
     doorgifte: 'Doorgifte naar de Verenigde Staten. Netlify neemt deel aan het EU-US Data Privacy Framework en gebruikt daarnaast standaardcontractbepalingen.',

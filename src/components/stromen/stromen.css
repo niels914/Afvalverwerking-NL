@@ -1,0 +1,205 @@
+/* Pagina's /stromen en /stromen/<id>. Huisstijl 2.2: Mist-blokken, balkkoppen, geen schaduwen of afrondingen. */
+
+.stromen-blokken {
+  display: grid;
+  gap: 12px;
+}
+.stromen-blokken .blok > .ta-inklap-inhoud {
+  padding-top: 4px;
+}
+.stromen-blokken .blok > .ta-inklap-inhoud h3 {
+  font-size: 16px;
+  margin: 0;
+}
+.stromen-blokken .blok > .ta-inklap-inhoud h4 {
+  font-size: 15px;
+  margin: 0;
+}
+.stromen-blokken .blok > .ta-inklap-inhoud p {
+  margin: 0;
+}
+
+.op-deze-pagina {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+}
+
+/* Kaart naast het paneel van de gekozen gemeente */
+.stromen-kaartlaag {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .stromen-kaartlaag {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.stromen-kaartlaag .legenda,
+.stromen-kaartlaag .kaart {
+  background: var(--wit);
+}
+.stromen-kaartlaag .gemeente-paneel .kaart {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  background: var(--wit);
+  border: 1px solid var(--lijn);
+}
+.stromen-kaartlaag .gemeente-paneel h3:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+.stromen-tabel {
+  display: grid;
+  gap: 8px;
+  margin-top: 8px;
+}
+.stromen-tabel h3 {
+  margin: 8px 0 0;
+}
+
+/* Lijsten met feiten, regels, criteria en publicaties */
+.feiten,
+.regels,
+.criteria,
+.publicaties,
+.toollijst {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+.feiten > li,
+.regels > li,
+.criteria > li,
+.publicaties > li {
+  display: grid;
+  gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--lijn);
+  min-width: 0;
+}
+.toollijst > li {
+  display: grid;
+  gap: 2px;
+  padding: 10px 0 0;
+  border-top: 1px solid var(--lijn);
+}
+.bron-regel {
+  color: var(--tekst-2);
+  overflow-wrap: anywhere;
+}
+.voor-gemeente {
+  background: var(--wit);
+  padding: 8px 12px;
+}
+.open-vragen ul {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+.verwerking-cbs {
+  display: grid;
+  gap: 8px;
+}
+
+/* Overzicht */
+.stroomraster {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+@media (max-width: 700px) {
+  .stroomraster {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.stroomkaart {
+  background: var(--mist);
+  padding: 18px 20px 20px;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  min-width: 0;
+}
+.stroomkaart h2 {
+  font-size: 18px;
+  margin: 0;
+}
+.stroomkaart p {
+  margin: 0;
+}
+.stroomkaart .kerncijfer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 12px;
+}
+.stroomkaart .kerncijfer strong {
+  font-size: 28px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.sparkline {
+  display: block;
+  width: 100%;
+  height: 44px;
+}
+
+/* Matrix: tabel op breed scherm, kaartjes per stroom op smal scherm */
+.stromen-matrix {
+  width: 100%;
+  border-collapse: collapse;
+}
+.stromen-matrix th,
+.stromen-matrix td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--lijn);
+  vertical-align: top;
+}
+.stromen-matrix thead th {
+  background: var(--inkt);
+  color: var(--wit);
+  font-size: 14px;
+}
+@media (max-width: 800px) {
+  .stromen-matrix,
+  .stromen-matrix tbody,
+  .stromen-matrix tr,
+  .stromen-matrix th,
+  .stromen-matrix td {
+    display: block;
+  }
+  .stromen-matrix thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  .stromen-matrix tr {
+    background: var(--mist);
+    padding: 8px 4px 10px;
+    margin-bottom: 14px;
+  }
+  .stromen-matrix tbody th {
+    font-size: 17px;
+    border: 0;
+  }
+  .stromen-matrix td {
+    border: 0;
+    padding: 4px 12px;
+  }
+  .stromen-matrix td::before {
+    content: attr(data-label) ': ';
+    font-weight: 600;
+  }
+}

@@ -184,6 +184,16 @@ test('geen cookies, alleen beschreven browseropslag en geen onbeschreven verbind
   await page.goto('/restafvalkaart');
   await page.waitForLoadState('networkidle');
 
+  // De Heffingenscan zonder ?bron= zet niets in de sessieopslag; met ?bron= alleen de beschreven sleutel.
+  await page.goto('/heffingenscan/overbetuwe');
+  await page.waitForLoadState('networkidle');
+  expect(await page.evaluate(() => Object.keys(sessionStorage).filter((s) => s.includes('heffingenscan')))).toEqual([]);
+  await page.goto('/heffingenscan/overbetuwe?bron=linkedin-1');
+  await page.waitForLoadState('load');
+  await expect.poll(() => page.evaluate(() => sessionStorage.getItem('afvalplatform-heffingenscan-bron'))).toBe('linkedin-1');
+  await page.goto('/heffingenscan');
+  await page.waitForLoadState('load');
+
   // Vul één veld van het aanmeldformulier in: dat mag alleen de beschreven sessieopslag maken.
   await page.goto('/lidmaatschap/aanmelden');
   const eersteVeld = page.getByRole('textbox').first();
@@ -194,6 +204,47 @@ test('geen cookies, alleen beschreven browseropslag en geen onbeschreven verbind
   const beschreven = opslag.map((o) => o.sleutel);
   expect(sleutels.filter((s) => !beschreven.includes(s)), 'onbeschreven sleutel in browseropslag').toEqual([]);
   expect([...vreemd], 'verbinding met een server die niet in de cookie- en privacyverklaring staat').toEqual([]);
+});
+
+test('privacy-, cookie- en disclaimerverklaring beschrijven de rapportaanvraag, de bronsleutel en de Heffingenscan', async ({ page }) => {
+  const openAlles = async () => {
+    await expect(page.getByRole('region', { name: 'In het kort' })).toBeVisible();
+    const uitklappen = page.getByRole('button', { name: 'Alles uitklappen' });
+    if (await uitklappen.isVisible()) await uitklappen.click();
+  };
+
+  await page.goto('/privacy');
+  await openAlles();
+  const aanvraag = page.locator('#verwerking-rapportaanvraag');
+  await expect(aanvraag).toBeVisible();
+  await expect(aanvraag).toContainText('naam, organisatie, functie en e-mailadres');
+  await expect(aanvraag).toContainText('telefoonnummer');
+  await expect(aanvraag).toContainText('kerncijfers van de scan');
+  await expect(aanvraag).toContainText('?bron=');
+  await expect(aanvraag).toContainText('Netlify Forms (formulier “rapportaanvraag”)');
+  await expect(aanvraag).toContainText('tabel “rapportaanvragen”');
+  await expect(aanvraag).toContainText('Alleen KplusV leest de tabel');
+  await expect(aanvraag).toContainText('Nog vast te stellen (concept)');
+  await expect(page.getByRole('region', { name: 'In het kort' })).toContainText('rapport aan bij de Heffingenscan');
+  await expect(page.locator('#ontvangers')).toContainText('formulier “rapportaanvraag”');
+  await expect(page.locator('#database')).toContainText('rapportaanvragen');
+
+  await page.goto('/cookies');
+  await openAlles();
+  const overzicht = page.locator('#overzicht');
+  await expect(overzicht.getByRole('heading', { name: 'afvalplatform-heffingenscan-bron' })).toBeVisible();
+  await expect(overzicht).toContainText('Sessieopslag (sessionStorage)');
+  await expect(overzicht).toContainText('geen cookie en geen tracker');
+  await expect(page.locator('#geen-toestemming')).toContainText('?bron=');
+
+  await page.goto('/disclaimer');
+  await openAlles();
+  const scan = page.locator('#heffingenscan');
+  await expect(scan).toContainText('prijspeil 2026');
+  await expect(scan).toContainText('CBS');
+  await expect(scan).toContainText('nog geen wet');
+  await expect(scan).toContainText('bovengrens voor gemeenten met nascheiding');
+  await expect(scan).toContainText('geen grondslag voor een begroting');
 });
 
 test('toegankelijkheidsverklaring toont status, meting en bekende problemen uit de meetgegevens', async ({ page }) => {

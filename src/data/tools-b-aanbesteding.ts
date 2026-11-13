@@ -206,7 +206,7 @@ export type DrempelId = keyof typeof drempels;
 export const drempelBron = bronnen.pianooDrempels;
 
 const index = { pad: '/tools/indexcalculator', naam: 'Indexcalculator' };
-const co2 = { pad: '/tools/co2-heffingenscan', naam: 'CO2-heffingenscan' };
+const co2 = { pad: '/tools/co2-heffingenscan', naam: 'CO2-heffing per installatie' };
 const bodemas = { pad: '/tools/bodemassencalculator', naam: 'Bodemassencalculator' };
 const pmd = { pad: '/tools/pmd-rekenmodel', naam: 'Rekenmodel bron- en nascheiding PMD' };
 

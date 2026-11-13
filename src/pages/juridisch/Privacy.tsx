@@ -14,6 +14,8 @@ interface Verwerking {
   grondslag: string;
   bewaartermijn: string;
   wie: string;
+  /** Waar de gegevens staan, als dat meer is dan de gewone verwerkers. */
+  waar?: string;
 }
 
 const verwerkingen: Verwerking[] = [
@@ -64,6 +66,20 @@ const verwerkingen: Verwerking[] = [
     wie: 'Medewerkers van KplusV die aan het platform werken, en Netlify als verwerker.',
   },
   {
+    id: 'rapportaanvraag',
+    titel: 'Rapportaanvraag bij de Heffingenscan',
+    gegevens:
+      'Uw naam, organisatie, functie en e-mailadres; uw telefoonnummer en een opmerking als u die invult; de gemeente waarover u het rapport aanvraagt; uw keuze (rapport, rapport met toelichting en sparringssessie, of meerdere gemeenten); dat u akkoord ging met deze privacyverklaring. Ook gaan de kerncijfers van de scan op dat moment mee (de uitkomsten, de deellink en of u met aangepaste cijfers rekende) en, alleen als u via een link met ?bron= kwam, de code uit die link. Dit zijn gegevens over uw werk bij een gemeente; de kerncijfers gaan over de gemeente.',
+    doel: 'Uw aanvraag beantwoorden, de invoer voor het rapport met u bevestigen en het rapport leveren. De code uit de link gebruikt KplusV om te zien welke uiting tot aanvragen leidt.',
+    grondslag:
+      'Gerechtvaardigd belang van KplusV en uw organisatie om een aanvraag te beantwoorden en het rapport te leveren (artikel 6 lid 1 onder f AVG). Komt er een overeenkomst met uw organisatie, dan gelden voor de factuurgegevens de wettelijke bewaarplicht en de uitvoering van die overeenkomst.',
+    bewaartermijn:
+      'Nog vast te stellen (concept). Tot er een termijn en een opruimroutine zijn, bewaart KplusV de aanvragen en verwijdert ze met de hand, altijd direct als u daarom vraagt.',
+    wie: 'Medewerkers van KplusV die de aanvraag beantwoorden en het rapport maken. Netlify en Supabase zijn verwerker.',
+    waar:
+      'Een aanvraag gaat tegelijk naar Netlify Forms (formulier “rapportaanvraag”) en naar de tabel “rapportaanvragen” in de database van Supabase. Alleen KplusV leest de tabel, in het beheer van de database; bezoekers kunnen er alleen een aanvraag aan toevoegen. Lukt het versturen niet, dan opent de site een e-mail aan KplusV met wat u hebt ingevuld; die verstuurt u zelf met uw eigen mailprogramma.',
+  },
+  {
     id: 'email',
     titel: 'Contact per e-mail of telefoon',
     gegevens: 'Uw naam, e-mailadres of telefoonnummer en de inhoud van uw bericht.',
@@ -76,7 +92,7 @@ const verwerkingen: Verwerking[] = [
     id: 'bezoek',
     titel: 'Bezoek aan de website',
     gegevens:
-      'IP-adres, opgevraagd webadres, tijdstip, browsertype en de pagina waar u vandaan kwam, in de serverlogboeken van Netlify. Bij de rekentools, de Restafvalkaart en het aanbestedingsarchief staat uw invoer of keuze in het webadres; laadt u zo’n adres (vernieuwen, bladwijzer, gedeelde link), dan komt die invoer in het logboek.',
+      'IP-adres, opgevraagd webadres, tijdstip, browsertype en de pagina waar u vandaan kwam, in de serverlogboeken van Netlify. Bij de rekentools, de Heffingenscan (de gekozen gemeente en de cijfers die u zelf aanpast), de Restafvalkaart en het aanbestedingsarchief staat uw invoer of keuze in het webadres; laadt u zo’n adres (vernieuwen, bladwijzer, gedeelde link), dan komt die invoer in het logboek.',
     doel: 'De website leveren, storingen oplossen en misbruik tegengaan.',
     grondslag: 'Gerechtvaardigd belang om een veilige en werkende website aan te bieden.',
     bewaartermijn: 'Volgens de termijnen van Netlify. KplusV gebruikt deze logboeken niet voor statistieken.',
@@ -130,6 +146,12 @@ const secties: Sectie[] = [
                 <dd>{v.bewaartermijn}</dd>
                 <dt>Wie ziet het</dt>
                 <dd>{v.wie}</dd>
+                {v.waar && (
+                  <>
+                    <dt>Waar staat het</dt>
+                    <dd>{v.waar}</dd>
+                  </>
+                )}
               </dl>
             </section>
           ))}
@@ -141,8 +163,9 @@ const secties: Sectie[] = [
         </p>
         <BronRegel sleutel="bewaarplicht" voorvoegsel="Fiscale bewaarplicht" />
         <Toetspunt>
-          Stel de bewaartermijnen voor accounts, contactgegevens, afgewezen aanmeldingen, feedback en e-mail vast en leg vast
-          wie het opruimen wanneer doet (Netlify Forms, Supabase Auth, mailbox).
+          Stel de bewaartermijnen voor accounts, contactgegevens, afgewezen aanmeldingen, feedback, rapportaanvragen en e-mail vast
+          en leg vast wie het opruimen wanneer doet (Netlify Forms, de tabel rapportaanvragen, Supabase Auth, mailbox). Beoordeel ook
+          de grondslag voor rapportaanvragen: gerechtvaardigd belang, of een verzoek voorafgaand aan een overeenkomst.
         </Toetspunt>
       </>
     ),
@@ -152,7 +175,12 @@ const secties: Sectie[] = [
     titel: 'Wat wij niet doen',
     inhoud: (
       <ul>
-        <li>Geen cookies of andere opslag voor statistieken, advertenties of het volgen van bezoekers. Zie de <Link to="/cookies">cookieverklaring</Link>.</li>
+        <li>
+          Geen cookies of andere opslag voor statistieken, advertenties of het volgen van bezoekers. De enige opslag die
+          iets over uw herkomst onthoudt, is de korte code uit een link met ?bron= bij de Heffingenscan: die staat alleen in
+          de sessieopslag, verdwijnt als u het tabblad sluit en gaat niet naar een andere partij; KplusV ontvangt de code
+          alleen als u een rapport aanvraagt. Zie de <Link to="/cookies">cookieverklaring</Link>.
+        </li>
         <li>Geen verkoop of verhuur van gegevens.</li>
         <li>Geen profielen van gebruikers.</li>
         <li>
@@ -160,8 +188,9 @@ const secties: Sectie[] = [
           wel automatisch of uw e-maildomein toegang geeft. Klopt dat niet, neem dan contact op; dan kijkt een medewerker ernaar.
         </li>
         <li>
-          Geen opslag van wat u invult in de rekentools, in de database of in de browseropslag. Let wel: de rekentools zetten
-          uw invoer automatisch in het webadres, zodat u een berekening kunt bewaren of delen. Daardoor staat de invoer in de
+          Geen opslag van wat u invult in de rekentools en in de Heffingenscan, in de database of in de browseropslag. De enige
+          uitzondering is een rapportaanvraag die u zelf verstuurt: zie “Rapportaanvraag bij de Heffingenscan”. Let wel: de
+          rekentools en de Heffingenscan zetten uw invoer automatisch in het webadres, zodat u een berekening kunt bewaren of delen. Daardoor staat de invoer in de
           geschiedenis van uw browser en in elke bladwijzer of link die u maakt. Laadt iemand dat adres, dan komt het in het
           serverlogboek van Netlify. Vul daarom geen persoonsgegevens in een rekentool in.
         </li>
@@ -178,7 +207,10 @@ const secties: Sectie[] = [
           (Row Level Security) wie wat mag lezen.
         </p>
         <h3>Over uw eigen account en organisatie</h3>
-        <p>Deze functies geven alleen gegevens over uw eigen account en uw eigen organisatie, nooit over anderen.</p>
+        <p>
+          Deze functies geven alleen gegevens over uw eigen account en uw eigen organisatie, nooit over anderen. De tabel
+          rapportaanvragen werkt andersom: ze neemt alleen aanvragen aan en geeft via de openbare API nooit iets terug.
+        </p>
         <DatabaseLijst bereik="eigen" />
         <h3>Gedeelde open gegevens</h3>
         <p>
@@ -383,8 +415,9 @@ function DatabaseLijst({ bereik }: { bereik: 'eigen' | 'gedeeld' }) {
 
 const kern = [
   'KplusV is verantwoordelijk voor de persoonsgegevens op dit platform.',
-  'Wij verwerken alleen wat nodig is voor inloggen, het lidmaatschap, facturen en uw vragen. Geen trackers, geen advertenties, geen bezoekersstatistieken.',
-  'Wat u in de rekentools invult, gaat niet naar KplusV. Het staat wel in het webadres van de pagina en dus in uw browsergeschiedenis en in links die u deelt.',
+  'Wij verwerken alleen wat nodig is voor inloggen, het lidmaatschap, facturen, uw rapportaanvraag en uw vragen. Geen trackers, geen advertenties, geen bezoekersstatistieken.',
+  'Wat u in de rekentools en de Heffingenscan invult, gaat niet naar KplusV. Het staat wel in het webadres van de pagina en dus in uw browsergeschiedenis en in links die u deelt.',
+  'Vraagt u een rapport aan bij de Heffingenscan, dan krijgt KplusV uw gegevens uit het formulier en de kerncijfers van de scan. De bewaartermijn daarvoor is nog niet vastgesteld.',
   'De database staat in de Europese Unie (Frankfurt). Hosting en formulieren lopen via Netlify, een Amerikaans bedrijf.',
   <>
     U kunt uw gegevens inzien, laten verbeteren of laten verwijderen. Mail naar{' '}

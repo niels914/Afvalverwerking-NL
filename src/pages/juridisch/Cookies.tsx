@@ -42,6 +42,12 @@ const secties: Sectie[] = [
           Ook inloggen met een echt account is gemeten (oktober 2026). Na het inloggen stond alleen de sessiesleutel van
           Supabase in de lokale opslag. Er stond niets in de sessieopslag en er waren geen cookies.
         </p>
+        <p>
+          De sleutel <code>afvalplatform-heffingenscan-bron</code> bestaat alleen nadat u de Heffingenscan hebt geopend via een
+          link met <code>?bron=</code> erin (bijvoorbeeld een link in een LinkedIn-bericht of een mail). Zonder zo’n link staat er
+          niets in de sessieopslag. Het is geen cookie en geen tracker: de code blijft in uw browser, verdwijnt als u het tabblad
+          sluit en gaat alleen mee naar KplusV als u een rapport aanvraagt.
+        </p>
         <div className="jd-blokken">
           {opslag.map((o) => (
             <section key={o.sleutel} className="jd-blok" aria-labelledby={`opslag-${o.sleutel}`}>
@@ -67,9 +73,9 @@ const secties: Sectie[] = [
         </div>
         <h3>Uw invoer in het webadres</h3>
         <p>
-          Wat u in de rekentools invult, slaat de site niet op in de browseropslag. De rekentools zetten uw invoer wel
+          Wat u in de rekentools en de Heffingenscan invult, slaat de site niet op in de browseropslag. Ze zetten uw invoer wel
           automatisch in het webadres (na het vraagteken). Op de Restafvalkaart en in het aanbestedingsarchief staan zo de
-          gekozen gemeente en de zoekfilters in het adres. Dat is geen cookie, maar het heeft wel gevolgen:
+          gekozen gemeente en de zoekfilters in het adres; bij de Heffingenscan de cijfers die u zelf aanpast. Dat is geen cookie, maar het heeft wel gevolgen:
         </p>
         <ul>
           <li>het adres met uw invoer komt in de geschiedenis van uw browser;</li>
@@ -137,6 +143,12 @@ const secties: Sectie[] = [
           <li>de inlogsessie is nodig om u na het inloggen toegang te geven;</li>
           <li>de sessieopslag van het aanmeldformulier bewaart wat u invult, zodat het niet verloren gaat als u tussendoor een andere pagina opent;</li>
           <li>
+            de sessieopslag met de code uit een link met ?bron= is niet nodig om de Heffingenscan te laten werken. KplusV gebruikt
+            hem om te zien welke uiting tot een rapportaanvraag leidt, dus om de effectiviteit van de dienst te meten. De wet
+            staat dat zonder toestemming toe als dit geen of geringe gevolgen heeft voor uw privacy; hier is de code kort, blijft
+            in uw browser, verdwijnt bij het sluiten van het tabblad en gaat alleen mee als u zelf een aanvraag verstuurt;
+          </li>
+          <li>
             de reservekopieën van aanmelding en feedback ontstaan alleen als het versturen van een formulier dat u zelf verstuurt
             mislukt.
           </li>
@@ -144,6 +156,10 @@ const secties: Sectie[] = [
         <p>Daarom is er geen toestemmingsbanner. Komt er ooit opslag bij die niet noodzakelijk is, dan vragen wij eerst toestemming.</p>
         <BronRegel sleutel="telecomwet" />
         <BronRegel sleutel="acmCookies" voorvoegsel="Uitleg van de toezichthouder" />
+        <Toetspunt>
+          Beoordeel of de code uit ?bron= onder de uitzondering voor metingen van de effectiviteit valt (artikel 11.7a lid 3 Tw),
+          of dat een toestemmingsvraag nodig is, of dat de code alleen in het formulier moet worden onthouden.
+        </Toetspunt>
         <Toetspunt>
           De reservekopieën in localStorage blijven staan tot de gebruiker de browsergegevens wist en bevatten
           contactgegevens. Beoordeel of dat nog binnen &lsquo;strikt noodzakelijk&rsquo; valt, of dat de kopie na het versturen per
@@ -160,7 +176,7 @@ const secties: Sectie[] = [
         <p>U kunt de opslag van deze site op elk moment zelf verwijderen:</p>
         <ul>
           <li>Uitloggen via Mijn account verwijdert de inlogsessie.</li>
-          <li>Het tabblad sluiten verwijdert de sessieopslag van het aanmeldformulier.</li>
+          <li>Het tabblad sluiten verwijdert de sessieopslag van het aanmeldformulier en de code uit de Heffingenscan-link.</li>
           <li>Invoer in het webadres wist u door de browsergeschiedenis van deze site te wissen.</li>
           <li>
             Alles verwijderen kan in de instellingen van uw browser, bij de gegevens van websites. Zoek naar het adres van dit
@@ -192,9 +208,9 @@ const secties: Sectie[] = [
 
 const kern = [
   'Dit platform plaatst geen cookies. Er zijn geen cookies of scripts voor statistieken, advertenties of social media.',
-  'De site bewaart wel een paar gegevens in de opslag van uw browser: om u ingelogd te houden en om formulieren niet kwijt te raken.',
-  'Omdat die opslag noodzakelijk is, vraagt de site niet om toestemming en ziet u geen cookiemelding.',
-  'De rekentools zetten uw invoer in het webadres. Die invoer staat daardoor in uw browsergeschiedenis en in links die u deelt.',
+  'De site bewaart wel een paar gegevens in de opslag van uw browser: om u ingelogd te houden en om formulieren niet kwijt te raken. Na een link met ?bron= bij de Heffingenscan bewaart de site tot u het tabblad sluit een korte code over de herkomst van die link.',
+  'Omdat die opslag noodzakelijk is of geen gevolgen voor uw privacy heeft, vraagt de site niet om toestemming en ziet u geen cookiemelding.',
+  'De rekentools en de Heffingenscan zetten uw invoer in het webadres. Die invoer staat daardoor in uw browsergeschiedenis en in links die u deelt.',
 ];
 
 export function Cookies() {

@@ -10,6 +10,8 @@ const Heffingenscan = lazy(() => import('./pages/Heffingenscan').then((m) => ({ 
 const HeffingenscanGemeente = lazy(() => import('./pages/HeffingenscanGemeente').then((m) => ({ default: m.HeffingenscanGemeente })));
 const HeffingenscanAanvragen = lazy(() => import('./pages/HeffingenscanAanvragen').then((m) => ({ default: m.HeffingenscanAanvragen })));
 const Restafvalkaart = lazy(() => import('./pages/Restafvalkaart'));
+const Stromen = lazy(() => import('./pages/Stromen').then((m) => ({ default: m.Stromen })));
+const StroomPagina = lazy(() => import('./pages/StroomPagina').then((m) => ({ default: m.StroomPagina })));
 const Nieuws = lazy(() => import('./pages/Nieuws').then((m) => ({ default: m.Nieuws })));
 const Kennisbank = lazy(() => import('./pages/Kennisbank').then((m) => ({ default: m.Kennisbank })));
 const Tools = lazy(() => import('./pages/Tools').then((m) => ({ default: m.Tools })));
@@ -51,6 +53,8 @@ export function App() {
           <Route path="heffingenscan/aanvragen" element={<HeffingenscanAanvragen />} />
           <Route path="heffingenscan/:slug" element={<HeffingenscanGemeente />} />
           <Route path="restafvalkaart" element={<Restafvalkaart />} />
+          <Route path="stromen" element={<Stromen />} />
+          <Route path="stromen/:id" element={<StroomPagina />} />
           <Route path="nieuws" element={<Nieuws />} />
           <Route path="kennisbank" element={<Kennisbank />} />
           <Route path="tools" element={<Tools />} />

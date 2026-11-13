@@ -1,4 +1,5 @@
 import type { Tool, Toegang } from './types';
+import { HEFFINGENSCAN_PAD } from '../lib/heffingenVoorbeeld';
 
 // Overzicht van de rekentools. De rekenlogica staat in src/lib/calc/, de cijfers met bron in src/data/.
 
@@ -9,6 +10,15 @@ export const toegangLabel: Record<Toegang, string> = {
 };
 
 export const tools: Tool[] = [
+  {
+    id: 'heffingenscan',
+    titel: 'Heffingenscan voor gemeenten',
+    pad: HEFFINGENSCAN_PAD,
+    toegang: 'gratis',
+    extraLabel: 'Voor elke gemeente, zonder account',
+    omschrijving:
+      'Zoek uw gemeente en zie wat de afvalstoffenbelasting en de CO2-heffing op afvalverbranding tot 2035 kosten, in totaal en per huishouden. Rekent met CBS-cijfers over restafval en met het wetsvoorstel Belastingplan 2027; u kunt zelf cijfers aanpassen en een uitgebreider rapport aanvragen.',
+  },
   {
     id: 'aanbesteding',
     titel: 'Aanbestedingstool',
@@ -29,10 +39,11 @@ export const tools: Tool[] = [
   },
   {
     id: 'co2',
-    titel: 'CO2-heffingenscan',
+    titel: 'CO2-heffing per installatie',
     pad: '/tools/co2-heffingenscan',
     toegang: 'gratis+pro',
-    omschrijving: 'Schat wat de CO2-heffing voor afvalverbranding kost bij uw tonnage restafval, volgens wet en wetsvoorstel.',
+    omschrijving:
+      'Schat per installatie of contract wat de CO2-heffing voor afvalverbranding kost bij uw tonnage restafval, volgens wet en wetsvoorstel, met eigen inflatieaanname. Voor gemeenten: gebruik de Heffingenscan.',
     gratisDeel: 'Heffing in één jaar tot en met 2035, met wettelijke of eigen vrijstelling.',
     proDeel: 'Verloop tot en met 2035, drie scenario’s voor scheiding, effect per inwoner, CSV en rapport.',
   },
@@ -59,8 +70,9 @@ export const tools: Tool[] = [
 /** Waar elke tool mee rekent. Getoond op de overzichtspagina. */
 export const toolBronnen: Record<string, string> = {
   aanbesteding: 'MVI-criteriatool (Rijksoverheid), drempelbedragen van PIANOo en tariefkental Strategy& 2025',
+  heffingenscan: 'CBS (restafval, nascheiding, inwoners), NEa, IPLO en memorie van toelichting bij het Belastingplan 2027',
   index: 'CBS: CPI, cao-lonen, producentenprijzen en dieselprijs',
-  co2: 'Wet belastingen op milieugrondslag, Wet milieubeheer, NEa en Belastingplan 2027',
+  co2: 'Wet belastingen op milieugrondslag, Wet milieubeheer, NEa, RVO en Belastingplan 2027',
   bodemas: 'Rijkswaterstaat, Afvalverwerking in Nederland 2024; Staatsblad 2021, 235; CBS en Belastingdienst',
   pmd: 'Akkoord Verpact, VNG en NVRD (2025), CBS per gemeente, IPR Normag (2021), Strategy& en Belastingdienst',
 };

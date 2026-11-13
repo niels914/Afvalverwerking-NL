@@ -1,15 +1,24 @@
 // CO2-heffing industrie voor afvalverbrandingsinstallaties (AVI's): tarieven en regels.
 // Alle getallen hieronder komen uit de genoemde officiële bron, geraadpleegd op PEILDATUM.
 // Waar staat "status: 'voorstel'" gaat het om het wetsvoorstel Belastingplan 2027 (nog geen wet).
-// Bijwerken: zie docs/stukken/tools-a.md, paragraaf "Onderhoud CO2-heffingenscan".
+// De stand van dat wetsvoorstel (Tweede Kamer, Eerste Kamer) staat op één plek: `wetsstatus` in heffingen-tarieven.ts. De
+// pagina leest die daar; typ de stand niet opnieuw in dit bestand (en importeer heffingen-tarieven hier niet: dat bestand
+// importeert dit bestand).
+// Bijwerken: zie docs/stukken/tools-a.md, paragraaf "Onderhoud CO2-heffing per installatie".
 
-export const PEILDATUM = '2026-10-27';
+export const PEILDATUM = '2026-11-13';
 
 /** Versie van de scan. Verhoog bij een wijziging in tarieven, regels of rekenwijze; de pagina en de CSV tonen dit. */
 export const co2ToolVersie = {
-  versie: '3.0',
-  datum: '2026-10-27',
+  versie: '3.1',
+  datum: '2026-11-13',
   wijzigingen: [
+    {
+      versie: '3.1',
+      datum: '2026-11-13',
+      tekst:
+        'Tool heet nu "CO2-heffing per installatie" (voor gemeenten is er de Heffingenscan). Keuze tussen het RVO-kental en de NEa-factor voor huishoudelijk restafval bij de emissiefactor. Status van het Belastingplan 2027 volgt de ene bron in de Heffingenscan: aangenomen door de Tweede Kamer op 12 november 2026, nog geen wet. Peildatum bronnen 13 november 2026.',
+    },
     { versie: '3.0', datum: '2026-10-27', tekst: 'Bandbreedte en onzekerheid bij de uitkomst, uitstoot ten opzichte van historisch niveau tussen 1 en 300 %, tarief met inflatieaanname apart gelabeld.' },
     { versie: '2.0', datum: '2026-10-27', tekst: 'Standaardinflatie 2,6 %, vergelijking in prijspeil 2026, emissiefactor uit de lijst van energiedragers 2026.' },
     { versie: '1.0', datum: '2026-10-20', tekst: 'Tarieven en regels uit de wet, van de NEa en uit het Belastingplan 2027.' },
@@ -47,8 +56,8 @@ export const bronnen = {
     url: 'https://wetten.overheid.nl/BWBR0007168/2026-06-04#HoofdstukVIB',
   },
   wm16b17: {
-    titel: 'Wet milieubeheer, art. 16b.17 (stand 1 augustus 2026)',
-    url: 'https://wetten.overheid.nl/BWBR0003245/2026-08-01#Hoofdstuk16b',
+    titel: 'Wet milieubeheer, art. 16b.17 (stand 22 oktober 2026)',
+    url: 'https://wetten.overheid.nl/BWBR0003245/2026-10-22#Hoofdstuk16b',
   },
   bp2027: {
     titel: 'Wetsvoorstel Belastingplan 2027, art. XXVI, XXVII en LX en memorie van toelichting par. 5.21 (15 september 2026)',
@@ -112,7 +121,7 @@ const geldend: Tariefpad = {
 /** Wetsvoorstel Belastingplan 2027: trager ingroeipad tot 2035. Nog geen wet. */
 const voorstel: Tariefpad = {
   id: 'voorstel',
-  naam: 'Wetsvoorstel Belastingplan 2027 (ingediend 15 september 2026, nog geen wet)',
+  naam: 'Wetsvoorstel Belastingplan 2027 (nog geen wet)',
   kort: 'Voorstel BP 2027',
   status: 'voorstel',
   vast: { 2021: 30.48, 2022: 41.75, 2023: 55.94, 2024: 74.17, 2025: 87.9, 2026: 103.66, 2027: 129.15 },
@@ -206,13 +215,16 @@ export const co2StandaardInvoer = {
   scenario3Pct: 75,
 };
 
-/** Ontwikkelingen die de uitkomst kunnen veranderen. */
-export const ontwikkelingen: { titel: string; tekst: string; bron: Bron }[] = [
+/**
+ * Ontwikkelingen die de uitkomst kunnen veranderen. `metWetsstatus`: de pagina zet de actuele stand van het wetsvoorstel (wetsstatus in heffingen-tarieven.ts) voor de tekst.
+ */
+export const ontwikkelingen: { titel: string; tekst: string; bron: Bron; metWetsstatus?: boolean }[] = [
   {
     titel: 'Belastingplan 2027: trager tariefpad voor AVI’s',
     tekst:
-      'Het kabinet stelt voor het AVI-tarief langzamer te laten stijgen: in prijspeil 2026 naar € 304 per ton CO2 in 2035 in plaats van 2030. De vrijgestelde uitstoot bouwt af tot nul in 2035 in plaats van 2033. Het voorstel ligt bij de Tweede Kamer en kan nog wijzigen.',
+      'Het kabinet stelt voor het AVI-tarief langzamer te laten stijgen: in prijspeil 2026 naar € 304 per ton CO2 in 2035 in plaats van 2030. De vrijgestelde uitstoot bouwt af tot nul in 2035 in plaats van 2033. Het voorstel kan nog wijzigen.',
     bron: bronnen.bp2027,
+    metWetsstatus: true,
   },
   {
     titel: 'Mogelijke afschaffing van de CO2-heffing',

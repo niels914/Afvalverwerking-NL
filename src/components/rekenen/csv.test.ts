@@ -18,7 +18,7 @@ describe('export', () => {
   });
 
   it('maakt veilige bestandsnamen', () => {
-    expect(veiligeBestandsnaam('CO2-heffingenscan Pro')).toBe('co2-heffingenscan-pro');
+    expect(veiligeBestandsnaam('CO2-heffing per installatie Pro')).toBe('co2-heffing-per-installatie-pro');
     expect(veiligeBestandsnaam('Één ±')).toBe('een');
     expect(veiligeBestandsnaam('***')).toBe('export');
   });

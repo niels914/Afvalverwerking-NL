@@ -125,9 +125,12 @@ async function main() {
     fractieReeksen[id] = { kg: rijen.map((r) => r[f.kg] ?? null), kton: rijen.map((r) => r[f.kton] ?? null) };
   }
   for (const [stroom, ids] of Object.entries(fr.stromen)) {
+    // CBS publiceert kg per inwoner voor kunststof, drankenkartons en blik als (bijna) hele getallen; de som daarvan op één
+    // decimaal zou schijnnauwkeurig zijn. Voor PMD daarom afgerond op hele kilo's.
+    const decimalen = stroom === 'pmd' ? 0 : 1;
     const optel = (veld) => jaren.map((_, i) => {
       const v = som(ids.map((id) => fractieReeksen[id][veld][i]));
-      return v === null ? null : r1(v);
+      return v === null ? null : decimalen === 0 && veld === 'kg' ? Math.round(v) : r1(v);
     });
     reeksen[stroom] = { kg: optel('kg'), kton: optel('kton') };
   }
