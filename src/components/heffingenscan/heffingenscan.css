@@ -1,0 +1,311 @@
+/* Heffingenscan restafval. Alleen tokens uit src/styles/tokens.css; klassen beginnen met hs-. */
+
+.hs-pagina {
+  min-width: 0;
+  gap: var(--sectie);
+}
+.hs-pagina > .stapel,
+.hs-pagina section.stapel {
+  min-width: 0;
+}
+.hs-pagina .intro {
+  margin-bottom: 0;
+}
+
+/* Zoekveld met suggesties */
+.hs-zoeker .hs-zoeker-rij {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-start;
+}
+.hs-zoeker-invoer {
+  position: relative;
+  flex: 1 1 280px;
+  max-width: 520px;
+}
+.hs-zoeker-lijst {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  top: 100%;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+  background: var(--wit);
+  border: 1.5px solid var(--inkt);
+  max-height: 320px;
+  overflow-y: auto;
+}
+.hs-zoeker-lijst li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--lijn);
+  font-size: 15px;
+}
+.hs-zoeker-lijst li:hover,
+.hs-zoeker-lijst li[aria-selected='true'] {
+  background: var(--inkt);
+  color: var(--wit);
+}
+.hs-zoeker-prov {
+  font-size: 13px;
+  opacity: 0.85;
+}
+.hs-melding {
+  display: block;
+  min-height: 1.2em;
+  font-size: 14px;
+  color: var(--tekst);
+}
+.hs-melding:not(:empty) {
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+/* Tegels: drie naast elkaar, op smal onder elkaar */
+.hs-tegels {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 720px) {
+  .hs-tegels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Let-op-blokken en details */
+.hs-wetsstatus p {
+  margin: 0;
+}
+.hs-wetsstatus .hs-details {
+  margin-top: 8px;
+}
+.hs-details > summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 6px 0;
+  min-height: 24px;
+}
+.hs-details > summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+.hs-details > * + *:not(summary) {
+  margin-top: 10px;
+}
+.hs-linkknop {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-weight: 600;
+  text-decoration: underline;
+  color: inherit;
+  display: inline;
+}
+.hs-linkknop:hover {
+  background: none;
+}
+
+/* Voorbeeld op het overzicht */
+.hs-voorbeeld {
+  background: var(--mist);
+  padding: 20px 24px;
+  display: grid;
+  gap: 8px;
+  max-width: 78ch;
+}
+.hs-voorbeeld h2 {
+  font-size: 20px;
+  color: var(--inkt);
+  margin: 0;
+}
+
+/* Tabel met alle gemeenten */
+.hs-overzicht {
+  max-height: 640px;
+  overflow-y: auto;
+}
+.hs-overzicht thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.hs-sorteer {
+  all: unset;
+  cursor: pointer;
+  font: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  padding: 2px 0;
+}
+.hs-sorteer:focus-visible {
+  outline: 3px solid var(--wit);
+  outline-offset: 2px;
+}
+.hs-overzicht th[scope='row'] {
+  font-weight: 600;
+}
+.hs-nascheiding {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  background: var(--violet);
+  color: #000;
+  font-size: 12px;
+  font-weight: 500;
+}
+@media (max-width: 560px) {
+  .hs-smal-weg {
+    display: none;
+  }
+  .hs-overzicht th,
+  .hs-overzicht td {
+    padding: 10px 8px;
+    white-space: normal;
+  }
+  .hs-nascheiding {
+    display: block;
+    margin: 2px 0 0;
+    width: fit-content;
+  }
+}
+
+/* Jaartabel */
+.hs-jaartabel th[scope='row'] {
+  font-weight: 600;
+}
+
+/* Rekenen met eigen cijfers */
+.hs-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.hs-fieldset > legend {
+  font-weight: 600;
+  color: var(--inkt);
+  padding: 0;
+  margin-bottom: 8px;
+}
+.hs-methode h3 {
+  font-size: 17px;
+  color: var(--inkt);
+  margin: 0;
+}
+.hs-methode pre.formule {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Aanvraag */
+.hs-aanvraag {
+  scroll-margin-top: 16px;
+}
+.hs-stappen {
+  margin: 0;
+  padding-left: 22px;
+  display: grid;
+  gap: 6px;
+}
+
+/* Afdrukken: twee pagina's hooguit, met logo, bronnen en "indicatief" (kop en voet staan in print.css) */
+@media print {
+  .hs-pagina {
+    gap: 12px;
+  }
+  .hs-pagina .kaart,
+  .hs-pagina .ta-inklap {
+    break-inside: avoid;
+  }
+  .hs-pagina .ta-inklap {
+    background: none;
+  }
+  .hs-pagina .ta-inklap > summary::before {
+    display: none;
+  }
+  .hs-details > summary,
+  .hs-pagina .ta-afronding > summary {
+    display: none;
+  }
+  .hs-pagina .grafiek-tip {
+    display: none;
+  }
+  .hs-pagina {
+    font-size: 10pt;
+  }
+  .hs-pagina .tegel .tegel-waarde {
+    font-size: 16pt;
+  }
+  .hs-pagina h2 {
+    font-size: 12pt;
+  }
+  .hs-pagina td,
+  .hs-pagina th {
+    padding: 3px 6px;
+    font-size: 8.5pt;
+  }
+}
+
+/* Kruimelpad */
+.hs-kruimelpad ol {
+  list-style: none;
+  margin: 16px 0 4px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 0;
+  font-size: 14px;
+  color: var(--tekst-2);
+}
+.hs-kruimelpad li + li::before {
+  content: '›';
+  margin: 0 8px;
+}
+
+@media print {
+  /* Twee pagina's hooguit: details en de volledige methode blijven op het scherm; de afdruk heeft een compacte bronnenregel. */
+  .hs-pagina .hs-details,
+  .hs-pagina #methode,
+  .hs-pagina .ta-afronding {
+    display: none !important;
+  }
+  .hs-printbronnen p {
+    font-size: 7.5pt;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+  .hs-pagina .hs-tegels {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .hs-pagina .stapel.lees p {
+    margin: 0;
+  }
+}
+
+@media print {
+  .hs-pagina {
+    gap: 8px;
+    font-size: 9.5pt;
+  }
+  .hs-pagina .grafiek {
+    height: 220px;
+  }
+  .hs-pagina .notitie {
+    padding: 8px 12px;
+  }
+  .hs-pagina .kaart-kop {
+    margin-bottom: 6px;
+  }
+  .hs-pagina .tegel {
+    padding: 10px 12px 18px;
+  }
+  .hs-pagina .klein {
+    font-size: 8.5pt;
+  }
+}

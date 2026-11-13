@@ -1,6 +1,6 @@
 {
-  "bijgewerkt": "2026-10-27",
-  "gecontroleerd": "2026-10-27",
+  "bijgewerkt": "2026-11-13",
+  "gecontroleerd": "2026-11-13",
   "filter": "(?<!rioolw)afval(?!water)|recycl|circulai|grondstof|verpakking|statiegeld|zwerfafval|textiel|kunststof|plastic|verbrand|gft|pmd|luier|hergebruik|storten|bodemas",
   "bronnen": [
     {
@@ -9,7 +9,7 @@
       "site": "https://www.rijksoverheid.nl/themas/klimaat-milieu-en-natuur/afval",
       "feed": "https://www.rijksoverheid.nl/api/rss?query=%7B%22filters%22%3A%5B%7B%22field%22%3A%22topic%22%2C%22values%22%3A%5B%22Afval%22%5D%2C%22type%22%3A%22all%22%7D%2C%7B%22field%22%3A%22information_type%22%2C%22values%22%3A%5B%22Nieuwsbericht%22%5D%2C%22type%22%3A%22all%22%7D%5D%2C%22resultSearchTerm%22%3A%22%22%2C%22pageTitle%22%3A%22Nieuws%22%7D",
       "status": "ok",
-      "laatstGelukt": "2026-10-27",
+      "laatstGelukt": "2026-11-13",
       "aantal": 12
     },
     {
@@ -18,7 +18,7 @@
       "site": "https://www.rijksoverheid.nl/actueel/nieuws",
       "feed": "https://www.rijksoverheid.nl/api/rss?query=%7B%22filters%22%3A%5B%7B%22field%22%3A%22information_type%22%2C%22values%22%3A%5B%22Nieuwsbericht%22%5D%2C%22type%22%3A%22all%22%7D%5D%2C%22resultSearchTerm%22%3A%22circulaire%20economie%22%2C%22pageTitle%22%3A%22Nieuws%22%7D",
       "status": "ok",
-      "laatstGelukt": "2026-10-27",
+      "laatstGelukt": "2026-11-13",
       "aantal": 10
     },
     {
@@ -27,7 +27,7 @@
       "site": "https://www.rijksoverheid.nl/actueel/nieuws",
       "feed": "https://www.rijksoverheid.nl/api/rss?query=%7B%22filters%22%3A%5B%7B%22field%22%3A%22information_type%22%2C%22values%22%3A%5B%22Nieuwsbericht%22%5D%2C%22type%22%3A%22all%22%7D%5D%2C%22resultSearchTerm%22%3A%22recycling%22%2C%22pageTitle%22%3A%22Nieuws%22%7D",
       "status": "ok",
-      "laatstGelukt": "2026-10-27",
+      "laatstGelukt": "2026-11-13",
       "aantal": 13
     },
     {
@@ -36,7 +36,7 @@
       "site": "https://www.rijksoverheid.nl/actueel/nieuws",
       "feed": "https://www.rijksoverheid.nl/api/rss?query=%7B%22filters%22%3A%5B%7B%22field%22%3A%22information_type%22%2C%22values%22%3A%5B%22Nieuwsbericht%22%5D%2C%22type%22%3A%22all%22%7D%5D%2C%22resultSearchTerm%22%3A%22verpakkingen%22%2C%22pageTitle%22%3A%22Nieuws%22%7D",
       "status": "ok",
-      "laatstGelukt": "2026-10-27",
+      "laatstGelukt": "2026-11-13",
       "aantal": 6
     },
     {
@@ -45,7 +45,7 @@
       "site": "https://www.rijksoverheid.nl/actueel/nieuws",
       "feed": "https://www.rijksoverheid.nl/api/rss?query=%7B%22filters%22%3A%5B%7B%22field%22%3A%22information_type%22%2C%22values%22%3A%5B%22Nieuwsbericht%22%5D%2C%22type%22%3A%22all%22%7D%5D%2C%22resultSearchTerm%22%3A%22textiel%22%2C%22pageTitle%22%3A%22Nieuws%22%7D",
       "status": "ok",
-      "laatstGelukt": "2026-10-27",
+      "laatstGelukt": "2026-11-13",
       "aantal": 4
     },
     {
@@ -53,7 +53,7 @@
       "naam": "PIANOo",
       "site": "https://www.pianoo.nl/nl/actueel/nieuws",
       "feed": "https://www.pianoo.nl/nl/rss/nieuws.rss",
-      "status": "ok",
+      "status": "mislukt",
       "laatstGelukt": "2026-10-27",
       "aantal": 1
     },
@@ -62,7 +62,7 @@
       "naam": "PIANOo",
       "site": "https://www.pianoo.nl/nl/jurisprudentie",
       "feed": "https://www.pianoo.nl/nl/rss/jurisprudentie.rss",
-      "status": "ok",
+      "status": "mislukt",
       "laatstGelukt": "2026-10-27",
       "aantal": 0
     },
@@ -72,8 +72,8 @@
       "site": "https://www.rivm.nl/nieuws",
       "feed": "https://www.rivm.nl/nieuws/rss.xml",
       "status": "ok",
-      "laatstGelukt": "2026-10-27",
-      "aantal": 1
+      "laatstGelukt": "2026-11-13",
+      "aantal": 2
     },
     {
       "id": "cbs",
@@ -81,11 +81,21 @@
       "site": "https://www.cbs.nl/nl-nl/nieuws",
       "feed": "https://www.cbs.nl/nl-nl/rss-feeds/alle-nieuwsberichten",
       "status": "ok",
-      "laatstGelukt": "2026-10-27",
+      "laatstGelukt": "2026-11-13",
       "aantal": 0
     }
   ],
   "berichten": [
+    {
+      "id": "1957f6939b52",
+      "titel": "GLI helpt bij afvallen, deelnemers ervaren betere kwaliteit van leven",
+      "link": "https://www.rivm.nl/nieuws/gli-helpt-bij-afvallen-deelnemers-ervaren-betere-kwaliteit-van-leven",
+      "inleiding": "De Gecombineerde Leefstijlinterventie (GLI), waarbij mensen onder begeleiding werken aan een gezondere leefstijl, helpt mensen met overgewicht en obesitas om af te vallen en zich beter te voelen.",
+      "datum": "2026-11-02",
+      "bron": "RIVM",
+      "bronId": "rivm",
+      "thema": "Afval algemeen"
+    },
     {
       "id": "e62d871e6e55",
       "titel": "Factsheet voor aanbesteden verwerking van groenfval",

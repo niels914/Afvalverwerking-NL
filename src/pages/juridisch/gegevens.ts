@@ -270,6 +270,16 @@ export const opslag: OpslagItem[] = [
     bewaarduur: 'Tot u de browsergegevens van deze site wist.',
     codebestanden: ['src/components/FeedbackFormulier.tsx', 'src/data/feedback.ts'],
   },
+  {
+    sleutel: 'afvalplatform-heffingenscan-bron',
+    soort: 'sessionStorage',
+    partij: 'Dit platform',
+    doel: 'Onthouden via welke uiting (bijvoorbeeld een LinkedIn-post of een mail) u bij de Heffingenscan kwam, zodat KplusV weet welke uiting werkt. Dit is geen tracker: er gaat niets naar een andere partij.',
+    inhoud: 'Een korte code uit de link (de parameter ?bron=), bijvoorbeeld "linkedin-1".',
+    wanneer: 'Alleen als u de Heffingenscan opent via een link met ?bron= erin.',
+    bewaarduur: 'Tot u het tabblad sluit. De code gaat alleen mee als u een rapport aanvraagt.',
+    codebestanden: ['src/components/heffingenscan/bron.ts'],
+  },
 ];
 
 /** Datum waarop de cookies en opslag zijn gemeten met een echte browser, zonder in te loggen (e2e/juridisch.spec.ts). */
@@ -295,6 +305,7 @@ export const supabaseGebruik: SupabaseGebruik[] = [
   { naam: 'aanbestedingen_openbare_stand', soort: 'functie', bereik: 'gedeeld', wat: 'Geeft voor iedereen vier totalen van het aanbestedingsarchief: het aantal aanbestedingen, het aantal open voor inschrijving, de oudste publicatiedatum en het tijdstip van de laatste verversing. Gebruikt op de inlogpagina en Mijn account. Geen rijen en geen persoonsgegevens.' },
   { naam: 'aanbestedingen_telling_stromen', soort: 'functie', bereik: 'gedeeld', wat: 'Telt de aanbestedingen in het archief per afvalstroom, voor de filterlijst. Bevat geen persoonsgegevens. Alleen leden kunnen het lezen.' },
   { naam: 'aanbestedingen_telling', soort: 'functie', bereik: 'gedeeld', wat: 'Telt de aanbestedingen in het archief per status. Bevat geen persoonsgegevens. Alleen leden kunnen het lezen.' },
+  { naam: 'rapportaanvragen', soort: 'tabel', bereik: 'eigen', wat: 'Slaat een aanvraag voor een rapport van de Heffingenscan op: de gemeente, uw naam, organisatie, functie, e-mailadres, telefoonnummer (optioneel), uw keuze, uw opmerking (optioneel), de kerncijfers van de scan op dat moment, de code van de uiting waarmee u kwam en dat u akkoord ging met de privacyverklaring. De aanvraag wordt ook via Netlify Forms verstuurd. Bezoekers kunnen alleen een aanvraag toevoegen; niemand kan aanvragen via de openbare API lezen, wijzigen of verwijderen. Alleen KplusV leest ze, in het beheer van de database.' },
   { naam: 'aanbestedingen_verversingen', soort: 'tabel', bereik: 'gedeeld', wat: 'Logboek van het dagelijks ophalen van aanbestedingen bij TenderNed (tijdstip en aantallen), voor de vermelding "laatst bijgewerkt". Bevat geen persoonsgegevens. Alleen leden kunnen het lezen.' },
 ];
 

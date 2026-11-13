@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 
 /** Meet de breedte van de container, zodat de SVG 1-op-1 tekent en tekst op elke breedte leesbaar blijft. */
 function useBreedte<T extends HTMLElement>(standaard: number) {
@@ -278,5 +278,154 @@ export function PercentageBalken({ items }: { items: { label: string; pct: numbe
         </li>
       ))}
     </ul>
+  );
+}
+
+export interface GestapeldeReeks {
+  naam: string;
+  waarden: number[];
+}
+
+/**
+ * Gestapelde staafgrafiek per jaar (bijv. afvalstoffenbelasting en CO2-heffing), met het totaal boven de staaf en
+ * optioneel een gestreepte grijze lijn ter vergelijking (bijv. het andere tariefpad). De tweede reeks heeft een
+ * arcering, zodat kleur niet de enige drager is. Op smalle schermen staan de totalen verticaal boven de staven.
+ */
+export function GestapeldeStaafGrafiek({
+  titel,
+  labels,
+  reeksen,
+  lijn,
+  formatY,
+  formatTotaal,
+  formatKort,
+}: {
+  titel: string;
+  labels: (string | number)[];
+  reeksen: GestapeldeReeks[];
+  lijn?: GestapeldeReeks;
+  formatY: (n: number) => string;
+  /** Opmaak van het totaal boven de staaf; standaard formatY. */
+  formatTotaal?: (n: number) => string;
+  /** Compactere opmaak voor de verticale totalen op smalle schermen. */
+  formatKort?: (n: number) => string;
+}) {
+  const [ref, B] = useBreedte<HTMLElement>(640);
+  const [actief, setActief] = useState<number | null>(null);
+  const idBasis = `gs${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+  const H = 300;
+  const kort = formatTotaal ?? formatY;
+  const totalen = labels.map((_, i) => reeksen.reduce((s, r) => s + (r.waarden[i] ?? 0), 0));
+  const alle = [...totalen, ...(lijn ? lijn.waarden : [])];
+  const { boven, ticks } = mooieSchaal(0, Math.max(...alle));
+  // Linkermarge volgt de breedste aslabel, zodat grote bedragen niet worden afgekapt.
+  const links = Math.max(48, 14 + 7 * Math.max(...ticks.map((t) => formatY(t).length)));
+  const verticaal = (B - links - 12) / labels.length < 62;
+  const m = { l: links, r: 12, t: verticaal ? 74 : 26, b: 30 };
+  const y = (v: number) => m.t + ((boven - v) / boven) * (H - m.t - m.b);
+  const vak = (B - m.l - m.r) / labels.length;
+  const breedte = Math.min(56, vak * 0.62);
+  const cx = (i: number) => m.l + vak * i + vak / 2;
+  const kleuren = [reeksKleuren[0], reeksKleuren[1]];
+
+  return (
+    <figure className="grafiek-houder" style={{ margin: 0 }} ref={ref}>
+      <figcaption className="visueel-verborgen">{titel}</figcaption>
+      <ul className="legenda" style={{ marginBottom: 8 }}>
+        {reeksen.map((r, i) => (
+          <li key={r.naam}>
+            <svg width="16" height="14" aria-hidden="true">
+              <rect width="16" height="14" fill={kleuren[i % 2]} />
+              {i % 2 === 1 && <rect width="16" height="14" fill={`url(#${idBasis}-arcering)`} />}
+            </svg>
+            {r.naam}
+          </li>
+        ))}
+        {lijn && (
+          <li>
+            <svg width="28" height="12" aria-hidden="true">
+              <line x1="1" y1="6" x2="27" y2="6" stroke={vergelijkingKleur} strokeWidth="2" strokeDasharray="6 4" />
+            </svg>
+            {lijn.naam}
+          </li>
+        )}
+      </ul>
+      <svg className="grafiek" width={B} height={H} viewBox={`0 0 ${B} ${H}`} role="img" aria-label={titel} onMouseLeave={() => setActief(null)}>
+        <defs>
+          <pattern id={`${idBasis}-arcering`} width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect width="2.4" height="6" fill="#fff" opacity="0.55" />
+          </pattern>
+        </defs>
+        {ticks.map((t) => (
+          <g key={t}>
+            <line className="raster-lijn" x1={m.l} x2={B - m.r} y1={y(t)} y2={y(t)} />
+            <text x={m.l - 8} y={y(t) + 4} textAnchor="end">
+              {formatY(t)}
+            </text>
+          </g>
+        ))}
+        {labels.map((l, i) => {
+          let onder = 0;
+          return (
+            <g key={String(l)} onMouseEnter={() => setActief(i)} onTouchStart={() => setActief(i)}>
+              <rect x={cx(i) - vak / 2} y={m.t - 8} width={vak} height={H - m.t - m.b + 8} fill="transparent" />
+              {reeksen.map((r, k) => {
+                const v = r.waarden[i] ?? 0;
+                const y0 = y(onder);
+                onder += v;
+                const y1 = y(onder);
+                return (
+                  <g key={r.naam} opacity={actief === null || actief === i ? 1 : 0.6}>
+                    <rect x={cx(i) - breedte / 2} y={y1} width={breedte} height={Math.max(0, y0 - y1)} fill={kleuren[k % 2]} />
+                    {k % 2 === 1 && <rect x={cx(i) - breedte / 2} y={y1} width={breedte} height={Math.max(0, y0 - y1)} fill={`url(#${idBasis}-arcering)`} />}
+                  </g>
+                );
+              })}
+              {verticaal ? (
+                <text className="waardelabel" transform={`translate(${cx(i) + 4} ${y(totalen[i]) - 6}) rotate(-90)`} textAnchor="start" style={{ fontSize: 11 }}>
+                  {(formatKort ?? kort)(totalen[i])}
+                </text>
+              ) : (
+                <text className="waardelabel" x={cx(i)} y={y(totalen[i]) - 6} textAnchor="middle">
+                  {kort(totalen[i])}
+                </text>
+              )}
+              {(vak >= 46 || i % 3 === 0) && (
+                <text x={cx(i)} y={H - 8} textAnchor="middle">
+                  {l}
+                </text>
+              )}
+            </g>
+          );
+        })}
+        <line className="as" x1={m.l} x2={B - m.r} y1={y(0)} y2={y(0)} />
+        {lijn && (
+          <polyline
+            points={lijn.waarden.map((v, i) => `${cx(i)},${y(v)}`).join(' ')}
+            fill="none"
+            stroke={vergelijkingKleur}
+            strokeWidth={2}
+            strokeDasharray="6 4"
+            strokeLinejoin="round"
+          />
+        )}
+      </svg>
+      {actief !== null && (
+        <div className="grafiek-tip" style={{ left: `${(cx(actief) / B) * 100}%`, top: '14%' }}>
+          <strong>{labels[actief]}</strong>
+          {reeksen.map((r) => (
+            <div key={r.naam}>
+              {r.naam}: {formatY(r.waarden[actief] ?? 0)}
+            </div>
+          ))}
+          <div>Totaal: {formatY(totalen[actief])}</div>
+          {lijn && (
+            <div>
+              {lijn.naam}: {formatY(lijn.waarden[actief])}
+            </div>
+          )}
+        </div>
+      )}
+    </figure>
   );
 }

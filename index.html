@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="robots" content="noindex" />
+    <meta name="robots" content="noindex" data-indexeerschakelaar />
     <meta name="description" content="Ledenplatform rond de Restafvalkaart van Nederland (KplusV): afvalcijfers per gemeente, kennisbank, rekentools en aanbestedingsarchief voor gemeenten, samenwerkingsverbanden en afvalverwerkers." />
     <meta name="theme-color" content="#5760A6" />
     <title>Ledenplatform Restafvalkaart</title>
@@ -73,6 +73,26 @@
       <textarea name="opmerkingen"></textarea>
       <input name="akkoord_voorwaarden" />
       <input name="akkoord_privacy" />
+    </form>
+    <!--
+      Verborgen statische kopie van het aanvraagformulier voor het Heffingenscan-rapport (Netlify Forms).
+      Houd de veldnamen gelijk aan heffingAanvraagVelden in src/data/heffingen-aanbod.ts.
+    -->
+    <form name="rapportaanvraag" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input type="hidden" name="form-name" value="rapportaanvraag" />
+      <input name="bot-field" />
+      <input name="gemeente" />
+      <input name="gemeentecode" />
+      <input name="naam" />
+      <input name="organisatie" />
+      <input name="functie" />
+      <input type="email" name="email" />
+      <input name="telefoon" />
+      <input name="keuze" />
+      <textarea name="opmerking"></textarea>
+      <input name="akkoord_privacy" />
+      <textarea name="kerncijfers"></textarea>
+      <input name="bron" />
     </form>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

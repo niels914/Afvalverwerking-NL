@@ -6,6 +6,9 @@ import { NietGevonden } from './pages/NietGevonden';
 import { navigatie, platform } from './data/site';
 
 // Elke pagina behalve de homepage laadt pas als je hem opent.
+const Heffingenscan = lazy(() => import('./pages/Heffingenscan').then((m) => ({ default: m.Heffingenscan })));
+const HeffingenscanGemeente = lazy(() => import('./pages/HeffingenscanGemeente').then((m) => ({ default: m.HeffingenscanGemeente })));
+const HeffingenscanAanvragen = lazy(() => import('./pages/HeffingenscanAanvragen').then((m) => ({ default: m.HeffingenscanAanvragen })));
 const Restafvalkaart = lazy(() => import('./pages/Restafvalkaart'));
 const Nieuws = lazy(() => import('./pages/Nieuws').then((m) => ({ default: m.Nieuws })));
 const Kennisbank = lazy(() => import('./pages/Kennisbank').then((m) => ({ default: m.Kennisbank })));
@@ -44,6 +47,9 @@ export function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Home />} />
+          <Route path="heffingenscan" element={<Heffingenscan />} />
+          <Route path="heffingenscan/aanvragen" element={<HeffingenscanAanvragen />} />
+          <Route path="heffingenscan/:slug" element={<HeffingenscanGemeente />} />
           <Route path="restafvalkaart" element={<Restafvalkaart />} />
           <Route path="nieuws" element={<Nieuws />} />
           <Route path="kennisbank" element={<Kennisbank />} />
