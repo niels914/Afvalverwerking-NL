@@ -3,11 +3,17 @@ import { defineConfig } from '@playwright/test';
 // End-to-end tests tegen de productiebuild. Draai met: npm run e2e
 // Met PW_BASE=http://localhost:5101 test je tegen een server die al draait (geen eigen build).
 const eigenServer = process.env.PW_BASE;
+// Met PW_CHROME=/pad/naar/chrome gebruikt Playwright een al geïnstalleerde browser (handig als de eigen download ontbreekt).
+const eigenBrowser = process.env.PW_CHROME;
 
 export default defineConfig({
   testDir: './e2e',
   timeout: 60_000,
-  use: { baseURL: eigenServer ?? 'http://localhost:4173', locale: 'nl-NL' },
+  use: {
+    baseURL: eigenServer ?? 'http://localhost:4173',
+    locale: 'nl-NL',
+    ...(eigenBrowser ? { launchOptions: { executablePath: eigenBrowser } } : {}),
+  },
   projects: [
     { name: 'mobiel-400', use: { viewport: { width: 400, height: 860 } } },
     { name: 'desktop', use: { viewport: { width: 1280, height: 900 } } },
