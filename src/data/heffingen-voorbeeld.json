@@ -1,0 +1,80 @@
+{
+  "peildatum": "2026-11-13",
+  "cbsOpgehaald": "2026-11-13",
+  "prijspeil": 2026,
+  "pad": {
+    "id": "bp2027",
+    "naam": "Belastingplan 2027",
+    "status": "wetsvoorstel"
+  },
+  "anderPad": {
+    "id": "bp2026",
+    "naam": "Belastingplan 2026",
+    "status": "geldende wet"
+  },
+  "wetsstatus": "Aangenomen door de Tweede Kamer op 12 november 2026; de Eerste Kamer moet nog stemmen.",
+  "voorbeeld": {
+    "naam": "Overbetuwe",
+    "slug": "overbetuwe",
+    "inwoners": 48945,
+    "huishoudens": 20585,
+    "fijnKg": 68.5,
+    "ton": 3352.7325,
+    "nascheidingKg": 67.5,
+    "jaren": [
+      {
+        "jaar": 2026,
+        "totaal": 128500.02433990766,
+        "perHuishouden": 6.2424107039061285,
+        "perTon": 38.326954011364656,
+        "aandeelCo2": 0.20062784037272008
+      },
+      {
+        "jaar": 2030,
+        "totaal": 371404.2244052981,
+        "perHuishouden": 18.042469001957645,
+        "perTon": 110.7765753472125,
+        "aandeelCo2": 0.4515988618569561
+      },
+      {
+        "jaar": 2035,
+        "totaal": 545467.3156061999,
+        "perHuishouden": 26.49829077513723,
+        "perTon": 162.69335999999998,
+        "aandeelCo2": 0.6265981598757319
+      }
+    ],
+    "cumulatief": 3547241.2617067443,
+    "cumulatiefAnderPad": 4635872.766168655,
+    "besparing": {
+      "jaar": 2030,
+      "kg": 10,
+      "bedrag": 54219.59480369318
+    }
+  },
+  "landelijk": {
+    "aantalGemeenten": 342,
+    "aantalMetNascheiding": 92,
+    "inwoners": 18044027,
+    "huishoudens": 8430352,
+    "ton": 2661238.474899996,
+    "jaren": [
+      {
+        "jaar": 2026,
+        "totaal": 101997164.64076659,
+        "perHuishouden": 12.098802593387155
+      },
+      {
+        "jaar": 2030,
+        "totaal": 294802884.4316606,
+        "perHuishouden": 34.96922600997688
+      },
+      {
+        "jaar": 2035,
+        "totaal": 432965829.2427565,
+        "perHuishouden": 51.35797760790492
+      }
+    ],
+    "cumulatief": 2815630213.6859436
+  }
+}
