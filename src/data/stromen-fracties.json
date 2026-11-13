@@ -1,0 +1,39 @@
+{
+  "uitleg": "Koppeling tussen de stromen van het platform en de afvalsoorten in CBS-tabellen 83452NED (per gemeente) en 83558NED (landelijk). Wordt gelezen door scripts/cbs-stromen.mjs en src/data/stromen.ts.",
+  "fracties": {
+    "fijnRest": { "titel": "Huishoudelijk restafval (fijn)", "afvalsoort": "A025450", "kg": "HuishoudelijkRestafval_123", "kton": "HuishoudelijkRestafval_3" },
+    "grofRest": { "titel": "Grof huishoudelijk restafval", "afvalsoort": "A025451", "kg": "GrofHuishoudelijkRestafval_124", "kton": "GrofHuishoudelijkRestafval_4" },
+    "gft": { "titel": "GFT-afval", "afvalsoort": "A025454", "kg": "GFTAfval_126", "kton": "GFTAfval_6" },
+    "papier": { "titel": "Oud papier en karton", "afvalsoort": "A025455", "kg": "OudPapierEnKarton_127", "kton": "OudPapierEnKarton_7" },
+    "textiel": { "titel": "Textiel", "afvalsoort": "A025456", "kg": "Textiel_128", "kton": "Textiel_8" },
+    "glas": { "titel": "Verpakkingsglas", "afvalsoort": "A025457", "kg": "Verpakkingsglas_129", "kton": "Verpakkingsglas_9" },
+    "kunststof": { "titel": "Kunststof verpakkingen", "afvalsoort": "A025458", "kg": "KunststofVerpakkingen_130", "kton": "KunststofVerpakkingen_10" },
+    "drankenkartons": { "titel": "Drankenkartons", "afvalsoort": "A025459", "kg": "Drankenkartons_131", "kton": "Drankenkartons_11" },
+    "blik": { "titel": "Metalen verpakkingen (blik)", "afvalsoort": "A025460", "kg": "MetalenVerpakkingenBlik_132", "kton": "MetalenVerpakkingenBlik_12" },
+    "pmdFractie": { "titel": "PMD-fractie (gemengd ingezameld)", "afvalsoort": "A025461", "kg": "PMDFractie_133", "kton": "PMDFractie_13" },
+    "kca": { "titel": "Klein chemisch afval (KCA)", "afvalsoort": "A025462", "kg": "KleinChemischAfvalKCA_134", "kton": "KleinChemischAfvalKCA_14" },
+    "luiers": { "titel": "Luiers", "afvalsoort": "A025463", "kg": "Luiers_135", "kton": "Luiers_15" },
+    "grofTuin": { "titel": "Grof tuinafval", "afvalsoort": "A025467", "kg": "GrofTuinafval_138", "kton": "GrofTuinafval_18" },
+    "houtAB": { "titel": "Houtafval (A- en B-hout)", "afvalsoort": "A025474", "kg": "HoutafvalAEnBHout_145", "kton": "HoutafvalAEnBHout_25" },
+    "houtC": { "titel": "Houtafval (C-hout)", "afvalsoort": "A025475", "kg": "HoutafvalCHout_146", "kton": "HoutafvalCHout_26" },
+    "matrassen": { "titel": "Matrassen", "afvalsoort": "A025472", "kg": "Matrassen_143", "kton": "Matrassen_23" },
+    "metalen": { "titel": "Metalen (excl. verpakkingen)", "afvalsoort": "A025476", "kg": "Metalen_147", "kton": "Metalen_27" },
+    "hardePlastics": { "titel": "Harde plastics", "afvalsoort": "A025470", "kg": "HardePlastics_141", "kton": "HardePlastics_21" },
+    "vloerbedekking": { "titel": "Vloerbedekking", "afvalsoort": "A025471", "kg": "Vloerbedekking_142", "kton": "Vloerbedekking_22" }
+  },
+  "stromen": {
+    "restafval": ["fijnRest", "grofRest"],
+    "gft": ["gft"],
+    "papier": ["papier"],
+    "pmd": ["kunststof", "drankenkartons", "blik", "pmdFractie"],
+    "textiel": ["textiel"],
+    "glas": ["glas"],
+    "grof": ["grofTuin", "houtAB", "houtC", "matrassen", "metalen", "hardePlastics", "vloerbedekking"],
+    "luiers": ["luiers"],
+    "kca": ["kca"]
+  },
+  "verwerking": {
+    "restafval": { "nuttig": "NuttigeToepassing_184", "composteren": "Composteren_185", "nascheiding": "ScheidenAchteraf_186", "verbranden": "Verbranden_187", "storten": "Storten_188" },
+    "grofRestafval": { "nuttig": "NuttigeToepassing_189", "composteren": "Composteren_190", "nascheiding": "ScheidenAchteraf_191", "verbranden": "Verbranden_192", "storten": "Storten_193" }
+  }
+}
