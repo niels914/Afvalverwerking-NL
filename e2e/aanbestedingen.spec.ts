@@ -102,6 +102,33 @@ test.describe('bezoeker', () => {
       expect(String(r.sluitingsdatum) >= nu.slice(0, 16), `sluitingsdatum ${r.sluitingsdatum} ligt in de toekomst`).toBe(true);
     }
   });
+
+  test('bezoeker: betaalmuur en totalen in de documentenbibliotheek, geen documentregels via de API', async ({ page }) => {
+    await page.goto('/aanbestedingsarchief/documenten');
+    await expect(page.getByRole('heading', { level: 1, name: 'Documentenbibliotheek' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Wat de bibliotheek bevat' })).toBeVisible();
+    await expect(page.getByText(/\d[\d.]* documenten bij \d[\d.]* aanbestedingen/)).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Documentenbibliotheek/, level: 2 }).first()).toBeVisible();
+    await expect(page.locator('.bib-lijst')).toHaveCount(0);
+    await expect(page.getByLabel('Soort document')).toHaveCount(0);
+    await geenHorizontaleScroll(page);
+  });
+
+  test('de database geeft bezoekers geen documenten of gunningen, alleen aantallen', async () => {
+    const db = client();
+    for (const tabel of ['aanbesteding_documenten', 'aanbesteding_gunningen']) {
+      const r = await db.from(tabel).select('kenmerk').limit(1);
+      expect(r.data ?? [], `anon leest ${tabel}`).toEqual([]);
+    }
+    for (const f of ['documenten_zoeken', 'documenten_filteropties', 'aanbestedingen_zoeken_plus', 'aanbestedingen_gegunde_partijen', 'aanbestedingen_afloopjaren']) {
+      const r = await db.rpc(f, {});
+      expect(r.error, `anon mag ${f} niet aanroepen`).not.toBeNull();
+    }
+    const totalen = await db.rpc('aanbestedingen_documenten_openbaar');
+    expect(totalen.error).toBeNull();
+    for (const r of totalen.data as Record<string, unknown>[]) expect(Object.keys(r).sort()).toEqual(['aanbestedingen', 'documenten', 'soort']);
+    expect((totalen.data as { soort: string }[]).some((r) => r.soort === 'totaal')).toBe(true);
+  });
 });
 
 test.describe('lid', () => {
@@ -276,6 +303,69 @@ test.describe('lid', () => {
     const hoogte = await page.locator('.archief-tabel').evaluate((e) => e.getBoundingClientRect().height);
     const rijen = await page.locator('.archief-tabel tbody tr').count();
     expect(hoogte / rijen, 'gemiddelde hoogte per aanbesteding').toBeLessThan(200);
+    await geenHorizontaleScroll(page);
+  });
+
+  test('database: lid leest documenten en gunningen', async () => {
+    const db = client();
+    await db.auth.setSession({ access_token: sessie.access_token, refresh_token: sessie.refresh_token });
+    const docs = await db.from('aanbesteding_documenten').select('naam,soort,url,grootte', { count: 'exact' }).limit(5);
+    expect(docs.error).toBeNull();
+    expect(docs.count ?? 0).toBeGreaterThan(100);
+    for (const d of docs.data as { url: string }[]) expect(d.url).toMatch(/^https:\/\/www\.tenderned\.nl\/papi\/tenderned-rs-tns\//);
+    const lijst = await db.rpc('documenten_zoeken', { p_soort: 'overeenkomst' }, { count: 'exact' }).range(0, 2);
+    expect(lijst.error).toBeNull();
+    expect(lijst.count ?? 0).toBeGreaterThan(0);
+    const gun = await db.from('aanbesteding_gunningen').select('gegund_aan', { count: 'exact', head: true });
+    expect(gun.count ?? 0).toBeGreaterThan(0);
+  });
+
+  test('details tonen de documenten per soort met een link naar TenderNed', async ({ page }) => {
+    await page.goto('/aanbestedingsarchief?soort=overeenkomst');
+    await resultatenBinnen(page);
+    const rij = page.locator('.archief-tabel tbody tr').first();
+    await rij.locator('summary').click();
+    const docs = rij.locator('.archief-documenten');
+    await expect(docs).toBeVisible();
+    await expect(docs.locator('h4', { hasText: 'Conceptovereenkomst of contract' })).toBeVisible();
+    await expect(docs.locator('a').first()).toHaveAttribute('href', /^https:\/\/www\.tenderned\.nl\/papi\/tenderned-rs-tns\/v2\/publicaties\/\d+\/documenten\/\d+\/content$/);
+    await expect(docs).toContainText('indeling van dit platform');
+    await geenHorizontaleScroll(page);
+  });
+
+  test('filters op gunningscriteria, gegunde partij en einde contract', async ({ page }) => {
+    await page.goto('/aanbestedingsarchief?soort=gunningscriteria');
+    await resultatenBinnen(page);
+    await expect(page.locator('.archief-aantal')).toContainText(/\d+ aanbestedingen? gevonden/);
+    await page.goto('/aanbestedingsarchief?status=gegund&partij=renewi');
+    await resultatenBinnen(page);
+    const rij = page.locator('.archief-tabel tbody tr').first();
+    await rij.locator('summary').click();
+    await expect(rij.locator('.archief-gunning')).toContainText(/Gegund aan/);
+    await expect(rij.locator('.archief-gunning')).toContainText(/Renewi/i);
+    const jaar = new Date().getFullYear() + 1;
+    await page.goto(`/aanbestedingsarchief?afloop=${jaar}`);
+    await expect(page.locator('.archief-aantal')).not.toHaveText('Aanbestedingen laden…');
+  });
+
+  test('documentenbibliotheek: zoeken, filteren, URL-parameters en geen horizontale scroll', async ({ page }) => {
+    await page.goto('/aanbestedingsarchief/documenten?soort=overeenkomst&stroom=GFT%20en%20etensresten');
+    await expect(page.locator('.bib-lijst')).toHaveAttribute('aria-busy', 'false');
+    await expect(page.getByLabel('Soort document')).toHaveValue('overeenkomst');
+    await expect(page.getByLabel('Afvalstroom')).toHaveValue('GFT en etensresten');
+    const aantal = page.locator('.archief-aantal');
+    await expect(aantal).toContainText(/\d+ documenten? gevonden/);
+    const treffer = page.locator('.bib-treffer').first();
+    await expect(treffer.locator('.bib-naam')).toHaveAttribute('href', /^https:\/\/www\.tenderned\.nl\/papi\//);
+    await expect(treffer).toContainText('Conceptovereenkomst of contract');
+    await expect(treffer.locator('.archief-opdrachtgever')).not.toBeEmpty();
+    await expect(treffer).toContainText(/Gepubliceerd/);
+
+    await page.getByLabel('Zoeken in documentnaam, titel en opdrachtgever').fill('zzzzgeenresultaat');
+    await expect(aantal).toHaveText('Geen documenten gevonden.');
+    await expect(page).toHaveURL(/zoek=zzzzgeenresultaat/);
+    await page.getByRole('button', { name: 'Alle filters wissen' }).click();
+    await expect(aantal).toContainText(/\d+ documenten gevonden/);
     await geenHorizontaleScroll(page);
   });
 });

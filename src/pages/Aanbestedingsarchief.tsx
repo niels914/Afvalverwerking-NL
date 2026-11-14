@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Vergrendeld } from '../components/betaalmuur/Vergrendeld';
 import { Badge, KeuzeVeld, PaginaKop } from '../components/ui';
 import { aanbestedingenBron, cpvFilterUitleg, gemeentenBron } from '../data/aanbestedingen';
@@ -7,6 +7,13 @@ import { isToegangOnbekend, useAuth } from '../lib/auth';
 import {
   CSV_MAX,
   DIENSTEN,
+  bestandsgrootte,
+  euro,
+  groepeerPerSoort,
+  haalAfloopjaren,
+  haalDocumenten,
+  typeLabel,
+  type AanbestedingDocument,
   LEGE_FILTERS,
   PER_PAGINA,
   PROVINCIES,
@@ -80,7 +87,9 @@ export function Aanbestedingsarchief() {
             ledenKrijgen={[
               'Ook gesloten, gegunde en beëindigde aanbestedingen en marktconsultaties, terug tot 2013',
               'Filters op afvalstroom, status, provincie en soort dienst, en sorteren',
-              'Per aanbesteding de omschrijving, CPV-codes, het documentenplatform en de tijdlijn van publicaties',
+              'Per aanbesteding de omschrijving, CPV-codes, de tijdlijn van publicaties, de lijst met documenten en, bij gegunde aanbestedingen, de gegunde partij en het einde van het contract',
+              'Filters op documenten (met conceptovereenkomst, programma van eisen of gunningscriteria), gegunde partij en het jaar waarin een contract afloopt',
+              'De documentenbibliotheek: zoeken in de documenten van alle aanbestedingen',
               'Download als CSV voor Excel',
             ]}
           >
@@ -246,7 +255,9 @@ function Archief() {
   const [fout, setFout] = useState<string | null>(null);
   const [poging, setPoging] = useState(0);
   const [kern, setKern] = useState<Kerncijfers | null>(null);
+  const [afloopJaren, setAfloopJaren] = useState<{ jaar: number; aantal: number }[]>([]);
   const [zoekInvoer, setZoekInvoer] = useState(filters.zoek);
+  const [partijInvoer, setPartijInvoer] = useState(filters.partij);
   const resultatenKop = useRef<HTMLHeadingElement>(null);
   const focusNaLaden = useRef(false);
 
@@ -256,7 +267,19 @@ function Archief() {
 
   useEffect(() => {
     haalKerncijfers().then(setKern, () => setKern(null));
+    haalAfloopjaren().then(setAfloopJaren, () => setAfloopJaren([]));
   }, []);
+
+  useEffect(() => {
+    setPartijInvoer(filters.partij);
+  }, [filters.partij]);
+
+  // Gegunde partij: zoeken terwijl u typt, met korte vertraging.
+  useEffect(() => {
+    if (partijInvoer.trim() === filters.partij.trim()) return;
+    const t = window.setTimeout(() => zetFiltersRef.current({ partij: partijInvoer }), 450);
+    return () => window.clearTimeout(t);
+  }, [partijInvoer, filters.partij]);
 
   useEffect(() => {
     let actief = true;
@@ -290,6 +313,9 @@ function Archief() {
     [params, setParams],
   );
 
+  const zetFiltersRef = useRef(zetFilters);
+  zetFiltersRef.current = zetFilters;
+
   // Zoeken terwijl u typt, met korte vertraging.
   useEffect(() => {
     if (zoekInvoer.trim() === filters.zoek.trim()) return;
@@ -313,9 +339,10 @@ function Archief() {
   }
 
   const actieveFilters = filtersNaarUrl({ ...filters, sortering: 'publicatie-nieuw', pagina: 1 }).toString() !== '';
-  const aantalActief = [filters.stroom, filters.status, filters.provincie, filters.dienst, filters.hoofd ? '1' : ''].filter(Boolean).length;
+  const aantalActief = [filters.stroom, filters.status, filters.provincie, filters.dienst, filters.hoofd ? '1' : '', filters.soort, filters.partij, filters.afloop].filter(Boolean).length;
   const zoekId = useId();
   const hoofdId = useId();
+  const partijId = useId();
   const vandaag = vandaagNl();
 
   const stroomOpties = STROMEN.filter((s) => !kern || (kern.perStroom[s] ?? 0) > 0 || s === filters.stroom).map((s) => ({
@@ -326,6 +353,10 @@ function Archief() {
   return (
     <div className="archief">
       <Bronvermelding kern={kern} />
+
+      <p className="archief-bibliotheek">
+        <Link to="/aanbestedingsarchief/documenten">Documentenbibliotheek: leidraden, programma's van eisen en conceptovereenkomsten van andere aanbestedingen</Link>
+      </p>
 
       <nav className="archief-snel" aria-label="Snelkeuzes">
         <span className="archief-snel-label">Snel naar:</span>
@@ -416,6 +447,43 @@ function Archief() {
             onChange={(v) => zetFilters({ dienst: v })}
             opties={[{ waarde: '', label: 'Alle diensten' }, ...DIENSTEN.map((d) => ({ waarde: d, label: d }))]}
           />
+          <KeuzeVeld<string>
+            label="Documenten"
+            waarde={filters.soort}
+            onChange={(v) => zetFilters({ soort: v })}
+            hint="Soort document is een indeling van dit platform, afgeleid van de bestandsnaam."
+            opties={[
+              { waarde: '', label: 'Alle aanbestedingen' },
+              { waarde: 'overeenkomst', label: 'Met conceptovereenkomst' },
+              { waarde: 'programma-van-eisen', label: 'Met programma van eisen' },
+              { waarde: 'gunningscriteria', label: 'Met gunningscriteria' },
+              { waarde: 'leidraad', label: 'Met leidraad' },
+              { waarde: 'prijzenblad', label: 'Met prijzenblad' },
+            ]}
+          />
+          <KeuzeVeld<string>
+            label="Contract loopt af in"
+            waarde={filters.afloop}
+            onChange={(v) => zetFilters({ afloop: v })}
+            opties={[
+              { waarde: '', label: 'Alle jaren' },
+              ...afloopJaren.map((j) => ({ waarde: String(j.jaar), label: `${j.jaar} (${getal(j.aantal)})` })),
+              ...(filters.afloop && !afloopJaren.some((j) => String(j.jaar) === filters.afloop) ? [{ waarde: filters.afloop, label: filters.afloop }] : []),
+            ]}
+          />
+          <div className="veld archief-partij">
+            <label htmlFor={partijId}>Gegunde partij</label>
+            <div className="invoer">
+              <input
+                id={partijId}
+                type="search"
+                value={partijInvoer}
+                maxLength={100}
+                placeholder="Bijvoorbeeld: Renewi"
+                onChange={(e) => setPartijInvoer(e.target.value)}
+              />
+            </div>
+          </div>
           <KeuzeVeld<Sortering>
             label="Sorteren op"
             waarde={filters.sortering}
@@ -436,6 +504,7 @@ function Archief() {
             className="archief-wissen"
             onClick={() => {
               setZoekInvoer('');
+              setPartijInvoer('');
               setParams(filtersNaarUrl({ ...LEGE_FILTERS, sortering: filters.sortering }), { replace: true });
             }}
           >
@@ -664,8 +733,122 @@ function sluitingKort(a: AanbestedingRegel, vandaag: string): string {
   return `Gepubliceerd ${datumKortNl(a.laatste_publicatie)}`;
 }
 
+/** Gunning en documenten bij een aanbesteding. De documentenlijst wordt pas opgehaald zodra de details open gaan. */
+function DocumentenEnGunning({ a, open }: { a: AanbestedingRegel; open: boolean }) {
+  const [docs, setDocs] = useState<AanbestedingDocument[] | null>(null);
+  const [fout, setFout] = useState(false);
+  useEffect(() => {
+    if (!open || a.documenten_aantal === 0) return;
+    let actief = true;
+    haalDocumenten(a.kenmerk).then(
+      (d) => actief && setDocs(d),
+      () => actief && setFout(true),
+    );
+    return () => {
+      actief = false;
+    };
+  }, [open, a.kenmerk, a.documenten_aantal]);
+
+  const groepen = docs ? groepeerPerSoort(docs) : [];
+  const percelen = a.gegund_aan && a.gegund_aan.length > 0 ? (a.gunning_percelen ?? []) : [];
+  return (
+    <>
+      {a.gegund_aan && a.gegund_aan.length > 0 && (
+        <section className="archief-gunning" aria-label={`Gunning van ${a.titel}`}>
+          <p className="archief-tijdlijn-kop">Gunning en contract</p>
+          <dl className="archief-dl">
+            <dt>Gegund aan</dt>
+            <dd>{a.gegund_aan.join(', ')}</dd>
+            {a.gunningsdatum && (
+              <>
+                <dt>Datum contract</dt>
+                <dd>{datum(a.gunningsdatum)}</dd>
+              </>
+            )}
+            {a.gunning_waarde !== null && (
+              <>
+                <dt>Waarde</dt>
+                <dd>{euro(a.gunning_waarde)} exclusief btw, zoals de aankondiging die noemt</dd>
+              </>
+            )}
+            {a.gunning_inschrijvingen !== null && (
+              <>
+                <dt>Inschrijvingen</dt>
+                <dd>{getal(a.gunning_inschrijvingen)}</dd>
+              </>
+            )}
+            {a.contract_einde && (
+              <>
+                <dt>Einde contract</dt>
+                <dd>
+                  {datum(a.contract_einde)}
+                  {a.contract_start ? `, begin ${datum(a.contract_start)}` : ''}
+                  {a.contract_einde_afgeleid ? ' (afgeleid uit begindatum en looptijd)' : ' (volgens de aankondiging)'}
+                </dd>
+              </>
+            )}
+            {a.contract_verlengingen !== null && (
+              <>
+                <dt>Verlenging</dt>
+                <dd>
+                  Maximaal {getal(a.contract_verlengingen)} {a.contract_verlengingen === 1 ? 'verlenging' : 'verlengingen'}
+                  {a.contract_verlenging_tekst ? `: ${a.contract_verlenging_tekst}` : ''}
+                </dd>
+              </>
+            )}
+          </dl>
+          {percelen.length > 1 && (
+            <ul className="archief-percelen">
+              {percelen.map((p, i) => (
+                <li key={`${p.perceel ?? i}`}>
+                  <strong>{p.titel ?? p.perceel ?? `Perceel ${i + 1}`}</strong>: {p.winnaars.join(', ')}
+                  {p.aantal_inschrijvingen !== null ? `, ${getal(p.aantal_inschrijvingen)} ${p.aantal_inschrijvingen === 1 ? 'inschrijving' : 'inschrijvingen'}` : ''}
+                  {p.waarde !== null ? `, ${euro(p.waarde)}` : ''}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {a.documenten_aantal > 0 && (
+        <section className="archief-documenten" aria-label={`Documenten bij ${a.titel}`}>
+          <p className="archief-tijdlijn-kop">Documenten op TenderNed ({getal(a.documenten_aantal)})</p>
+          {fout && <p role="alert">De documentenlijst kon niet worden geladen.</p>}
+          {!fout && !docs && <p className="muted">Documenten laden…</p>}
+          {groepen.map((g) => (
+            <div key={g.soort} className="archief-docgroep">
+              <h4>{g.label}</h4>
+              <ul>
+                {g.docs.map((d) => (
+                  <li key={d.document_id}>
+                    <a href={d.url} target="_blank" rel="noopener noreferrer">
+                      {d.naam}
+                      <span className="visueel-verborgen"> (opent op TenderNed in nieuw venster)</span>
+                    </a>
+                    <span className="archief-docmeta">
+                      {[typeLabel(d.bestandstype), bestandsgrootte(d.grootte), d.datum ? datumKortNl(d.datum) : ''].filter(Boolean).join(' · ')}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+          {docs && (
+            <p className="hint">
+              De soort is een indeling van dit platform, afgeleid van de bestandsnaam; TenderNed kent die indeling niet. Het platform bewaart de
+              documenten niet: u opent ze bij TenderNed.
+            </p>
+          )}
+        </section>
+      )}
+    </>
+  );
+}
+
 function Regel({ a, vandaag }: { a: AanbestedingRegel; vandaag: string }) {
   const nog = a.sluitingsdatum && (a.status === 'open' || a.status === 'marktconsultatie') ? nogTekst(a.sluitingsdatum, vandaag) : null;
+  const [open, setOpen] = useState(false);
   const meta = [a.provincies.join(', '), a.afval_hoofd ? '' : 'Afval is nevenonderdeel'].filter(Boolean);
   return (
     <tr>
@@ -687,7 +870,7 @@ function Regel({ a, vandaag }: { a: AanbestedingRegel; vandaag: string }) {
             {meta.length > 0 && <span>{meta.join(' · ')}</span>}
           </p>
         )}
-        <details className="archief-meer">
+        <details className="archief-meer" onToggle={(e) => setOpen(e.currentTarget.open)}>
           <summary>
             Details<span className="visueel-verborgen"> van {a.titel}</span>
           </summary>
@@ -741,6 +924,7 @@ function Regel({ a, vandaag }: { a: AanbestedingRegel; vandaag: string }) {
               </>
             )}
           </dl>
+          <DocumentenEnGunning a={a} open={open} />
           <p className="archief-tijdlijn-kop">Publicaties op TenderNed</p>
           <ol className="archief-tijdlijn">
             {a.publicaties.map((p) => (
@@ -788,7 +972,7 @@ function Regel({ a, vandaag }: { a: AanbestedingRegel; vandaag: string }) {
   );
 }
 
-function Paginering({ pagina, paginas, naar }: { pagina: number; paginas: number; naar: (p: number) => void }) {
+export function Paginering({ pagina, paginas, naar }: { pagina: number; paginas: number; naar: (p: number) => void }) {
   const nummers = new Set<number>([1, paginas, pagina - 1, pagina, pagina + 1]);
   const lijst = [...nummers].filter((n) => n >= 1 && n <= paginas).sort((a, b) => a - b);
   return (

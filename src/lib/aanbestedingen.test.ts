@@ -11,6 +11,8 @@ import {
   vatDetailSamen,
   type TnsLijstPublicatie,
 } from '../../supabase/functions/ververs-aanbestedingen/afleiding';
+import { soortDocument, soortenIn, vatDocumentenSamen } from '../../supabase/functions/ververs-aanbestedingen/documenten';
+import { eindeUitLooptijd, parseBedrag, parseDatum, parseLooptijdMaanden, planningUitDetail, vatGunningSamen } from '../../supabase/functions/ververs-aanbestedingen/gunning';
 import { GEMEENTE_PROVINCIE } from '../../supabase/functions/ververs-aanbestedingen/gemeenten';
 import {
   dagenTot,
@@ -303,6 +305,18 @@ describe('CSV en weergave (ronde 2)', () => {
     publicaties: [],
     status: 'open',
     afval_hoofd: true,
+    documenten_aantal: 0,
+    documenten_soorten: [],
+    gegund_aan: null,
+    gunningsdatum: null,
+    gunning_waarde: null,
+    gunning_inschrijvingen: null,
+    contract_start: null,
+    contract_einde: null,
+    contract_einde_afgeleid: null,
+    contract_verlengingen: null,
+    contract_verlenging_tekst: null,
+    gunning_percelen: null,
   };
   it('CSV met puntkomma, BOM en ontsnapte aanhalingstekens', () => {
     const csv = maakCsv([regel]);
@@ -312,5 +326,158 @@ describe('CSV en weergave (ronde 2)', () => {
   it('lange procedurenamen kunnen afbreken', () => {
     expect(procedureAfbreekbaar('Onderhandelingsprocedure zonder voorafgaande oproep tot mededinging')).toBe('Onderhandelings\u00ADprocedure zonder voorafgaande oproep tot mededinging');
     expect(procedureAfbreekbaar('Openbaar')).toBe('Openbaar');
+  });
+});
+
+describe('soort document (afgeleid van de bestandsnaam)', () => {
+  const soort = (naam: string, cat?: string) => soortDocument(naam, cat);
+  it('herkent de gangbare soorten', () => {
+    expect(soort('Beschrijvend Document')).toBe('leidraad');
+    expect(soort('Aanbestedingsleidraad GFT 2026.pdf')).toBe('leidraad');
+    expect(soort('Bijlage 5_Programma van Eisen Calamiteiten inzet - perceel 2')).toBe('programma-van-eisen');
+    expect(soort('Bestek inzameling')).toBe('programma-van-eisen');
+    expect(soort('Bijlage 6_Concept Raamopvereenkomst')).toBe('overeenkomst');
+    expect(soort('Conceptovereenkomst verwerking GFT')).toBe('overeenkomst');
+    expect(soort('Bijlage 1_Algemene Inkoopvoorwaarden 2021')).toBe('voorwaarden');
+    expect(soort('Beoordelingsmethodiek en gunningscriteria')).toBe('gunningscriteria');
+    expect(soort('Nota van Inlichtingen 1')).toBe('nota-van-inlichtingen');
+    expect(soort('Vragen en antwoorden ronde 2')).toBe('nota-van-inlichtingen');
+    expect(soort('Bijlage 3_Prijzenblad Calamiteiten inzet perceel 2')).toBe('prijzenblad');
+    expect(soort('Inschrijfbiljet')).toBe('prijzenblad');
+    expect(soort('uea_624538_20261111152441')).toBe('uea');
+    expect(soort('Eigen verklaring')).toBe('uea');
+  });
+  it('gebruikt de categorie van TenderNed', () => {
+    expect(soort('iets onbekends', 'NVI')).toBe('nota-van-inlichtingen');
+    expect(soort('TN624538 - EF16 Aankondiging van een opdracht', 'ANK')).toBe('aankondiging');
+    expect(soort('Verslag bijeenkomst', 'MAC')).toBe('marktconsultatie');
+  });
+  it('wat niet herkend wordt heet overig', () => {
+    expect(soort('Bijlage 9_SROI-verplichting')).toBe('overig');
+    expect(soort('')).toBe('overig');
+    expect(soortDocument(null)).toBe('overig');
+  });
+  it('de volgorde telt: een prijzenblad bij een overeenkomst blijft prijzenblad', () => {
+    expect(soort('Prijzenblad bij de overeenkomst')).toBe('prijzenblad');
+  });
+});
+
+describe('documentenlijst van TenderNed', () => {
+  const antwoord = {
+    documenten: [
+      {
+        documentId: 'a1',
+        documentNaam: '  Beschrijvend   Document ',
+        typeDocument: { code: 'PDF' },
+        datumPublicatie: '2026-11-13',
+        publicatieCategorie: { code: 'DOC' },
+        grootte: 404048,
+        links: { download: { href: '/papi/tenderned-rs-tns/v2/publicaties/1/documenten/2/content' } },
+      },
+      { documentId: 'a1', documentNaam: 'dubbel', links: { download: { href: '/papi/tenderned-rs-tns/x' } } },
+      { documentId: 'a2', documentNaam: 'Zonder link' },
+      { documentId: 'a3', documentNaam: 'Externe link', links: { download: { href: 'https://example.com/x.pdf' } } },
+    ],
+  };
+  it('bewaart alleen metadata en een link naar TenderNed', () => {
+    const rijen = vatDocumentenSamen(7, 1, antwoord);
+    expect(rijen).toHaveLength(1);
+    expect(rijen[0]).toMatchObject({
+      kenmerk: 7,
+      publicatie_id: 1,
+      naam: 'Beschrijvend Document',
+      soort: 'leidraad',
+      bestandstype: 'pdf',
+      datum: '2026-11-13',
+      grootte: 404048,
+      url: 'https://www.tenderned.nl/papi/tenderned-rs-tns/v2/publicaties/1/documenten/2/content',
+    });
+    expect(Object.keys(rijen[0]).sort()).toEqual(
+      ['bestandstype', 'categorie', 'datum', 'document_id', 'grootte', 'kenmerk', 'naam', 'publicatie_id', 'soort', 'url'].sort(),
+    );
+  });
+  it('geeft een lege lijst bij onverwachte antwoorden', () => {
+    expect(vatDocumentenSamen(1, 1, null)).toEqual([]);
+    expect(vatDocumentenSamen(1, 1, { documenten: 'x' })).toEqual([]);
+  });
+  it('soortenIn geeft de soorten in vaste volgorde', () => {
+    expect(soortenIn([{ soort: 'overig' }, { soort: 'leidraad' }, { soort: 'overig' }])).toEqual(['leidraad', 'overig']);
+  });
+});
+
+describe('gunning uit de aankondiging', () => {
+  it('leest bedragen, datums en looptijd', () => {
+    expect(parseBedrag('256 458,4 Euro')).toBe(256458.4);
+    expect(parseBedrag('950 000,00')).toBe(950000);
+    expect(parseBedrag('-')).toBeNull();
+    expect(parseDatum('09/07/2024')).toBe('2024-07-09');
+    expect(parseDatum('geen')).toBeNull();
+    expect(parseLooptijdMaanden('48 Maand')).toBe(48);
+    expect(parseLooptijdMaanden('4 Jaar')).toBe(48);
+    expect(parseLooptijdMaanden('10 Dagen')).toBeNull();
+    expect(eindeUitLooptijd('2025-01-01', 24)).toBe('2026-12-31');
+  });
+  it('planning uit de detailpagina', () => {
+    expect(planningUitDetail({ aanvangOpdrachtDatum: '2027-03-01', voltooiingOpdrachtDatum: '2029-02-28' })).toEqual({ start: '2027-03-01', einde: '2029-02-28' });
+    expect(planningUitDetail({})).toEqual({ start: null, einde: null });
+  });
+
+  const rij = (l: string, w: string) => `<tr><td><span class="label">${l}</span><span class="text">: </span></td><td><span class="value">${w}</span></td></tr>`;
+  const kop = (t: string) => `<tr class="header2"><th colspan="2">${t}</th></tr>`;
+  const eforms = `<table lang="nl"><tbody>
+    ${kop('5.1 Technische ID van het kavel: LOT-0001')}${rij('Titel', 'Perceel 1')}
+    ${kop('5.1.3 Geraamde duur')}${rij('Begindatum', '01/01/2025')}${rij('Looptijd', '24 Maand')}
+    ${kop('5.1.4 Verlenging')}${rij('Maximumaantal verlengingen', '3')}${rij('Overige informatie over verlengingen', '3x1 jaar')}
+    <tr class="header1"><th colspan="2">6. Resultaten</th></tr>${rij('Waarde van alle contracten toegekend in deze kennisgeving', '1 Euro')}
+    ${kop('6.1 ID resultaat perceel: LOT-0001')}${kop('6.1.2 Informatie over winnaars')}
+    ${rij('Officiële naam', 'Attero BV')}${rij('Waarde van de aanbesteding', '1 500 000 Euro')}${rij('Datum van sluiting van het contract', '09/07/2024')}
+    ${kop('6.1.4 Statistische informatie')}${rij('Type van de ontvangen inschrijvingen', 'Elektronisch ingediende inschrijvingen')}${rij('Aantal ontvangen inschrijvingen of verzoeken tot deelname', '2')}
+    ${rij('Type van de ontvangen inschrijvingen', 'Inschrijvingen')}${rij('Aantal ontvangen inschrijvingen of verzoeken tot deelname', '3')}
+    <tr class="header1"><th colspan="2">8. Organisaties</th></tr>${kop('8.1 ORG-0002')}${rij('Officiële naam', 'Niet meenemen BV')}${rij('Contactpunt', 'Jan Jansen')}${rij('E-mail', 'jan@example.com')}
+  </tbody></table>`;
+  it('leest een eForms-gunning zonder contactgegevens', () => {
+    const g = vatGunningSamen({ html: eforms });
+    expect(g).not.toBeNull();
+    expect(g!.formaat).toBe('eforms');
+    expect(g!.gegund_aan).toEqual(['Attero BV']);
+    expect(g!.gunningsdatum).toBe('2024-07-09');
+    expect(g!.waarde_totaal).toBe(1500000);
+    expect(g!.aantal_inschrijvingen).toBe(3);
+    expect(g!.looptijd_einde).toBe('2026-12-31');
+    expect(g!.einde_afgeleid).toBe(true);
+    expect(g!.verlengingen_max).toBe(3);
+    expect(g!.verlenging_tekst).toBe('3x1 jaar');
+    expect(JSON.stringify(g)).not.toMatch(/Jansen|example\.com|Niet meenemen/);
+  });
+  it('invulwaarden van 1 euro worden niet getoond', () => {
+    const g = vatGunningSamen({ html: eforms.replace('1 500 000 Euro', '1 Euro') });
+    expect(g!.waarde_totaal).toBeNull();
+  });
+  it('leest het oude standaardformulier', () => {
+    const sf = `<div><h3>Afdeling V: <span>Gunning van een opdracht</span></h3><p><span>Opdracht nr.: </span>1<br /><span>Perceel nr.: </span>-<br /><span>Benaming: </span>Glas</p>
+      <p>Een opdracht/perceel wordt gegund: ja</p><p>Datum van de sluiting van de overeenkomst: </p><p>15/11/2023</p><p>Aantal inschrijvingen: 3</p>
+      <dl><dt>Officiële benaming:</dt><dd>Glasrecycling B.V.</dd><dt>Nationale identificatie:</dt><dd>1</dd><dt>E-mail:</dt><dd>x@y.nl</dd></dl>
+      <p>Totale waarde van de opdracht/het perceel: 950 000,00</p><h3>Afdeling VI: <span>Aanvullend</span></h3><dl><dt>Officiële benaming:</dt><dd>Rechtbank</dd></dl></div>`;
+    const g = vatGunningSamen({ html: sf });
+    expect(g!.formaat).toBe('sf03');
+    expect(g!.gegund_aan).toEqual(['Glasrecycling B.V.']);
+    expect(g!.gunningsdatum).toBe('2023-11-15');
+    expect(g!.aantal_inschrijvingen).toBe(3);
+    expect(g!.waarde_totaal).toBe(950000);
+    expect(g!.looptijd_einde).toBeNull();
+  });
+  it('geeft null zonder winnaar of bij onverwachte invoer', () => {
+    expect(vatGunningSamen({ html: '<table><tbody></tbody></table> '.repeat(3) })).toBeNull();
+    expect(vatGunningSamen(null)).toBeNull();
+    expect(vatGunningSamen({ html: 5 })).toBeNull();
+  });
+});
+
+describe('filters in de URL: documenten, partij en afloop', () => {
+  it('leest en schrijft de nieuwe filters en negeert onzin', () => {
+    const f = filtersUitUrl(new URLSearchParams('soort=overeenkomst&partij=Renewi&afloop=2027'));
+    expect(f).toMatchObject({ soort: 'overeenkomst', partij: 'Renewi', afloop: '2027' });
+    expect(filtersNaarUrl(f).toString()).toBe('soort=overeenkomst&partij=Renewi&afloop=2027');
+    expect(filtersUitUrl(new URLSearchParams('soort=onzin&afloop=abc'))).toMatchObject({ soort: '', afloop: '' });
   });
 });

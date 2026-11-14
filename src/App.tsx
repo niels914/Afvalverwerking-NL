@@ -21,6 +21,7 @@ const Co2Heffingenscan = lazy(() => import('./pages/tools/Co2Heffingenscan').the
 const Bodemassencalculator = lazy(() => import('./pages/tools/Bodemassencalculator').then((m) => ({ default: m.Bodemassencalculator })));
 const PmdRekenmodel = lazy(() => import('./pages/tools/PmdRekenmodel').then((m) => ({ default: m.PmdRekenmodel })));
 const Aanbestedingsarchief = lazy(() => import('./pages/Aanbestedingsarchief').then((m) => ({ default: m.Aanbestedingsarchief })));
+const AanbestedingsDocumenten = lazy(() => import('./pages/AanbestedingsDocumenten').then((m) => ({ default: m.AanbestedingsDocumenten })));
 const Lidmaatschap = lazy(() => import('./pages/Lidmaatschap').then((m) => ({ default: m.Lidmaatschap })));
 const Over = lazy(() => import('./pages/Over').then((m) => ({ default: m.Over })));
 const Aanmelden = lazy(() => import('./pages/Aanmelden').then((m) => ({ default: m.Aanmelden })));
@@ -64,6 +65,7 @@ export function App() {
           <Route path="tools/bodemassencalculator" element={<Bodemassencalculator />} />
           <Route path="tools/pmd-rekenmodel" element={<PmdRekenmodel />} />
           <Route path="aanbestedingsarchief" element={<Aanbestedingsarchief />} />
+          <Route path="aanbestedingsarchief/documenten" element={<AanbestedingsDocumenten />} />
           <Route path="lidmaatschap" element={<Lidmaatschap />} />
           <Route path="over-het-platform" element={<Over />} />
           <Route path="lidmaatschap/aanmelden" element={<Aanmelden />} />

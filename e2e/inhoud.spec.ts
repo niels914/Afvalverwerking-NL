@@ -219,7 +219,9 @@ test.describe('Kennisbank', () => {
     const filters = page.locator('details.filters-inklap');
     if (!(await filters.evaluate((d) => (d as HTMLDetailsElement).open))) await filters.locator('summary').click();
     await page.getByLabel('Thema').selectOption('Textiel');
-    await expect(page.locator('article.bericht')).toHaveCount(1);
+    // Aantal publicaties met het thema Textiel, uit het databestand zelf (er komen er bij).
+    const aantalTextiel = [...kennisbankBron.matchAll(/themas: \[([^\]]*)\]/g)].filter((m) => m[1].includes("'Textiel'")).length;
+    await expect(page.locator('article.bericht')).toHaveCount(aantalTextiel);
     await geenHorizontaleScroll(page);
   });
 });
