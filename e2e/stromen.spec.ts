@@ -77,6 +77,7 @@ test.describe('Stroompagina', () => {
 
   test('toetsenbord: de kaart is geen tabval', async ({ page }) => {
     await page.goto('/stromen/gft');
+    await expect(page.getByRole('heading', { level: 1, name: 'GFT' })).toBeVisible();
     await page.evaluate(() => document.querySelectorAll('details.blok').forEach((d) => ((d as HTMLDetailsElement).open = true)));
     await expect(page.locator('#per-gemeente .svgkaart path[data-c]').first()).toBeAttached();
     const focusbaar = await page.locator('#per-gemeente .svgkaart path').evaluateAll((ps) => ps.filter((p) => (p as SVGElement).tabIndex >= 0).length);
@@ -85,6 +86,7 @@ test.describe('Stroompagina', () => {
 
   test('verwerking en regels hebben bij elk feit een bron met link en peildatum; wat ontbreekt staat erbij', async ({ page }) => {
     await page.goto('/stromen/textiel');
+    await expect(page.getByRole('heading', { level: 1, name: 'Textiel' })).toBeVisible();
     await page.evaluate(() => document.querySelectorAll('details.blok').forEach((d) => ((d as HTMLDetailsElement).open = true)));
     const verwerking = page.locator('#verwerking');
     await expect(verwerking).toContainText('Niet te onderbouwen');
@@ -102,6 +104,7 @@ test.describe('Stroompagina', () => {
 
   test('restafval linkt naar de Heffingenscan van de gekozen gemeente', async ({ page }) => {
     await page.goto('/stromen/restafval?gemeente=GM0363');
+    await expect(page.getByRole('heading', { level: 1, name: 'Restafval' })).toBeVisible();
     await page.evaluate(() => document.querySelectorAll('details.blok').forEach((d) => ((d as HTMLDetailsElement).open = true)));
     await expect(page.locator('#per-gemeente .gemeente-paneel').getByRole('heading', { name: 'Amsterdam' })).toBeVisible();
     await expect(page.locator('#per-gemeente .gemeente-paneel').getByRole('link', { name: /Heffingenscan voor Amsterdam/ })).toHaveAttribute('href', /^\/heffingenscan(\/|\?)/);
@@ -134,6 +137,7 @@ test.describe('Stroompagina', () => {
   for (const id of ['restafval', 'pmd', 'textiel', 'luiers']) {
     test(`geen horizontale scroll op ${id}, ook met alle blokken open`, async ({ page }) => {
       await page.goto(`/stromen/${id}`);
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
       await page.evaluate(() => document.querySelectorAll('details').forEach((d) => ((d as HTMLDetailsElement).open = true)));
       await page.waitForTimeout(500);
       await geenHorizontaleScroll(page);
