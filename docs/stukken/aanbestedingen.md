@@ -209,14 +209,32 @@ Alle eindpunten zitten in dezelfde openbare webservice als de lijst (`https://ww
 
 ### Contractenkalender
 
-@@KALENDER@@
+Gebouwd: `/aanbestedingsarchief/contracten` (alleen leden; bezoekers zien de betaalmuur). De data draagt het beperkt: van de 818 gegunde aanbestedingen met een herkende winnaar
+noemen er 321 (39 procent) een einddatum of looptijd (22 procent van alle 1.450 aanbestedingen); 225 daarvan lopen vanaf 14-11-2026 nog (de kalender toont 202 contracten met afval als hoofdopdracht).
+Bij eForms-aankondigingen (vanaf 2024) staat de looptijd meestal in de aankondiging, bij oudere alleen soms in de detailpagina. De kalender is dus een onvolledige lijst en zegt dat in de UI;
+verlengingen, wijzigingen en vroegtijdige beëindiging zijn niet doorgerekend. Functie: `contracten_kalender(p_stroom, p_provincie, p_vanaf)` (migratie `20261114100000_contractenkalender.sql`), filters per afvalstroom en provincie.
 
 ### Open punten ronde 3
 
 1. Juridisch (Niels): het gebruik van `/documenten` en `/html` van de TNS-webservice bevestigen bij TenderNed/PIANOo (zelfde vraag als open punt 1 van ronde 2), en de lijst met link naar documenten (die dus rechtstreeks op de download van TenderNed wijst) laten toetsen.
-2. @@VOORTGANG@@
+2. Stand na de eerste vulling (14-11-2026): van de 1.450 aanbestedingen is van 1.447 de documentenlijst opgehaald (3 niet: ingetrokken of nog te doen); 1.106 aanbestedingen hebben documenten (11.631 documenten; 457 aanbestedingen
+   met een conceptovereenkomst of contract, 336 met een programma van eisen of bestek, 66 met gunningscriteria of beoordelingsmethodiek). Van de 840 gegunde aanbestedingen zijn er 838 uitgelezen; bij 818 staat een winnaar (de rest is bijvoorbeeld een vrijwillige transparantie vooraf zonder winnaar),
+   bij 745 een aantal inschrijvingen, bij 462 een waarde (bedragen onder 1.000 euro zijn invulwaarden en blijven leeg) en bij 321 een einddatum. De dagelijkse run maakt wat nieuw of gewijzigd is af (150 documentenlijsten en 60 gunningen per run, nieuwste eerst). Het eenmalig vullen is gedaan met
+   `select public.start_vul_aanbestedingen(300, 150);` (herhaald), zie "Onderhoud".
 3. De soortindeling is tekstueel; leden kunnen verkeerd ingedeelde documenten melden via het feedbackformulier.
-4. Looptijd en einde van contracten staan alleen bij eForms-aankondigingen en bij een deel van de oudere via de detailpagina; bij de rest blijft het veld leeg. Verlengingsopties zijn vrije tekst en worden niet doorgerekend.
+4. Looptijd en einde van contracten staan alleen bij eForms-aankondigingen en bij een deel van de oudere via de detailpagina (`einde_bron = 'detail'`; die datum kan het einde inclusief opties zijn, zoals bij kenmerk 166949); bij de rest blijft het veld leeg. Verlengingsopties zijn vrije tekst en worden niet doorgerekend.
 5. Documenten die een opdrachtgever buiten TenderNed publiceert (Mercell, eigen platform) staan er niet bij.
 6. Verlopen of verwijderde documenten op TenderNed worden bij een volgende verversing van die aanbesteding opgeruimd (alleen als er een nieuwere publicatie is).
 7. De `aanbestedingen_zoeken`-functie van ronde 2 wordt door de site niet meer gebruikt (de site gebruikt `aanbestedingen_zoeken_plus`); opruimen is een drop en vraagt bevestiging.
+
+### Onderhoud en controles ronde 3
+
+- **Handmatig aanvullen:** `select public.start_vul_aanbestedingen(300, 150);` (service-rol, in de SQL-editor); uitslag in `select status_code, content from net._http_response order by id desc limit 1;` en in `aanbestedingen_verversingen`.
+  Eén run duurt maximaal ongeveer 110 seconden; herhaal tot `documenten_open` en `gunningen_open` nul zijn.
+- **Regels aanpassen:** soorten in `documenten.ts`, gunningen in `gunning.ts`; test in `src/lib/aanbestedingen.test.ts`; functie opnieuw uitrollen met alle vijf bestanden (`index.ts`, `afleiding.ts`, `gemeenten.ts`, `documenten.ts`, `gunning.ts`; `verify_jwt: false`). Verversen herberekent soort en gunning
+  alleen voor aanbestedingen met een nieuwere publicatie; wilt u alles opnieuw afleiden, zet dan `documenten_publicatie_id` en `gunning_publicatie_id` terug op null (update van afgeleide kolommen) en vul opnieuw aan.
+- **Vergelijking met TenderNed (14-11-2026):** documentenaantal van 5 aanbestedingen (kenmerken 166949, 174869, 591337, 590474, 610107: 20, 13, 13, 18 en 2 documenten) gelijk aan de live lijst op TenderNed; gunning van 5 aanbestedingen (kenmerken 610107, 166949, 174869, 591337, 590474) vergeleken met de PDF van de aankondiging op TenderNed:
+  aantal inschrijvingen, waarde, einddatum en looptijd komen overeen.
+- Migraties ronde 3: `20261113120000_aanbestedingen_documenten_gunningen.sql`, `20261114100000_contractenkalender.sql`.
+- `npx tsc --noEmit -p .` schoon; `npx vitest run` 408 tests groen; `e2e/aanbestedingen.spec.ts` 29 geslaagd, 1 overgeslagen (poort 5114, 400 en 1280 px); Lighthouse (bezoeker, mobiel) `/aanbestedingsarchief` prestaties 0,96 en toegankelijkheid 1,0; `/aanbestedingsarchief/documenten` prestaties 0,96 en toegankelijkheid 1,0.
+- `get_advisors` (security) na de DDL: alleen de bedoelde melding voor `aanbestedingen_documenten_openbaar` (anon en authenticated) naast de bestaande.

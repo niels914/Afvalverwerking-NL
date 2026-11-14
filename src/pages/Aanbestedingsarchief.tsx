@@ -90,6 +90,7 @@ export function Aanbestedingsarchief() {
               'Per aanbesteding de omschrijving, CPV-codes, de tijdlijn van publicaties, de lijst met documenten en, bij gegunde aanbestedingen, de gegunde partij en het einde van het contract',
               'Filters op documenten (met conceptovereenkomst, programma van eisen of gunningscriteria), gegunde partij en het jaar waarin een contract afloopt',
               'De documentenbibliotheek: zoeken in de documenten van alle aanbestedingen',
+              'De contractenkalender: per kwartaal de contracten die aflopen',
               'Download als CSV voor Excel',
             ]}
           >
@@ -356,6 +357,8 @@ function Archief() {
 
       <p className="archief-bibliotheek">
         <Link to="/aanbestedingsarchief/documenten">Documentenbibliotheek: leidraden, programma's van eisen en conceptovereenkomsten van andere aanbestedingen</Link>
+        {' · '}
+        <Link to="/aanbestedingsarchief/contracten">Contractenkalender: wanneer lopen contracten af?</Link>
       </p>
 
       <nav className="archief-snel" aria-label="Snelkeuzes">

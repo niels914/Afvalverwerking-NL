@@ -120,7 +120,7 @@ test.describe('bezoeker', () => {
       const r = await db.from(tabel).select('kenmerk').limit(1);
       expect(r.data ?? [], `anon leest ${tabel}`).toEqual([]);
     }
-    for (const f of ['documenten_zoeken', 'documenten_filteropties', 'aanbestedingen_zoeken_plus', 'aanbestedingen_gegunde_partijen', 'aanbestedingen_afloopjaren']) {
+    for (const f of ['documenten_zoeken', 'documenten_filteropties', 'aanbestedingen_zoeken_plus', 'aanbestedingen_gegunde_partijen', 'aanbestedingen_afloopjaren', 'contracten_kalender']) {
       const r = await db.rpc(f, {});
       expect(r.error, `anon mag ${f} niet aanroepen`).not.toBeNull();
     }
@@ -366,6 +366,16 @@ test.describe('lid', () => {
     await expect(page).toHaveURL(/zoek=zzzzgeenresultaat/);
     await page.getByRole('button', { name: 'Alle filters wissen' }).click();
     await expect(aantal).toContainText(/\d+ documenten gevonden/);
+    await geenHorizontaleScroll(page);
+  });
+
+  test('contractenkalender: aflopende contracten per kwartaal, geen horizontale scroll', async ({ page }) => {
+    await page.goto('/aanbestedingsarchief/contracten');
+    await expect(page.getByRole('heading', { level: 1, name: 'Contractenkalender' })).toBeVisible();
+    await expect(page.locator('.archief-aantal')).toContainText(/\d+ contracten lopen af vanaf vandaag/);
+    await expect(page.locator('.kal-kop').first()).toContainText(/^\d{4}, \dede? kwartaal|^\d{4}, \de kwartaal/);
+    await expect(page.locator('.bib-treffer').first()).toContainText(/Einde .* \((volgens de aankondiging|afgeleid uit begindatum en looptijd)\)/);
+    await expect(page.locator('.bib-treffer').first()).toContainText('Gegund aan');
     await geenHorizontaleScroll(page);
   });
 });

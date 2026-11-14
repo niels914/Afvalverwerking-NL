@@ -124,7 +124,7 @@ export function Lidmaatschap() {
           {basisGratis.length > 0 && ` en een basisversie van de ${opsomming(basisGratis)}`}. Leden krijgen die rekentools
           volledig{alleenLeden.length > 0 && `, plus het ${opsomming(alleenLeden)}`}, en het hele aanbestedingsarchief: filters,
           details, gesloten en gegunde aanbestedingen met gegunde partij en einde contract, en export als CSV, plus de
-          documentenbibliotheek met documenten van andere aanbestedingen.
+          documentenbibliotheek met documenten van andere aanbestedingen en de contractenkalender.
         </p>
         <Uitklap samenvatting={`Vergelijking per onderdeel (${vergelijking.length} rijen)`}>
           <Vergelijkingstabel />

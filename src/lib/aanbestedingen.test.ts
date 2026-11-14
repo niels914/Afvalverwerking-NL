@@ -17,6 +17,7 @@ import { GEMEENTE_PROVINCIE } from '../../supabase/functions/ververs-aanbestedin
 import {
   dagenTot,
   filtersNaarUrl,
+  groepeerPerKwartaal,
   filtersUitUrl,
   LEGE_FILTERS,
   maakCsv,
@@ -479,5 +480,16 @@ describe('filters in de URL: documenten, partij en afloop', () => {
     expect(f).toMatchObject({ soort: 'overeenkomst', partij: 'Renewi', afloop: '2027' });
     expect(filtersNaarUrl(f).toString()).toBe('soort=overeenkomst&partij=Renewi&afloop=2027');
     expect(filtersUitUrl(new URLSearchParams('soort=onzin&afloop=abc'))).toMatchObject({ soort: '', afloop: '' });
+  });
+});
+
+describe('contractenkalender', () => {
+  it('groepeert per kwartaal in de volgorde van de einddatum', () => {
+    const g = groepeerPerKwartaal([{ contract_einde: '2026-12-31' }, { contract_einde: '2027-01-15' }, { contract_einde: '2027-03-31' }, { contract_einde: '2027-04-01' }]);
+    expect(g.map((x) => [x.label, x.rijen.length])).toEqual([
+      ['2026, 4e kwartaal', 1],
+      ['2027, 1e kwartaal', 2],
+      ['2027, 2e kwartaal', 1],
+    ]);
   });
 });

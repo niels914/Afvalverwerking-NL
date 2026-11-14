@@ -642,3 +642,7 @@
 .bib-totalen .getal {
   width: 5.5rem;
 }
+.kal-kop {
+  margin: 20px 0 4px;
+  font-size: 1.125rem;
+}

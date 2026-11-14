@@ -53,7 +53,7 @@
       "naam": "PIANOo",
       "site": "https://www.pianoo.nl/nl/actueel/nieuws",
       "feed": "https://www.pianoo.nl/nl/rss/nieuws.rss",
-      "status": "ok",
+      "status": "mislukt",
       "laatstGelukt": "2026-11-14",
       "aantal": 0
     },
@@ -62,8 +62,8 @@
       "naam": "PIANOo",
       "site": "https://www.pianoo.nl/nl/jurisprudentie",
       "feed": "https://www.pianoo.nl/nl/rss/jurisprudentie.rss",
-      "status": "mislukt",
-      "laatstGelukt": "2026-10-27",
+      "status": "ok",
+      "laatstGelukt": "2026-11-14",
       "aantal": 0
     },
     {

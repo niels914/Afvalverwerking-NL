@@ -190,6 +190,11 @@ export const vergelijking: Onderdeel[] = [
     lid: 'Ja',
   },
   {
+    onderdeel: 'Contractenkalender: per kwartaal de contracten die aflopen, voor zover de aankondiging een einddatum noemt',
+    gratis: 'Nee',
+    lid: 'Ja',
+  },
+  {
     onderdeel: 'Aantal gebruikers',
     gratis: 'Iedereen, zonder account',
     lid: 'Alle collega’s met een e-mailadres van uw organisatie',
@@ -207,6 +212,7 @@ export const inbegrepen = [
   'Volledige versies van alle rekentools, met rapport en CSV-export waar de tool die biedt',
   'Het volledige aanbestedingsarchief uit TenderNed: filters op afvalstroom, status en regio, details, gesloten en gegunde aanbestedingen met de gegunde partij en het einde van het contract, en export als CSV',
   'De documentenbibliotheek: zoeken in de documenten van andere aanbestedingen, zoals leidraden, programma’s van eisen, gunningscriteria en conceptovereenkomsten, met de link naar TenderNed',
+  'De contractenkalender: per kwartaal de contracten die aflopen, voor zover de aankondiging van de gunning een einddatum noemt',
   'Jaarlijkse actualisatie van de standaardwaarden en reeksen in de rekentools',
   'Vragen over de rekentools per e-mail aan KplusV',
   'Eén factuur per jaar, op naam van uw organisatie, met uw inkoopordernummer',

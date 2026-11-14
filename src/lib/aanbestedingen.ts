@@ -542,3 +542,46 @@ export async function haalOpenbareDocumentTotalen(): Promise<{ totaal: number; a
     perSoort: rijen.filter((r) => r.soort !== 'totaal').map((r) => ({ soort: r.soort, documenten: Number(r.documenten) })),
   };
 }
+
+/* ---------- Contractenkalender ---------- */
+
+/** Een contract met een einddatum volgens de aankondiging van de gegunde opdracht. */
+export interface KalenderContract {
+  kenmerk: number;
+  titel: string;
+  opdrachtgever: string;
+  stromen: string[];
+  diensten: string[];
+  provincies: string[];
+  gegund_aan: string[];
+  gunningsdatum: string | null;
+  contract_start: string | null;
+  contract_einde: string;
+  einde_afgeleid: boolean;
+  verlengingen: number | null;
+  verlenging_tekst: string | null;
+  tenderned_url: string;
+}
+
+export async function haalContractenKalender(stroom: string, provincie: string, vanaf: string): Promise<KalenderContract[]> {
+  const { data, error } = await supabase.rpc('contracten_kalender', { p_stroom: stroom || null, p_provincie: provincie || null, p_vanaf: vanaf });
+  if (error) throw error;
+  return (data ?? []) as KalenderContract[];
+}
+
+/** Groepeert contracten (op einddatum gesorteerd) per jaar en kwartaal: "2027, 1e kwartaal". */
+export function groepeerPerKwartaal<T extends { contract_einde: string }>(rijen: T[]): { sleutel: string; label: string; rijen: T[] }[] {
+  const uit: { sleutel: string; label: string; rijen: T[] }[] = [];
+  for (const r of rijen) {
+    const jaar = r.contract_einde.slice(0, 4);
+    const kwartaal = Math.floor((Number(r.contract_einde.slice(5, 7)) - 1) / 3) + 1;
+    const sleutel = `${jaar}-K${kwartaal}`;
+    let groep = uit[uit.length - 1];
+    if (!groep || groep.sleutel !== sleutel) {
+      groep = { sleutel, label: `${jaar}, ${kwartaal}e kwartaal`, rijen: [] };
+      uit.push(groep);
+    }
+    groep.rijen.push(r);
+  }
+  return uit;
+}

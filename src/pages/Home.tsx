@@ -144,9 +144,14 @@ export function Home() {
           </li>
           <li>
             <h3>Documenten en contracten</h3>
-            <p>Leidraden, eisen, gunningscriteria en conceptovereenkomsten uit andere aanbestedingen, met de link naar TenderNed.</p>
+            <p>
+              Leidraden, eisen, gunningscriteria en conceptovereenkomsten uit andere aanbestedingen, met de link naar TenderNed. En een
+              kalender van contracten die aflopen.
+            </p>
             <p className="home-laag-link">
               <Link to="/aanbestedingsarchief/documenten">Documentenbibliotheek</Link>
+              <br />
+              <Link to="/aanbestedingsarchief/contracten">Contractenkalender</Link>
             </p>
             <Badge soort="leden">Voor leden</Badge>
           </li>

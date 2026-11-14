@@ -5,7 +5,7 @@ export const platform = {
   korteNaam: 'Ledenplatform Restafvalkaart',
   /** Titel van de homepage en de standaardtitel in het tabblad. */
   ondertitel: 'Heffingenscan restafval en afvalstromen',
-  versie: 'stand oktober 2026',
+  versie: 'stand november 2026',
 };
 
 export interface NavItem {
