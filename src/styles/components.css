@@ -1335,23 +1335,6 @@ td input {
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------- Home ---------- */
-.hero-blok {
-  display: grid;
-  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
-  gap: 32px;
-  align-items: start;
-  margin: 20px 0 8px;
-}
-@media (max-width: 900px) {
-  .hero-blok {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-.hero-blok .lead {
-  font-size: 16px;
-}
-
 /* ---------- Over het platform ---------- */
 .lees {
   max-width: 78ch;

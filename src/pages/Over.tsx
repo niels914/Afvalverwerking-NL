@@ -37,24 +37,30 @@ export function Over() {
 
       <Sectie nr={1} titel="Het idee in één alinea">
         <p>
-          Een ledenplatform rond de Restafvalkaart van Nederland. Een open laag met kaart, nieuws en kennis zorgt voor bereik
-          en maakt het platform bekend. Een betaalde laag biedt rekenmodellen voor indexering, heffingen en bodemas, en
-          informatie over lopende en afgeronde aanbestedingen.
+          Het platform voor de verwerking van huishoudelijke afvalstromen: restafval, gft, papier, PMD, textiel, glas en grof afval.
+          De voordeur is de <Link to="/heffingenscan">Heffingenscan</Link>: elke gemeente ziet gratis wat de afvalstoffenbelasting en de
+          CO2-heffing op restafval tot 2035 kosten. Daarachter ligt de diepte: een pagina per <Link to="/stromen">afvalstroom</Link> met
+          cijfers, geld en regels, de <Link to="/restafvalkaart">Restafvalkaart</Link>, rekentools, het{' '}
+          <Link to="/aanbestedingsarchief">aanbestedingsarchief</Link> en de bibliotheek met documenten uit andere aanbestedingen.
         </p>
       </Sectie>
 
       <Sectie nr={2} titel="Voor wie">
         <p>
-          Gemeentelijke samenwerkingsverbanden en afvalverwerkers. Het platform is ook bruikbaar voor gemeenten die zelf
-          inzameling en verwerking regelen.
+          Beleidsmedewerkers en contractmanagers van gemeenten, gemeentelijke samenwerkingsverbanden en afvalverwerkers. De Heffingenscan
+          is bedoeld voor gemeenten; de rekentools en het archief zijn ook bruikbaar voor verwerkers en samenwerkingsverbanden.
         </p>
       </Sectie>
 
       <Sectie nr={3} titel="Wat het oplost">
         <p>
-          Contractmanagers en beleidsmedewerkers zoeken informatie over aanbestedingen, indexering en heffingen nu op losse
-          plekken op en rekenen in eigen Excelsheets. Het platform brengt die informatie samen en biedt rekenmodellen waarvan
-          de formules zichtbaar zijn.
+          Wie de kosten van restafval wil begrijpen of een afvalcontract wil voorbereiden, zoekt nu op losse plekken en rekent in eigen
+          Excelsheets. Het platform brengt de cijfers per stroom, de heffingen, de rekenmodellen (met zichtbare formules) en de
+          aanbestedingen samen, met bron en peildatum erbij.
+        </p>
+        <p>
+          Voor een gemeente die het scherper wil weten, maakt KplusV een rapport met de eigen tonnage en het eigen verwerkingscontract.
+          Dat bestelt u los; het hoort niet bij het lidmaatschap.
         </p>
       </Sectie>
 
@@ -64,7 +70,8 @@ export function Over() {
 
       <Sectie nr={5} titel="Verdienmodel" badge={prijzenVastgesteld ? undefined : <Badge soort="voorbeeld">Concept</Badge>}>
         <p>
-          Een jaarabonnement per organisatie, niet per gebruiker, met een staffel naar soort en omvang. Betaling op factuur.
+          De Heffingenscan, de afvalstromen en de Restafvalkaart zijn gratis; het rapport bij de scan bestelt u los. Het lidmaatschap is een
+          jaarabonnement per organisatie, niet per gebruiker, met een staffel naar soort en omvang. Betaling op factuur.
           {prijzenVastgesteld ? ' De prijzen' : ' De conceptprijzen'} per jaar, exclusief {btwPercentage} % btw:
         </p>
         <ul className="opsomming">
@@ -94,7 +101,7 @@ export function Over() {
       <Sectie nr={6} titel="Waarde voor KplusV">
         <ul className="opsomming">
           <li>Zichtbaarheid van onze expertise bij samenwerkingsverbanden en verwerkers.</li>
-          <li>Adviesvragen die voortkomen uit het gebruik van de tools.</li>
+          <li>Adviesvragen die voortkomen uit het gebruik van de scan en de tools, en rapportaanvragen van gemeenten.</li>
           <li>Terugkerende omzet.</li>
         </ul>
       </Sectie>
@@ -122,8 +129,9 @@ export function Over() {
       <Sectie nr={8} titel="Status en vervolg">
         <p>
           Het platform is in bèta. Cijfers komen uit openbare bronnen (CBS, Rijkswaterstaat, TenderNed, wet- en regelgeving)
-          met bron en peildatum; prijzen en voorwaarden zijn nog concept. De volgende stap is een aantal gesprekken met
-          samenwerkingsverbanden en verwerkers over gebruik en betaalbereidheid.
+          met bron en peildatum; prijzen en voorwaarden zijn nog concept. De Heffingenscan rekent indicatief, op prijspeil 2026 en met
+          het wetsvoorstel Belastingplan 2027. De volgende stap is een aantal gesprekken met gemeenten, samenwerkingsverbanden en
+          verwerkers over gebruik en betaalbereidheid.
         </p>
       </Sectie>
 

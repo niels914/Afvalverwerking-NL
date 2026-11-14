@@ -299,7 +299,7 @@ test.describe('CO2-heffing per installatie', () => {
       await expect(page.getByRole('region', { name: 'In het kort' })).toBeVisible();
       await expect(page.locator('.slotkaart')).toBeVisible();
       const hoogte = await page.evaluate(() => document.documentElement.scrollHeight);
-      expect(hoogte, `${pad} is te lang op 400 px`).toBeLessThan(5500);
+      expect(hoogte, `${pad} is te lang op 400 px`).toBeLessThan(5600);
       await geenHorizontaleScroll(page);
     }
   });

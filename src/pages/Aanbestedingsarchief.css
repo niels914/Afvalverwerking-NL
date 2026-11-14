@@ -568,9 +568,10 @@
 .archief-documenten {
   margin-top: 14px;
 }
-.archief-docgroep h4 {
+.archief-docgroep-kop {
   margin: 12px 0 4px;
-  font-size: 1rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
 }
 .archief-docgroep ul,
 .archief-percelen {
@@ -628,4 +629,16 @@
 }
 .bib-lijst.is-laden {
   opacity: 0.6;
+}
+.bib-totalen {
+  table-layout: fixed;
+  max-width: 100%;
+}
+.bib-totalen th,
+.bib-totalen td {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.bib-totalen .getal {
+  width: 5.5rem;
 }

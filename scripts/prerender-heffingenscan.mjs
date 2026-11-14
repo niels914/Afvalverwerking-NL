@@ -113,7 +113,32 @@ try {
   const tabelRegel = (jaar, r) => `<tr><th scope="row">${jaar}</th><td>${esc(euro(r.totaal))}</td><td>${esc(euro(r.perHuishouden))}</td></tr>`;
 
   let aantal = 0;
-  const sitemap = [`${basis}/heffingenscan`];
+  // Sitemap: de openbare pagina's van de site (niet: inloggen, account en aanmelden), dan de Heffingenscan per gemeente.
+  const stromenMod = await server.ssrLoadModule('/src/data/stromen.ts');
+  const openbaar = [
+    '/',
+    '/heffingenscan',
+    '/stromen',
+    ...stromenMod.stromen.map((s) => `/stromen/${s.id}`),
+    '/restafvalkaart',
+    '/tools',
+    '/tools/aanbestedingstool',
+    '/tools/indexcalculator',
+    '/tools/co2-heffingenscan',
+    '/tools/bodemassencalculator',
+    '/tools/pmd-rekenmodel',
+    '/aanbestedingsarchief',
+    '/kennisbank',
+    '/nieuws',
+    '/lidmaatschap',
+    '/over-het-platform',
+    '/algemene-voorwaarden',
+    '/privacy',
+    '/cookies',
+    '/toegankelijkheid',
+    '/disclaimer',
+  ];
+  const sitemap = openbaar.map((pad) => (pad === '/' ? `${basis}/` : `${basis}${pad}`));
   for (const g of gemeenten) {
     const invoer = calc.standaardInvoer(g);
     const v = calc.vergelijkPaden(invoer);

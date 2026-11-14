@@ -227,20 +227,62 @@ test.describe('Kennisbank', () => {
 });
 
 test.describe('Homepage', () => {
-  test('toont landelijke CBS-cijfers met definitie, echte berichten en de kleine kaart met tekstalternatief', async ({ page }) => {
+  test('begint bij de Heffingenscan: zoekveld, voorbeeld Overbetuwe, stroomtegels met CBS-cijfers, vijf lagen en echte berichten', async ({ page }) => {
     await page.goto('/');
-    const l = afval.landelijkActueel;
-    await expect(page.getByRole('heading', { name: `Huishoudelijk afval in Nederland, ${l.jaar}` })).toBeVisible();
-    await expect(page.getByText(`${nl(l.restafvalKgPerInw)} kg`, { exact: true })).toBeVisible();
-    await expect(page.getByText(`${nl(l.scheidingsPct)} %`, { exact: true })).toBeVisible();
-    await expect(page.getByText(`${nl(l.totaalKgPerInw)} kg`, { exact: true })).toBeVisible();
-    await expect(page.locator('.definitie')).toContainText(`${nl(l.restafvalKgPerInw + l.verbouwingsrestafvalKgPerInw)} kg`);
-    await expect(page.getByRole('link', { name: 'per gemeente' }).first()).toHaveAttribute('href', '/restafvalkaart?toon=restafval#tabel');
+    await expect(page.getByRole('heading', { level: 1, name: /Wat kosten de heffingen op restafval uw gemeente\?/ })).toBeVisible();
+    // Zoekveld: een gemeente kiezen gaat naar de gemeentepagina.
+    await page.getByLabel('Zoek uw gemeente').fill('Overbetuwe');
+    await page.getByRole('button', { name: 'Toon mijn gemeente' }).click();
+    await expect(page).toHaveURL(/\/heffingenscan\/overbetuwe$/);
+    await page.goBack();
+
+    // Voorbeeld met de controlecijfers (zelfde als de test van de rekenlogica) en één Magenta knop.
+    await expect(page.getByRole('heading', { level: 2, name: 'Voorbeeld: Overbetuwe' })).toBeVisible();
+    await expect(page.getByText('€ 128.500', { exact: true })).toBeVisible();
+    await expect(page.getByText('€ 545.467', { exact: true })).toBeVisible();
+    await expect(page.locator('main .knop.cta')).toHaveCount(1);
+    await expect(page.getByRole('link', { name: 'Bekijk het voorbeeld' })).toHaveAttribute('href', '/heffingenscan/overbetuwe');
+    await expect(page.getByRole('link', { name: /^Rapport voor uw gemeente aanvragen/ })).toHaveAttribute('href', '/heffingenscan/aanvragen');
+
+    // Zeven hoofdstromen met het landelijke CBS-cijfer uit de data van /stromen.
+    const stroomtegels = page.locator('.home-stromen a');
+    await expect(stroomtegels).toHaveCount(7);
+    const restafval = stroomtegels.filter({ hasText: 'Restafval' }).first();
+    await expect(restafval).toHaveAttribute('href', '/stromen/restafval');
+    const landelijk = lees('../src/data/stromen-landelijk.json');
+    const kg = landelijk.reeksen.restafval.kg[landelijk.jaren.length - 1];
+    await expect(restafval).toContainText(`${nl(kg)} kg`);
+    await expect(restafval).toContainText(`per inwoner in ${landelijk.jaren[landelijk.jaren.length - 1]}`);
+    await expect(page.getByRole('link', { name: 'Alle afvalstromen' })).toHaveAttribute('href', '/stromen');
+
+    // Vijf lagen met wat gratis is en wat voor leden; geen prijstabel meer op de homepage.
+    const lagen = page.locator('.home-lagen > li');
+    await expect(lagen).toHaveCount(5);
+    await expect(lagen.nth(4)).toContainText('Voor leden');
+    await expect(page.locator('.home-staffels')).toHaveCount(0);
+    await expect(page.getByRole('link', { name: /^Lidmaatschap en prijzen/ })).toHaveAttribute('href', '/lidmaatschap');
+
     await expect(page.getByRole('link', { name: nieuws.berichten[0].titel })).toHaveAttribute('href', nieuws.berichten[0].link);
-    await expect(page.locator('.svgkaart path[data-c]')).toHaveCount(afval.gemeenten.length);
-    await expect(page.getByRole('img', { name: new RegExp(afval.samenvatting.laagste.naam) })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Alle gemeenten in een tabel' })).toHaveAttribute('href', '/restafvalkaart#tabel');
     await expect(page.locator('main').getByText(/voorbeeldbericht|fictief|verzonnen/i)).toHaveCount(0);
     await geenHorizontaleScroll(page);
   });
+
+  test('hoofdmenu: scan voorop, stromen en aanbestedingen erbij, Over het platform in de voet', async ({ page }) => {
+    await page.goto('/');
+    const menu = page.getByRole('navigation', { name: 'Hoofdmenu' });
+    const smal = (page.viewportSize()?.width ?? 1280) <= 960;
+    if (smal) await page.getByRole('button', { name: 'Menu' }).click();
+    await expect(menu.getByRole('link')).toHaveText(['Heffingenscan', 'Afvalstromen', 'Restafvalkaart', 'Tools', 'Aanbestedingen', 'Kennisbank', 'Nieuws', 'Lidmaatschap']);
+    await expect(menu.getByRole('link', { name: 'Afvalstromen' })).toHaveAttribute('href', '/stromen');
+    await expect(page.getByRole('contentinfo').getByRole('link', { name: 'Over het platform' })).toHaveAttribute('href', '/over-het-platform');
+  });
+});
+
+test('Restafvalkaart: het paneel van een gemeente verwijst naar de Heffingenscan van die gemeente', async ({ page }) => {
+  await page.goto('/restafvalkaart?gemeente=Overbetuwe');
+  const link = page.getByRole('link', { name: 'Heffingenscan voor Overbetuwe' });
+  await expect(link).toHaveAttribute('href', '/heffingenscan/overbetuwe');
+  await link.click();
+  await expect(page).toHaveURL(/\/heffingenscan\/overbetuwe$/);
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Overbetuwe');
 });

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { platform, voetLinks } from '../../data/site';
+import { platform, voetLinks, voetOver } from '../../data/site';
 import { aanbieder } from '../../pages/juridisch/gegevens';
 import { BETA } from './Banner';
 import '../../pages/juridisch/juridisch.css';
@@ -39,6 +39,9 @@ export function Voettekst() {
         <nav aria-labelledby="voet-over">
           <h2 id="voet-over">Over deze site</h2>
           <ul>
+            <li>
+              <Link to={voetOver.pad}>{voetOver.label}</Link>
+            </li>
             {voetLinks.map((l) => (
               <li key={l.pad}>
                 <Link to={l.pad}>{l.label}</Link>

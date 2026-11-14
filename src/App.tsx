@@ -3,7 +3,7 @@ import { Route, Routes, useLocation } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
 import { Home } from './pages/Home';
 import { NietGevonden } from './pages/NietGevonden';
-import { navigatie, platform } from './data/site';
+import { navigatie, platform, voetOver } from './data/site';
 
 // Elke pagina behalve de homepage laadt pas als je hem opent.
 const Heffingenscan = lazy(() => import('./pages/Heffingenscan').then((m) => ({ default: m.Heffingenscan })));
@@ -37,8 +37,8 @@ const Disclaimer = lazy(() => import('./pages/juridisch/Disclaimer').then((m) =>
 function Paginatitel() {
   const { pathname } = useLocation();
   useEffect(() => {
-    const item = [...navigatie].reverse().find((n) => (n.pad === '/' ? pathname === '/' : pathname.startsWith(n.pad)));
-    document.title = item && item.pad !== '/' ? `${item.label} · ${platform.korteNaam}` : platform.korteNaam;
+    const item = [...navigatie, voetOver].reverse().find((n) => pathname.startsWith(n.pad));
+    document.title = item ? `${item.label} · ${platform.korteNaam}` : `${platform.ondertitel} · ${platform.korteNaam}`;
   }, [pathname]);
   return null;
 }

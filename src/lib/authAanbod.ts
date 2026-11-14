@@ -2,6 +2,7 @@
 // Afgeleid van src/data/tools.ts, zodat een nieuwe of gewijzigde tool hier vanzelf meekomt.
 
 import { tools } from '../data/tools';
+import { HEFFINGENSCAN_PAD } from '../lib/heffingenVoorbeeld';
 import type { Toegang } from '../data/types';
 
 export interface Onderdeel {
@@ -36,12 +37,13 @@ const openOnderdelen: Onderdeel[] = [
   { titel: 'Nieuws', pad: '/nieuws', toegang: 'gratis', omschrijving: 'Berichten van Rijksoverheid, PIANOo en CBS over afval, verwerking en circulaire economie.' },
 ];
 
-/** Alles op het platform: eerst ledenonderdelen, dan tools met een Pro-deel, dan de open onderdelen. */
+/** Alles op het platform: de Heffingenscan voorop (gratis, zonder account), dan ledenonderdelen, dan tools met een Pro-deel, dan de open onderdelen. */
 export const alleOnderdelen: Onderdeel[] = [
+  ...toolOnderdelen.filter((o) => o.pad === HEFFINGENSCAN_PAD),
   archief,
   ...toolOnderdelen.filter((o) => o.toegang === 'leden'),
   ...toolOnderdelen.filter((o) => o.toegang === 'gratis+pro'),
-  ...toolOnderdelen.filter((o) => o.toegang === 'gratis'),
+  ...toolOnderdelen.filter((o) => o.toegang === 'gratis' && o.pad !== HEFFINGENSCAN_PAD),
   ...openOnderdelen,
 ];
 

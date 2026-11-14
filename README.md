@@ -1,6 +1,6 @@
-# Ledenplatform Restafvalkaart van Nederland (bèta)
+# Platform voor huishoudelijke afvalstromen (bèta)
 
-Ledenplatform van KplusV voor contractmanagers en beleidsmedewerkers van gemeenten, samenwerkingsverbanden en afvalverwerkers: de Restafvalkaart, nieuws en kennisbank, rekentools en een aanbestedingsarchief.
+Platform van KplusV voor beleidsmedewerkers en contractmanagers van gemeenten, samenwerkingsverbanden en afvalverwerkers (de site heet nog Ledenplatform Restafvalkaart). De voordeur is de **Heffingenscan**: per gemeente wat de afvalstoffenbelasting en de CO2-heffing op restafval tot 2035 kosten, gratis en zonder account, met een los te bestellen rapport. Daarachter: een pagina per afvalstroom (`/stromen`), de Restafvalkaart, rekentools, nieuws en kennisbank, en een aanbestedingsarchief met documentenbibliotheek voor leden. Meer over de scan: `docs/stukken/heffingenscan.md`.
 
 **Stand.** De cijfers komen uit openbare bronnen (CBS, PDOK, Rijkswaterstaat, Nederlandse Emissieautoriteit, wet- en regelgeving, TenderNed), met bron en peildatum in de UI en in `src/data/`. Leden loggen in via Supabase Auth; lidmaatschap is per organisatie (bevestigd e-maildomein). Prijzen en algemene voorwaarden zijn nog **concept**; de juridische teksten zijn **concept ter juridische toetsing**. Daarom staat er een bètapil in de kop van elke pagina.
 
@@ -65,8 +65,10 @@ Elk onderdeel heeft een eigen document met bouw, onderhoud, bronnen en open punt
 |---|---|
 | Inloggen en ledentoegang (Supabase Auth, organisatie activeren, dashboardinstellingen) | `docs/stukken/toegang.md` |
 | Lidmaatschap, prijzen en aanmelden op factuur | `docs/stukken/lidmaatschap.md` |
-| Indexcalculator en CO2-heffingenscan | `docs/stukken/tools-a.md` |
+| Indexcalculator en CO2-heffing per installatie (voorheen CO2-heffingenscan) | `docs/stukken/tools-a.md` |
 | Bodemassencalculator, PMD-rekenmodel en aanbestedingstool | `docs/stukken/tools-b.md` |
+| Heffingenscan restafval (voordeur, rapportaanvraag, sitemap en eigen HTML per gemeente) | `docs/stukken/heffingenscan.md` |
+| Afvalstromen (`/stromen`) | `docs/stukken/stromen.md` |
 | Restafvalkaart, kennisbank, nieuws en homepage | `docs/stukken/inhoud.md` |
 | Aanbestedingsarchief (TenderNed) | `docs/stukken/aanbestedingen.md` |
 | Algemene voorwaarden, privacy, cookies, toegankelijkheid, disclaimer | `docs/stukken/juridisch.md` |

@@ -327,7 +327,7 @@ test.describe('lid', () => {
     await rij.locator('summary').click();
     const docs = rij.locator('.archief-documenten');
     await expect(docs).toBeVisible();
-    await expect(docs.locator('h4', { hasText: 'Conceptovereenkomst of contract' })).toBeVisible();
+    await expect(docs.locator('.archief-docgroep-kop', { hasText: 'Conceptovereenkomst of contract' })).toBeVisible();
     await expect(docs.locator('a').first()).toHaveAttribute('href', /^https:\/\/www\.tenderned\.nl\/papi\/tenderned-rs-tns\/v2\/publicaties\/\d+\/documenten\/\d+\/content$/);
     await expect(docs).toContainText('indeling van dit platform');
     await geenHorizontaleScroll(page);

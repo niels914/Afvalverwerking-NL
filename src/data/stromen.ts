@@ -60,7 +60,7 @@ export const stromen: Stroom[] = [
     toolStroom: 'restafval',
     tools: [
       { pad: '/heffingenscan', naam: 'Heffingenscan', waarvoor: 'Wat de afvalstoffenbelasting en de CO2-heffing een gemeente kosten, per gemeente.' },
-      { pad: '/tools/co2-heffingenscan', naam: 'CO2-heffingenscan', waarvoor: 'De CO2-heffing op afvalverbranding bij uw tonnage, volgens wet en wetsvoorstel.' },
+      { pad: '/tools/co2-heffingenscan', naam: 'CO2-heffing per installatie', waarvoor: 'De CO2-heffing op afvalverbranding bij het tonnage van één installatie, volgens wet en wetsvoorstel.' },
       { pad: '/tools/bodemassencalculator', naam: 'Bodemassencalculator', waarvoor: 'Hoeveel bodemas en metalen er vrijkomen bij verbranding van restafval.' },
       { pad: '/restafvalkaart', naam: 'Restafvalkaart', waarvoor: 'Restafval en scheiding per gemeente op één kaart.' },
       aanbesteding('restafval'),

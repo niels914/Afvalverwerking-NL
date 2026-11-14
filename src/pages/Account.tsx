@@ -293,9 +293,9 @@ function SnelNaar({ stand }: { stand: OpenbareStand | null }) {
           // De eerste tegel (het archief) is breed: zo vullen vijf tegels op desktop twee rijen van drie kolommen.
           <li key={o.pad} className={i === 0 ? 'breed' : undefined}>
             <Link to={o.pad}>
-              <span className="snel-titel">{o.titel}</span>
+              <span className="snel-titel">{zonderKoppeltekenBreuk(o.titel)}</span>
               <span className="snel-tekst">
-                {o.omschrijving}
+                {zonderKoppeltekenBreuk(o.omschrijving)}
                 {o.pad === '/aanbestedingsarchief' && stand && ` Nu ${getal(stand.totaal)} aanbestedingen, waarvan ${getal(stand.open)} open.`}
               </span>
             </Link>
@@ -314,6 +314,11 @@ function SnelNaar({ stand }: { stand: OpenbareStand | null }) {
       </p>
     </section>
   );
+}
+
+/** Houdt een woord met koppelteken (CO2-heffing) bij elkaar, zodat het niet midden in het woord over twee regels breekt. */
+function zonderKoppeltekenBreuk(titel: string) {
+  return titel.split(' ').flatMap((w, i) => [i > 0 ? ' ' : '', w.includes('-') ? <span key={i} style={{ whiteSpace: 'nowrap' }}>{w}</span> : w]);
 }
 
 /* ---------- Recent: aanbestedingen (alleen leden) en nieuws ---------- */

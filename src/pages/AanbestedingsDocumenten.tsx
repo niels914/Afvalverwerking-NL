@@ -48,7 +48,6 @@ export function AanbestedingsDocumenten() {
         </p>
       ) : (
         <>
-          {!isLid && <Totalen />}
           <Vergrendeld
             titel="Documentenbibliotheek"
             ledenKrijgen={[
@@ -59,6 +58,7 @@ export function AanbestedingsDocumenten() {
           >
             {isLid ? <Bibliotheek /> : <Voorbeeld />}
           </Vergrendeld>
+          {!isLid && <Totalen />}
         </>
       )}
     </>
@@ -224,7 +224,6 @@ function Bibliotheek() {
             label="Soort document"
             waarde={filters.soort}
             onChange={(v) => zetFilters({ soort: v })}
-            hint="Een indeling van dit platform, afgeleid van de bestandsnaam."
             opties={[
               { waarde: '', label: 'Alle soorten' },
               ...DOCUMENTSOORTEN.map((s) => ({ waarde: s.code as string, label: metAantal(s.label, soortAantal(s.code)) })),

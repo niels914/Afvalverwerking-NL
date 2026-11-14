@@ -17,6 +17,7 @@ import {
   type IndicatorId,
 } from '../lib/kaartdata';
 import { datum, getal, procent } from '../lib/format';
+import { heffingenscanPad } from '../lib/heffingenVoorbeeld';
 
 const INDICATOR_IDS: IndicatorId[] = ['restafval', 'scheidingsPct', 'totaal'];
 const STANDAARD = 'GM0363'; // Amsterdam: grootste gemeente, herkenbaar startpunt.
@@ -232,6 +233,19 @@ function GemeentePaneel({
   kopRef: RefObject<HTMLHeadingElement>;
 }) {
   const [stromenOpen, setStromenOpen] = useState(isBreed);
+  // De slug van de Heffingenscan staat in de gemeentelijst van de scan; die laadt hier pas na de eerste weergave.
+  // Tot die er is, werkt de CBS-code in het pad ook (de scan kent code, slug en alias).
+  const [slug, setSlug] = useState<string | null>(null);
+  useEffect(() => {
+    let actief = true;
+    setSlug(null);
+    import('../data/heffingen-gemeenten').then((m) => {
+      if (actief) setSlug(m.heffingGemeenten.find((x) => x.code === g.code)?.slug ?? null);
+    });
+    return () => {
+      actief = false;
+    };
+  }, [g.code]);
   const rang = rangVan(g, gemeenten, indicator);
   const ind = indicatoren[indicator];
   const tovLand = verschilTekst(g.restafval, landelijk.restafval, ' kg');
@@ -337,6 +351,14 @@ function GemeentePaneel({
           </tbody>
         </table>
       </details>
+
+      <div className="aanbesteding-link" data-testid="heffingenscan-link">
+        <h3>Heffingen van {g.naam}</h3>
+        <p>Wat de afvalstoffenbelasting en de CO2-heffing op afvalverbranding de gemeente tot 2035 kosten, in totaal en per huishouden. Zonder account.</p>
+        <Link className="link-pijl" to={heffingenscanPad(slug ?? g.code.toLowerCase())}>
+          Heffingenscan voor {g.naam}
+        </Link>
+      </div>
 
       <div className="aanbesteding-link">
         <h3>Aanbestedingen van {g.naam}</h3>

@@ -65,6 +65,7 @@ test.describe('bezoeker', () => {
 
     // Gratis tools als directe links.
     const gratis = main.locator('section.kaart').filter({ has: page.getByRole('heading', { level: 2, name: 'Zonder account te gebruiken' }) });
+    await expect(gratis.getByRole('listitem').first().getByRole('link')).toHaveAttribute('href', '/heffingenscan');
     await expect(gratis.getByRole('link', { name: 'Restafvalkaart' })).toHaveAttribute('href', '/restafvalkaart');
     await expect(gratis.getByRole('link', { name: 'Aanbestedingstool' })).toHaveAttribute('href', '/tools/aanbestedingstool');
     await expect(gratis.getByRole('link', { name: 'Indexcalculator' })).toHaveAttribute('href', '/tools/indexcalculator');

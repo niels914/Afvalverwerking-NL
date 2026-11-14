@@ -3,6 +3,8 @@
 export const platform = {
   naam: 'Restafvalkaart · Ledenplatform',
   korteNaam: 'Ledenplatform Restafvalkaart',
+  /** Titel van de homepage en de standaardtitel in het tabblad. */
+  ondertitel: 'Heffingenscan restafval en afvalstromen',
   versie: 'stand oktober 2026',
 };
 
@@ -12,16 +14,20 @@ export interface NavItem {
   alleenLeden?: boolean;
 }
 
+/** Hoofdmenu. "Home" is het logo; "Over het platform" staat in de voet (voetOver). */
 export const navigatie: NavItem[] = [
-  { pad: '/', label: 'Home' },
+  { pad: '/heffingenscan', label: 'Heffingenscan' },
+  { pad: '/stromen', label: 'Afvalstromen' },
   { pad: '/restafvalkaart', label: 'Restafvalkaart' },
-  { pad: '/nieuws', label: 'Nieuws' },
-  { pad: '/kennisbank', label: 'Kennisbank' },
   { pad: '/tools', label: 'Tools' },
-  { pad: '/aanbestedingsarchief', label: 'Aanbestedingsarchief' },
+  { pad: '/aanbestedingsarchief', label: 'Aanbestedingen' },
+  { pad: '/kennisbank', label: 'Kennisbank' },
+  { pad: '/nieuws', label: 'Nieuws' },
   { pad: '/lidmaatschap', label: 'Lidmaatschap' },
-  { pad: '/over-het-platform', label: 'Over het platform' },
 ];
+
+/** Pagina's die wel een titel krijgen maar niet in het hoofdmenu staan. */
+export const voetOver: NavItem = { pad: '/over-het-platform', label: 'Over het platform' };
 
 export const contact = {
   naam: 'Niels Ahsmann',

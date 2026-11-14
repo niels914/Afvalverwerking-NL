@@ -7,6 +7,8 @@
 // Bronnen voor de echte (externe) gegevens staan in `bronnen` onderaan, met peildatum.
 
 import { tools } from './tools';
+import { aanbodPrijzen } from './heffingen-aanbod';
+import { euro } from '../lib/format';
 
 /** Zelfde waarden als de kolom `type` in de Supabase-tabel public.organisaties. */
 export type StaffelId = 'samenwerkingsverband-klein' | 'samenwerkingsverband-groot' | 'gemeente' | 'verwerker';
@@ -159,10 +161,18 @@ const toolRijen: Onderdeel[] = tools.map((t) => ({
 
 /** Vergelijkingstabel gratis versus lid. Teksten in de cellen, zodat de betekenis niet alleen van een icoon afhangt. */
 export const vergelijking: Onderdeel[] = [
+  { onderdeel: 'Afvalstromen: een pagina per stroom met cijfers, geld en regels', gratis: 'Ja', lid: 'Ja' },
   { onderdeel: 'Restafvalkaart: afvalcijfers per gemeente en samenwerkingsverband', gratis: 'Ja', lid: 'Ja' },
   { onderdeel: 'Nieuwsoverzicht afvalverwerking', gratis: 'Ja', lid: 'Ja' },
   { onderdeel: 'Kennisbank: onderzoeken, factsheets, handreikingen', gratis: 'Ja', lid: 'Ja' },
   ...toolRijen,
+  // Het rapport bij de Heffingenscan is een aparte opdracht (artikel 9.4 van de algemene voorwaarden), geen onderdeel van het lidmaatschap.
+  {
+    onderdeel: `Rapport bij de Heffingenscan (${euro(aanbodPrijzen.rapport)} per gemeente, ${aanbodPrijzen.btwTekst})`,
+    gratis: 'Los te bestellen',
+    lid: 'Los te bestellen, niet inbegrepen',
+    inLijsten: false,
+  },
   // Besluit Niels (27 oktober 2026): bezoekers mogen open aanbestedingen doorzoeken; de rest van het archief is voor leden.
   {
     onderdeel: 'Aanbestedingen uit TenderNed: open aanbestedingen zoeken (titel, opdrachtgever, sluitingsdatum, link naar TenderNed)',
@@ -170,7 +180,12 @@ export const vergelijking: Onderdeel[] = [
     lid: 'Ja',
   },
   {
-    onderdeel: 'Aanbestedingsarchief: filters, details, gesloten en gegunde aanbestedingen en export als CSV',
+    onderdeel: 'Aanbestedingsarchief: filters, details, gesloten en gegunde aanbestedingen met gegunde partij en einde contract, en export als CSV',
+    gratis: 'Nee',
+    lid: 'Ja',
+  },
+  {
+    onderdeel: 'Documentenbibliotheek: zoeken in de documenten van andere aanbestedingen (leidraden, eisen, gunningscriteria, conceptovereenkomsten)',
     gratis: 'Nee',
     lid: 'Ja',
   },
@@ -190,7 +205,8 @@ export const ledenOnderdelen = vergelijking.filter((o) => o.inLijsten !== false 
 export const inbegrepen = [
   'Toegang voor alle medewerkers met een e-mailadres op het domein van uw organisatie',
   'Volledige versies van alle rekentools, met rapport en CSV-export waar de tool die biedt',
-  'Het volledige aanbestedingsarchief uit TenderNed: filters op afvalstroom, status en regio, details, gesloten en gegunde aanbestedingen en export als CSV',
+  'Het volledige aanbestedingsarchief uit TenderNed: filters op afvalstroom, status en regio, details, gesloten en gegunde aanbestedingen met de gegunde partij en het einde van het contract, en export als CSV',
+  'De documentenbibliotheek: zoeken in de documenten van andere aanbestedingen, zoals leidraden, programma’s van eisen, gunningscriteria en conceptovereenkomsten, met de link naar TenderNed',
   'Jaarlijkse actualisatie van de standaardwaarden en reeksen in de rekentools',
   'Vragen over de rekentools per e-mail aan KplusV',
   'Eén factuur per jaar, op naam van uw organisatie, met uw inkoopordernummer',
@@ -236,7 +252,7 @@ export const veelgesteldeVragen: Vraag[] = [
   {
     vraag: 'Is een verwerkersovereenkomst nodig?',
     antwoord: [
-      'Naar verwachting niet. KplusV verwerkt de gegevens van accounts en contactpersonen als verwerkingsverantwoordelijke, niet in opdracht van uw organisatie. Wat u in de rekentools invult, slaat KplusV niet op; de invoer staat wel in het webadres van de pagina (zie artikel 12.2 van de algemene voorwaarden). Vraagt uw inkoopbeleid toch om een verwerkersovereenkomst, meld dat dan bij de aanmelding.',
+      'Naar verwachting niet. KplusV verwerkt de gegevens van accounts en contactpersonen als verwerkingsverantwoordelijke, niet in opdracht van uw organisatie. Wat u in de rekentools en de Heffingenscan invult, gaat niet naar KplusV; de invoer staat wel in het webadres van de pagina (zie artikel 12.2 van de algemene voorwaarden). Alleen als u bij de Heffingenscan een rapport aanvraagt, ontvangt KplusV de gegevens van dat formulier; de privacyverklaring beschrijft dat. Vraagt uw inkoopbeleid toch om een verwerkersovereenkomst, meld dat dan bij de aanmelding.',
       'Concept: dit standpunt wordt nog juridisch getoetst.',
     ],
     links: [

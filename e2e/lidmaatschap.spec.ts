@@ -117,7 +117,8 @@ test.describe('Lidmaatschap en prijzen', () => {
     }
     const pastErin = await page.locator('#vergelijking .tabel-container').evaluate((el) => el.scrollWidth <= el.clientWidth + 1);
     expect(pastErin, 'vergelijkingstabel scrolt horizontaal').toBe(true);
-    await expect(page.locator('#vergelijking')).toContainText('Gratis voor iedereen: de Restafvalkaart');
+    await expect(page.locator('#vergelijking')).toContainText('Gratis voor iedereen: de afvalstromen, de Restafvalkaart');
+    await expect(page.locator('#vergelijking')).toContainText('Heffingenscan voor gemeenten');
     // Rijen per rekentool komen uit src/data/tools.ts.
     const index = page.locator('#vergelijking tbody tr', { hasText: 'Indexcalculator' });
     await expect(index).toContainText('Eén CBS-reeks');
@@ -129,6 +130,11 @@ test.describe('Lidmaatschap en prijzen', () => {
     const archief = page.locator('#vergelijking tbody tr', { hasText: 'Aanbestedingsarchief: filters' });
     await expect(archief.locator('td').first()).toContainText('Nee');
     await expect(archief.locator('td').last()).toContainText('Ja');
+    // Documentenbibliotheek: alleen leden. Het rapport bij de scan is los te bestellen en geen onderdeel van het lidmaatschap.
+    const bibliotheek = page.locator('#vergelijking tbody tr', { hasText: 'Documentenbibliotheek' });
+    await expect(bibliotheek.locator('td').first()).toContainText('Nee');
+    await expect(bibliotheek.locator('td').last()).toContainText('Ja');
+    await expect(page.locator('#vergelijking tbody tr', { hasText: 'Rapport bij de Heffingenscan' }).locator('td').last()).toContainText('niet inbegrepen');
     await geenHorizontaleScroll(page);
   });
 

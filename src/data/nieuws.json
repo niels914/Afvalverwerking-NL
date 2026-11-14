@@ -1,6 +1,6 @@
 {
-  "bijgewerkt": "2026-11-13",
-  "gecontroleerd": "2026-11-13",
+  "bijgewerkt": "2026-11-14",
+  "gecontroleerd": "2026-11-14",
   "filter": "(?<!rioolw)afval(?!water)|recycl|circulai|grondstof|verpakking|statiegeld|zwerfafval|textiel|kunststof|plastic|verbrand|gft|pmd|luier|hergebruik|storten|bodemas",
   "bronnen": [
     {
@@ -9,7 +9,7 @@
       "site": "https://www.rijksoverheid.nl/themas/klimaat-milieu-en-natuur/afval",
       "feed": "https://www.rijksoverheid.nl/api/rss?query=%7B%22filters%22%3A%5B%7B%22field%22%3A%22topic%22%2C%22values%22%3A%5B%22Afval%22%5D%2C%22type%22%3A%22all%22%7D%2C%7B%22field%22%3A%22information_type%22%2C%22values%22%3A%5B%22Nieuwsbericht%22%5D%2C%22type%22%3A%22all%22%7D%5D%2C%22resultSearchTerm%22%3A%22%22%2C%22pageTitle%22%3A%22Nieuws%22%7D",
       "status": "ok",
-      "laatstGelukt": "2026-11-13",
+      "laatstGelukt": "2026-11-14",
       "aantal": 12
     },
     {
@@ -18,7 +18,7 @@
       "site": "https://www.rijksoverheid.nl/actueel/nieuws",
       "feed": "https://www.rijksoverheid.nl/api/rss?query=%7B%22filters%22%3A%5B%7B%22field%22%3A%22information_type%22%2C%22values%22%3A%5B%22Nieuwsbericht%22%5D%2C%22type%22%3A%22all%22%7D%5D%2C%22resultSearchTerm%22%3A%22circulaire%20economie%22%2C%22pageTitle%22%3A%22Nieuws%22%7D",
       "status": "ok",
-      "laatstGelukt": "2026-11-13",
+      "laatstGelukt": "2026-11-14",
       "aantal": 10
     },
     {
@@ -27,7 +27,7 @@
       "site": "https://www.rijksoverheid.nl/actueel/nieuws",
       "feed": "https://www.rijksoverheid.nl/api/rss?query=%7B%22filters%22%3A%5B%7B%22field%22%3A%22information_type%22%2C%22values%22%3A%5B%22Nieuwsbericht%22%5D%2C%22type%22%3A%22all%22%7D%5D%2C%22resultSearchTerm%22%3A%22recycling%22%2C%22pageTitle%22%3A%22Nieuws%22%7D",
       "status": "ok",
-      "laatstGelukt": "2026-11-13",
+      "laatstGelukt": "2026-11-14",
       "aantal": 13
     },
     {
@@ -36,7 +36,7 @@
       "site": "https://www.rijksoverheid.nl/actueel/nieuws",
       "feed": "https://www.rijksoverheid.nl/api/rss?query=%7B%22filters%22%3A%5B%7B%22field%22%3A%22information_type%22%2C%22values%22%3A%5B%22Nieuwsbericht%22%5D%2C%22type%22%3A%22all%22%7D%5D%2C%22resultSearchTerm%22%3A%22verpakkingen%22%2C%22pageTitle%22%3A%22Nieuws%22%7D",
       "status": "ok",
-      "laatstGelukt": "2026-11-13",
+      "laatstGelukt": "2026-11-14",
       "aantal": 6
     },
     {
@@ -45,7 +45,7 @@
       "site": "https://www.rijksoverheid.nl/actueel/nieuws",
       "feed": "https://www.rijksoverheid.nl/api/rss?query=%7B%22filters%22%3A%5B%7B%22field%22%3A%22information_type%22%2C%22values%22%3A%5B%22Nieuwsbericht%22%5D%2C%22type%22%3A%22all%22%7D%5D%2C%22resultSearchTerm%22%3A%22textiel%22%2C%22pageTitle%22%3A%22Nieuws%22%7D",
       "status": "ok",
-      "laatstGelukt": "2026-11-13",
+      "laatstGelukt": "2026-11-14",
       "aantal": 4
     },
     {
@@ -53,9 +53,9 @@
       "naam": "PIANOo",
       "site": "https://www.pianoo.nl/nl/actueel/nieuws",
       "feed": "https://www.pianoo.nl/nl/rss/nieuws.rss",
-      "status": "mislukt",
-      "laatstGelukt": "2026-10-27",
-      "aantal": 1
+      "status": "ok",
+      "laatstGelukt": "2026-11-14",
+      "aantal": 0
     },
     {
       "id": "pianoo-jurisprudentie",
@@ -72,7 +72,7 @@
       "site": "https://www.rivm.nl/nieuws",
       "feed": "https://www.rivm.nl/nieuws/rss.xml",
       "status": "ok",
-      "laatstGelukt": "2026-11-13",
+      "laatstGelukt": "2026-11-14",
       "aantal": 2
     },
     {
@@ -81,7 +81,7 @@
       "site": "https://www.cbs.nl/nl-nl/nieuws",
       "feed": "https://www.cbs.nl/nl-nl/rss-feeds/alle-nieuwsberichten",
       "status": "ok",
-      "laatstGelukt": "2026-11-13",
+      "laatstGelukt": "2026-11-14",
       "aantal": 0
     }
   ],

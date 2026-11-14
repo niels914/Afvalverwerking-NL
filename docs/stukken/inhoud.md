@@ -51,7 +51,7 @@ Stand: 19 oktober 2026. Alle fictieve inhoud op deze vier onderdelen is vervange
 
 ### Homepage (`/`)
 
-Hero met kleine choropleet (restafval), een blok "Huishoudelijk afval in Nederland" met landelijke CBS-cijfers (restafval 176 kg, 61 % gescheiden, 455 kg totaal, 84 van 342 gemeenten onder 100 kg), de vier nieuwste nieuwsberichten, drie recente kennisbankpublicaties, uitgelichte tools en het lidmaatschapsblok. De homepage laadt alleen de kleine kop van de afvaldata (`afval-bron.json`), niet de 342 rijen.
+Sinds 14 november 2026 (positionering) staat de Heffingenscan voorop: h1 "Wat kosten de heffingen op restafval uw gemeente?", het zoekveld `GemeenteZoeker`, het voorbeeld Overbetuwe in drie tegels (cijfers uit `heffingenVoorbeeld.ts`, geen overgetypte bedragen) met de enige Magenta knop, het landelijke beeld in één zin, zeven stroomtegels met het CBS-kerncijfer (uit `landelijkeFeiten` van de stromenpagina's, `stromen-landelijk.json`, 7 kB), vijf lagen (cijfers en kaart, geld en regels, tools, aanbestedingen, documenten en contracten) met wat gratis is en wat voor leden, een regel naar het lidmaatschap (de prijstabel staat er niet meer) en de drie nieuwste berichten en publicaties. De kleine kaart en de landelijke CBS-tegels zijn van de homepage af; ze staan op `/restafvalkaart` en `/stromen`. Opmaak: `src/pages/Home.css`.
 
 ### Nieuws (`/nieuws`)
 

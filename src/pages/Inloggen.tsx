@@ -380,7 +380,7 @@ function AanbodKaart({ zonderArchief = false }: { zonderArchief?: boolean }) {
       </ul>
       {!zonderArchief && (
       <p className="klein">
-        Zonder account open: de <Link to="/restafvalkaart">Restafvalkaart</Link>, <Link to="/kennisbank">kennisbank</Link>,{' '}
+        Zonder account open: de <Link to="/heffingenscan">Heffingenscan</Link>, de <Link to="/restafvalkaart">Restafvalkaart</Link>, <Link to="/kennisbank">kennisbank</Link>,{' '}
         <Link to="/nieuws">nieuws</Link>, de <Link to="/tools/aanbestedingstool">aanbestedingstool</Link> en het gratis deel van de{' '}
         {metPro.map((o, i) => (
           <span key={o.pad}>

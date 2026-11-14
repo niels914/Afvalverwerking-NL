@@ -451,7 +451,6 @@ function Archief() {
             label="Documenten"
             waarde={filters.soort}
             onChange={(v) => zetFilters({ soort: v })}
-            hint="Soort document is een indeling van dit platform, afgeleid van de bestandsnaam."
             opties={[
               { waarde: '', label: 'Alle aanbestedingen' },
               { waarde: 'overeenkomst', label: 'Met conceptovereenkomst' },
@@ -818,7 +817,7 @@ function DocumentenEnGunning({ a, open }: { a: AanbestedingRegel; open: boolean 
           {!fout && !docs && <p className="muted">Documenten laden…</p>}
           {groepen.map((g) => (
             <div key={g.soort} className="archief-docgroep">
-              <h4>{g.label}</h4>
+              <p className="archief-docgroep-kop">{g.label}</p>
               <ul>
                 {g.docs.map((d) => (
                   <li key={d.document_id}>
