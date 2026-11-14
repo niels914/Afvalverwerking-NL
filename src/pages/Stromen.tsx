@@ -80,7 +80,7 @@ export function Stromen() {
                 )}
                 <p className="klein">
                   <Link className="link-pijl" to={stroomPad(s.id)}>
-                    Naar {s.naam.toLowerCase()}
+                    Bekijk de stroom
                   </Link>
                 </p>
               </article>
