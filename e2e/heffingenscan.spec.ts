@@ -97,6 +97,21 @@ test.describe('Heffingenscan: overzicht en zoeken', () => {
   });
 });
 
+// Op een trage verbinding kan iemand versturen voordat de gemeentelijst binnen is. De zoekopdracht moet dan doorlopen
+// zodra de lijst er is, zonder tweede klik.
+test('zoekveld op de homepage: versturen voordat de gemeentelijst geladen is, gaat alsnog naar de gemeentepagina', async ({ page }) => {
+  await page.route('**/assets/heffingen-gemeenten-*.js', async (route) => {
+    await new Promise((klaar) => setTimeout(klaar, 1500));
+    await route.continue();
+  });
+  await page.goto('/');
+  const veld = page.getByLabel('Zoek uw gemeente');
+  await veld.fill('Arnhem');
+  await page.getByRole('button', { name: 'Toon mijn gemeente' }).click();
+  await expect(page).toHaveURL(/\/heffingenscan\/arnhem$/);
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Arnhem');
+});
+
 test.describe('Heffingenscan: gemeentepagina Overbetuwe', () => {
   test('toont de controlecijfers, de nascheidingsmelding en de wetsstatus', async ({ page }) => {
     await page.goto('/heffingenscan/overbetuwe');

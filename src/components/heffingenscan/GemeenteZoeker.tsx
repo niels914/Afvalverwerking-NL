@@ -33,16 +33,26 @@ export function GemeenteZoeker({ label = 'Zoek uw gemeente', knop = 'Toon mijn g
   const [open, setOpen] = useState(false);
   const [actief, setActief] = useState(-1);
   const [melding, setMelding] = useState('');
-  const geladen = useRef(Boolean(gemeenten));
+  const laden = useRef<Promise<Keuze[]> | null>(null);
 
   useEffect(() => {
     if (gemeenten) setLijst(gemeenten);
   }, [gemeenten]);
 
-  function laad() {
-    if (geladen.current) return;
-    geladen.current = true;
-    import('../../data/heffingen-gemeenten').then((m) => setLijst(m.heffingGemeenten));
+  /** Laadt de gemeentelijst één keer; geeft dezelfde belofte terug aan wie er later om vraagt. */
+  function laad(): Promise<Keuze[]> {
+    if (lijst) return Promise.resolve(lijst);
+    if (!laden.current) {
+      laden.current = import('../../data/heffingen-gemeenten').then((m) => {
+        setLijst(m.heffingGemeenten);
+        return m.heffingGemeenten as Keuze[];
+      });
+      // Mislukt het laden (verbinding weg), dan mag een volgende poging opnieuw beginnen.
+      laden.current.catch(() => {
+        laden.current = null;
+      });
+    }
+    return laden.current;
   }
 
   const treffers = lijst && tekst.trim() ? zoekHeffingGemeenten(tekst, lijst, 8) : [];
@@ -58,11 +68,19 @@ export function GemeenteZoeker({ label = 'Zoek uw gemeente', knop = 'Toon mijn g
   function verstuur(e: FormEvent) {
     e.preventDefault();
     if (!lijst) {
-      laad();
-      setMelding('De gemeentelijst wordt geladen. Probeer het over een moment opnieuw.');
+      // Wie verstuurt voordat de lijst binnen is (trage verbinding), hoeft niet opnieuw te klikken: de zoekopdracht loopt door zodra de lijst er is.
+      setMelding('De gemeentelijst wordt geladen…');
+      laad().then(
+        (geladenLijst) => zoek(geladenLijst),
+        () => setMelding('De gemeentelijst kon niet worden geladen. Controleer uw verbinding en probeer het opnieuw.'),
+      );
       return;
     }
     if (actief >= 0 && treffers[actief]) return kies(treffers[actief]);
+    zoek(lijst);
+  }
+
+  function zoek(lijst: Keuze[]) {
     if (!tekst.trim()) {
       setMelding('Typ de naam van uw gemeente.');
       return;
